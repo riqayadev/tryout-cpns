@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulasi SKD — TryoutCPNS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: { DEFAULT: '#1d4ed8', light: '#3b82f6', dark: '#1e3a8a' },
+            accent:  { DEFAULT: '#f59e0b' },
+          },
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+</head>
+<body class="font-sans bg-gray-50 antialiased min-h-screen">
+
+  <!-- Navbar tryout -->
+  <nav class="fixed top-0 inset-x-0 z-50 bg-white border-b border-gray-200 shadow-sm">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <a href="index.html" class="font-extrabold text-primary text-lg flex items-center gap-1.5">
+          <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          </svg>
+          TryoutCPNS
+        </a>
+        <span class="hidden sm:inline text-gray-300">|</span>
+        <span class="hidden sm:inline text-sm font-semibold text-gray-600">Simulasi SKD 2025</span>
+      </div>
+      <!-- Timer -->
+      <div id="timerBox" class="flex items-center gap-2 bg-red-50 border border-red-200 px-4 py-1.5 rounded-xl">
+        <svg class="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+        </svg>
+        <span id="timerDisplay" class="text-red-600 font-extrabold text-base tabular-nums">100:00</span>
+      </div>
+      <button
+        onclick="confirmFinish()"
+        class="text-sm font-semibold text-white bg-primary px-4 py-2 rounded-lg hover:bg-primary-dark transition hidden sm:block"
+      >
+        Selesaikan Ujian
+      </button>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div id="tryoutScreen" class="pt-14 min-h-screen">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-6 flex flex-col lg:flex-row gap-6">
+
+      <!-- Question Panel -->
+      <div class="flex-1 order-2 lg:order-1">
+        <!-- Category badge -->
+        <div class="flex items-center gap-3 mb-4">
+          <span id="categoryBadge" class="text-xs font-bold px-3 py-1 rounded-full bg-blue-100 text-blue-700 uppercase tracking-wide">TWK</span>
+          <span class="text-gray-400 text-sm" id="questionCounter">Soal 1 dari 110</span>
+        </div>
+
+        <!-- Question Card -->
+        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 sm:p-8 mb-4">
+          <p class="text-gray-800 font-semibold text-base leading-relaxed mb-6" id="questionText">
+            Memuat soal...
+          </p>
+          <div id="optionsContainer" class="space-y-3"></div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="flex items-center justify-between">
+          <button
+            id="btnPrev"
+            onclick="navigate(-1)"
+            class="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+            Sebelumnya
+          </button>
+
+          <button
+            onclick="confirmFinish()"
+            class="sm:hidden text-sm font-semibold text-white bg-primary px-4 py-2.5 rounded-xl hover:bg-primary-dark transition"
+          >
+            Selesai
+          </button>
+
+          <button
+            id="btnNext"
+            onclick="navigate(1)"
+            class="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary-dark disabled:opacity-40 disabled:cursor-not-allowed transition"
+          >
+            Berikutnya
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Sidebar: question grid -->
+      <div class="w-full lg:w-72 order-1 lg:order-2 flex-shrink-0">
+        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 sticky top-20">
+          <h3 class="font-bold text-gray-800 text-sm mb-3">Navigasi Soal</h3>
+          <!-- Category legend -->
+          <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs mb-3">
+            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-sm bg-blue-600 inline-block"></span>TWK</span>
+            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-sm bg-purple-600 inline-block"></span>TIU</span>
+            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-sm bg-teal-600 inline-block"></span>TKP</span>
+          </div>
+          <div class="grid grid-cols-8 gap-1.5 mb-4" id="questionGrid"></div>
+
+          <!-- Legend -->
+          <div class="border-t border-gray-100 pt-3 space-y-1.5 text-xs text-gray-500">
+            <div class="flex items-center gap-2"><span class="w-5 h-5 rounded bg-primary inline-block border-2 border-primary"></span>Sedang dikerjakan</div>
+            <div class="flex items-center gap-2"><span class="w-5 h-5 rounded bg-green-100 border border-green-400 inline-block"></span>Sudah dijawab</div>
+            <div class="flex items-center gap-2"><span class="w-5 h-5 rounded bg-yellow-100 border border-yellow-400 inline-block"></span>Ditandai / Ragu</div>
+            <div class="flex items-center gap-2"><span class="w-5 h-5 rounded bg-gray-100 border border-gray-300 inline-block"></span>Belum dijawab</div>
+          </div>
+
+          <button
+            onclick="toggleFlag()"
+            id="flagBtn"
+            class="mt-4 w-full flex items-center justify-center gap-2 border border-yellow-400 text-yellow-600 text-sm font-semibold py-2 rounded-xl hover:bg-yellow-50 transition"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"/>
+            </svg>
+            <span id="flagBtnText">Tandai Soal Ini</span>
+          </button>
+
+          <!-- Summary -->
+          <div class="mt-4 border-t border-gray-100 pt-3 text-xs space-y-1">
+            <div class="flex justify-between text-gray-500"><span>Total Soal</span><span class="font-semibold text-gray-700">110</span></div>
+            <div class="flex justify-between text-gray-500"><span>Sudah Dijawab</span><span class="font-semibold text-green-600" id="answeredCount">0</span></div>
+            <div class="flex justify-between text-gray-500"><span>Belum Dijawab</span><span class="font-semibold text-red-500" id="unansweredCount">110</span></div>
+            <div class="flex justify-between text-gray-500"><span>Ditandai</span><span class="font-semibold text-yellow-600" id="flaggedCount">0</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm Finish Modal -->
+  <div id="confirmModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full">
+      <div class="text-center mb-6">
+        <div class="w-16 h-16 bg-amber-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <svg class="w-8 h-8 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.072 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+          </svg>
+        </div>
+        <h3 class="text-xl font-extrabold text-gray-900 mb-2">Akhiri Ujian?</h3>
+        <p class="text-gray-500 text-sm" id="confirmModalText">Kamu masih memiliki soal yang belum dijawab. Yakin ingin mengakhiri ujian sekarang?</p>
+      </div>
+      <div class="flex gap-3">
+        <button onclick="closeModal()" class="flex-1 py-3 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition">Kembali</button>
+        <button onclick="finishExam()" class="flex-1 py-3 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary-dark transition">Ya, Selesaikan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Result Screen -->
+  <div id="resultScreen" class="hidden fixed inset-0 bg-gray-50 z-40 overflow-y-auto">
+    <div class="max-w-3xl mx-auto px-4 py-12 sm:py-16">
+      <!-- Header -->
+      <div class="text-center mb-10">
+        <div class="w-20 h-20 mx-auto mb-5 rounded-full flex items-center justify-center bg-gradient-to-br from-primary to-blue-400 shadow-xl" id="resultIcon">
+          <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+        <h2 class="text-3xl font-extrabold text-gray-900 mb-1">Tryout Selesai!</h2>
+        <p class="text-gray-500">Berikut hasil simulasi SKD kamu</p>
+      </div>
+
+      <!-- Score Cards -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+        <div class="col-span-2 sm:col-span-4 bg-white rounded-2xl shadow border border-gray-100 p-6 text-center">
+          <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Total Nilai SKD</p>
+          <p class="text-6xl font-extrabold" id="totalScore">—</p>
+          <p class="text-gray-400 text-sm mt-1">Nilai Kelulusan SKD: <span class="font-bold text-gray-700">311</span></p>
+          <div id="passFailBadge" class="mt-3 inline-block px-4 py-1 rounded-full text-sm font-bold"></div>
+        </div>
+        <div class="bg-blue-50 rounded-2xl p-4 text-center border border-blue-100">
+          <p class="text-xs font-semibold text-blue-500 mb-1">TWK</p>
+          <p class="text-2xl font-extrabold text-blue-700" id="scoreTWK">—</p>
+          <p class="text-xs text-blue-400 mt-1">Passing: 65</p>
+        </div>
+        <div class="bg-purple-50 rounded-2xl p-4 text-center border border-purple-100">
+          <p class="text-xs font-semibold text-purple-500 mb-1">TIU</p>
+          <p class="text-2xl font-extrabold text-purple-700" id="scoreTIU">—</p>
+          <p class="text-xs text-purple-400 mt-1">Passing: 80</p>
+        </div>
+        <div class="bg-teal-50 rounded-2xl p-4 text-center border border-teal-100">
+          <p class="text-xs font-semibold text-teal-500 mb-1">TKP</p>
+          <p class="text-2xl font-extrabold text-teal-700" id="scoreTKP">—</p>
+          <p class="text-xs text-teal-400 mt-1">Passing: 166</p>
+        </div>
+        <div class="bg-gray-50 rounded-2xl p-4 text-center border border-gray-200">
+          <p class="text-xs font-semibold text-gray-400 mb-1">Waktu Tersisa</p>
+          <p class="text-2xl font-extrabold text-gray-700" id="timeLeft">—</p>
+          <p class="text-xs text-gray-400 mt-1">dari 100:00</p>
+        </div>
+      </div>
+
+      <!-- Detail per answer -->
+      <div class="bg-white rounded-2xl border border-gray-100 shadow p-6 mb-8">
+        <h3 class="font-bold text-gray-900 mb-4">Rekap Jawaban</h3>
+        <div class="grid grid-cols-3 gap-4 text-center">
+          <div>
+            <p class="text-3xl font-extrabold text-green-600" id="correctCount">—</p>
+            <p class="text-xs text-gray-500 mt-1">Benar</p>
+          </div>
+          <div>
+            <p class="text-3xl font-extrabold text-red-500" id="wrongCount">—</p>
+            <p class="text-xs text-gray-500 mt-1">Salah</p>
+          </div>
+          <div>
+            <p class="text-3xl font-extrabold text-gray-400" id="emptyCount">—</p>
+            <p class="text-xs text-gray-500 mt-1">Tidak Dijawab</p>
+          </div>
+        </div>
+        <div class="mt-4 h-3 bg-gray-100 rounded-full overflow-hidden flex">
+          <div id="barCorrect" class="h-full bg-green-500 transition-all duration-700" style="width:0%"></div>
+          <div id="barWrong" class="h-full bg-red-400 transition-all duration-700" style="width:0%"></div>
+        </div>
+      </div>
+
+      <!-- Answer Review -->
+      <div class="bg-white rounded-2xl border border-gray-100 shadow p-6 mb-8">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-bold text-gray-900">Pembahasan Jawaban</h3>
+          <span class="text-xs text-gray-400">Klik soal untuk lihat detail</span>
+        </div>
+        <div id="reviewList" class="space-y-3 max-h-96 overflow-y-auto pr-1"></div>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex flex-col sm:flex-row gap-3">
+        <button onclick="restartExam()" class="flex-1 bg-primary text-white font-bold py-3.5 rounded-xl hover:bg-primary-dark transition shadow-lg">
+          Coba Tryout Lagi
+        </button>
+        <a href="index.html" class="flex-1 text-center border border-gray-200 text-gray-700 font-semibold py-3.5 rounded-xl hover:bg-gray-50 transition">
+          Kembali ke Beranda
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ============================================================
+    // BANK SOAL (contoh 15 soal — extendable)
+    // ============================================================
+    const questions = [
+      // TWK (1-5)
+      { id: 1, category: 'TWK', text: 'Pancasila sebagai dasar negara Indonesia pertama kali dirumuskan oleh Panitia Sembilan dan disahkan oleh PPKI pada tanggal...', options: ['1 Juni 1945', '16 Agustus 1945', '18 Agustus 1945', '17 Agustus 1945'], correct: 2 },
+      { id: 2, category: 'TWK', text: 'Nilai-nilai dasar Aparatur Sipil Negara (ASN) yang ditetapkan oleh Pemerintah Indonesia melalui Peraturan Presiden dikenal dengan akronim...', options: ['PRIMA', 'BerAKHLAK', 'SMART ASN', 'P4'], correct: 1 },
+      { id: 3, category: 'TWK', text: 'Undang-Undang Dasar Negara Republik Indonesia Tahun 1945 Pasal 1 ayat (3) menyatakan bahwa Indonesia adalah negara...', options: ['Federasi yang berdasarkan hukum', 'Hukum', 'Kesatuan berbentuk republik', 'Demokrasi Pancasila'], correct: 1 },
+      { id: 4, category: 'TWK', text: 'Lembaga negara yang memiliki kewenangan menguji undang-undang terhadap UUD 1945 adalah...', options: ['Mahkamah Agung', 'Komisi Yudisial', 'Mahkamah Konstitusi', 'DPR RI'], correct: 2 },
+      { id: 5, category: 'TWK', text: 'Bhineka Tunggal Ika berasal dari kitab kuno yang ditulis oleh Mpu Tantular, yaitu kitab...', options: ['Negarakertagama', 'Sutasoma', 'Pararaton', 'Mahabarata'], correct: 1 },
+      // TIU (6-10)
+      { id: 6, category: 'TIU', text: 'Jika 3x + 7 = 22, maka nilai dari 5x − 3 adalah...', options: ['22', '25', '27', '30'], correct: 0 },
+      { id: 7, category: 'TIU', text: 'Seorang pegawai mendapat gaji pokok Rp 4.200.000. Ia mendapat tunjangan sebesar 25% dari gaji pokok dan potongan sebesar 10% dari gaji pokok. Berapa gaji bersih yang diterima?', options: ['Rp 4.830.000', 'Rp 4.620.000', 'Rp 4.410.000', 'Rp 5.040.000'], correct: 0 },
+      { id: 8, category: 'TIU', text: 'Pola bilangan: 2, 6, 18, 54, ... Bilangan selanjutnya adalah...', options: ['108', '162', '216', '270'], correct: 1 },
+      { id: 9, category: 'TIU', text: 'NOVEL : FIKSI = KORAN : ...', options: ['Berita', 'Media', 'Fakta', 'Wartawan'], correct: 0 },
+      { id: 10, category: 'TIU', text: 'Semua dokter adalah sarjana. Budi adalah sarjana. Kesimpulan yang tepat adalah...', options: ['Budi adalah dokter', 'Budi mungkin adalah dokter', 'Budi bukan dokter', 'Semua sarjana adalah dokter'], correct: 1 },
+      // TKP (11-15)
+      { id: 11, category: 'TKP', text: 'Ketika Anda menemukan rekan kerja yang melakukan kesalahan prosedur, tindakan terbaik yang Anda lakukan adalah...', options: ['Melaporkan langsung kepada atasan tanpa bicara dengan rekan tersebut', 'Mendiamkan karena bukan urusan Anda', 'Menegur dengan sopan dan memberitahu prosedur yang benar', 'Mengambil alih pekerjaan rekan tersebut'], correct: 2 },
+      { id: 12, category: 'TKP', text: 'Atasan Anda memberikan instruksi yang menurut Anda kurang tepat. Sikap yang paling profesional adalah...', options: ['Menolak tegas instruksi tersebut di depan tim', 'Mengikuti instruksi karena atasan selalu benar', 'Menyampaikan pendapat Anda secara sopan dan meminta klarifikasi', 'Diam dan tidak melaksanakan instruksi'], correct: 2 },
+      { id: 13, category: 'TKP', text: 'Saat antrian panjang di loket pelayanan, seorang warga marah-marah karena menunggu lama. Sebagai petugas, Anda sebaiknya...', options: ['Mengabaikan warga tersebut karena sudah diatur urutannya', 'Meminta warga tersebut keluar dari antrian', 'Memohon maaf, menjelaskan kondisi, dan berusaha mempercepat pelayanan', 'Memanggil petugas keamanan'], correct: 2 },
+      { id: 14, category: 'TKP', text: 'Anda mendapat tugas baru yang belum pernah Anda kerjakan sebelumnya. Sikap yang paling tepat adalah...', options: ['Menolak karena di luar job description', 'Menunda sebisa mungkin', 'Menerima dengan antusias dan mempelajari tugas baru tersebut', 'Meminta rekan lain untuk mengerjakannya'], correct: 2 },
+      { id: 15, category: 'TKP', text: 'Anda mengetahui ada pungutan liar di unit kerja Anda. Tindakan yang paling tepat adalah...', options: ['Diam karena takut terkena dampak', 'Ikut berpartisipasi agar tidak dikucilkan', 'Melaporkan kepada pejabat berwenang melalui mekanisme yang tersedia', 'Menceritakan kepada media massa'], correct: 2 },
+    ];
+
+    // Extend to 110 by repeating (demo only)
+    const TOTAL = 110;
+    const fullQuestions = [];
+    for (let i = 0; i < TOTAL; i++) {
+      const base = questions[i % questions.length];
+      fullQuestions.push({ ...base, id: i + 1 });
+    }
+
+    // Category config
+    const CAT_CONFIG = {
+      TWK: { color: 'bg-blue-600', badge: 'bg-blue-100 text-blue-700', range: [0, 29] },
+      TIU: { color: 'bg-purple-600', badge: 'bg-purple-100 text-purple-700', range: [30, 64] },
+      TKP: { color: 'bg-teal-600', badge: 'bg-teal-100 text-teal-700', range: [65, 109] },
+    };
+
+    function getCategory(idx) {
+      if (idx <= 29) return 'TWK';
+      if (idx <= 64) return 'TIU';
+      return 'TKP';
+    }
+
+    // State
+    let currentIndex = 0;
+    let answers   = new Array(TOTAL).fill(null);
+    let flagged   = new Array(TOTAL).fill(false);
+    let timerSecs = 100 * 60;
+    let timerInterval;
+    let examFinished = false;
+
+    // ============================================================
+    // TIMER
+    // ============================================================
+    function startTimer() {
+      timerInterval = setInterval(() => {
+        if (timerSecs <= 0) { finishExam(); return; }
+        timerSecs--;
+        updateTimerDisplay();
+      }, 1000);
+    }
+
+    function updateTimerDisplay() {
+      const m = Math.floor(timerSecs / 60).toString().padStart(2, '0');
+      const s = (timerSecs % 60).toString().padStart(2, '0');
+      const el = document.getElementById('timerDisplay');
+      el.textContent = `${m}:${s}`;
+      const box = document.getElementById('timerBox');
+      if (timerSecs <= 300) {
+        box.className = 'flex items-center gap-2 bg-red-500 border border-red-500 px-4 py-1.5 rounded-xl animate-pulse';
+        el.className  = 'text-white font-extrabold text-base tabular-nums';
+      } else if (timerSecs <= 900) {
+        box.className = 'flex items-center gap-2 bg-orange-50 border border-orange-300 px-4 py-1.5 rounded-xl';
+        el.className  = 'text-orange-500 font-extrabold text-base tabular-nums';
+      }
+    }
+
+    // ============================================================
+    // RENDER
+    // ============================================================
+    function renderQuestion() {
+      const q = fullQuestions[currentIndex];
+      const cat = getCategory(currentIndex);
+
+      // Category badge
+      const badge = document.getElementById('categoryBadge');
+      badge.textContent = cat;
+      badge.className = `text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide ${CAT_CONFIG[cat].badge}`;
+
+      document.getElementById('questionCounter').textContent = `Soal ${currentIndex + 1} dari ${TOTAL}`;
+      document.getElementById('questionText').textContent = q.text;
+
+      const optLabels = ['A', 'B', 'C', 'D'];
+      const container = document.getElementById('optionsContainer');
+      container.innerHTML = '';
+      q.options.forEach((opt, i) => {
+        const selected = answers[currentIndex] === i;
+        const div = document.createElement('button');
+        div.type = 'button';
+        div.className = `w-full flex items-start gap-3 p-3.5 rounded-xl border text-sm text-left transition ${
+          selected
+            ? 'border-primary bg-blue-50 text-primary font-semibold shadow-sm'
+            : 'border-gray-200 text-gray-700 hover:border-primary hover:bg-blue-50'
+        }`;
+        div.innerHTML = `
+          <span class="w-7 h-7 flex-shrink-0 flex items-center justify-center rounded-full border-2 text-xs font-bold ${
+            selected ? 'bg-primary border-primary text-white' : 'border-gray-300 text-gray-400'
+          }">${optLabels[i]}</span>
+          <span class="pt-0.5">${opt}</span>
+        `;
+        div.onclick = () => selectAnswer(i);
+        container.appendChild(div);
+      });
+
+      document.getElementById('btnPrev').disabled = currentIndex === 0;
+      document.getElementById('btnNext').disabled = currentIndex === TOTAL - 1;
+
+      // Flag button
+      const flagBtnText = document.getElementById('flagBtnText');
+      flagBtnText.textContent = flagged[currentIndex] ? 'Hapus Tanda' : 'Tandai Soal Ini';
+
+      updateGrid();
+      updateSummary();
+    }
+
+    function selectAnswer(optIdx) {
+      answers[currentIndex] = optIdx;
+      renderQuestion();
+    }
+
+    function navigate(dir) {
+      const next = currentIndex + dir;
+      if (next >= 0 && next < TOTAL) {
+        currentIndex = next;
+        renderQuestion();
+      }
+    }
+
+    function toggleFlag() {
+      flagged[currentIndex] = !flagged[currentIndex];
+      renderQuestion();
+    }
+
+    // ============================================================
+    // GRID
+    // ============================================================
+    function updateGrid() {
+      const grid = document.getElementById('questionGrid');
+      grid.innerHTML = '';
+      fullQuestions.forEach((_, i) => {
+        const cat = getCategory(i);
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        let cls = 'w-7 h-7 rounded text-xs font-bold flex items-center justify-center transition ';
+        if (i === currentIndex) {
+          cls += 'bg-primary text-white border-2 border-primary';
+        } else if (flagged[i]) {
+          cls += 'bg-yellow-100 border border-yellow-400 text-yellow-700';
+        } else if (answers[i] !== null) {
+          cls += 'bg-green-100 border border-green-400 text-green-700';
+        } else {
+          const catColors = { TWK: 'bg-gray-100 border border-gray-300 text-gray-500 hover:bg-blue-50', TIU: 'bg-gray-100 border border-gray-300 text-gray-500 hover:bg-purple-50', TKP: 'bg-gray-100 border border-gray-300 text-gray-500 hover:bg-teal-50' };
+          cls += catColors[cat];
+        }
+        btn.className = cls;
+        btn.textContent = i + 1;
+        btn.onclick = () => { currentIndex = i; renderQuestion(); };
+        grid.appendChild(btn);
+      });
+    }
+
+    function updateSummary() {
+      const answered = answers.filter(a => a !== null).length;
+      document.getElementById('answeredCount').textContent  = answered;
+      document.getElementById('unansweredCount').textContent = TOTAL - answered;
+      document.getElementById('flaggedCount').textContent   = flagged.filter(Boolean).length;
+    }
+
+    // ============================================================
+    // FINISH
+    // ============================================================
+    function confirmFinish() {
+      const unanswered = answers.filter(a => a === null).length;
+      document.getElementById('confirmModalText').textContent = unanswered > 0
+        ? `Masih ada ${unanswered} soal yang belum dijawab. Yakin ingin mengakhiri ujian?`
+        : 'Semua soal sudah dijawab. Yakin ingin mengakhiri ujian?';
+      document.getElementById('confirmModal').classList.remove('hidden');
+    }
+
+    function closeModal() {
+      document.getElementById('confirmModal').classList.add('hidden');
+    }
+
+    function finishExam() {
+      if (examFinished) return;
+      examFinished = true;
+      clearInterval(timerInterval);
+      closeModal();
+      calculateAndShowResult();
+    }
+
+    // ============================================================
+    // SCORING (SKD: TWK benar=5, TIU benar=5, TKP 1-5 per soal)
+    // ============================================================
+    function calculateAndShowResult() {
+      let scoreTWK = 0, scoreTIU = 0, scoreTKP = 0;
+      let correct = 0, wrong = 0, empty = 0;
+
+      fullQuestions.forEach((q, i) => {
+        const cat = getCategory(i);
+        const ans = answers[i];
+        if (ans === null) { empty++; return; }
+        if (ans === q.correct) {
+          correct++;
+          if (cat === 'TWK') scoreTWK += 5;
+          else if (cat === 'TIU') scoreTIU += 5;
+          else scoreTKP += 5;
+        } else {
+          wrong++;
+          if (cat === 'TKP') scoreTKP += 1; // TKP tidak ada nilai 0
+        }
+      });
+
+      // TKP minimal 1 per soal dijawab
+      const tkpAnswered = fullQuestions.filter((_, i) => getCategory(i) === 'TKP' && answers[i] !== null).length;
+      scoreTKP = Math.min(scoreTKP, tkpAnswered * 5);
+
+      const total = scoreTWK + scoreTIU + scoreTKP;
+      const pass  = scoreTWK >= 65 && scoreTIU >= 80 && scoreTKP >= 166;
+
+      document.getElementById('totalScore').textContent = total;
+      document.getElementById('scoreTWK').textContent   = scoreTWK;
+      document.getElementById('scoreTIU').textContent   = scoreTIU;
+      document.getElementById('scoreTKP').textContent   = scoreTKP;
+      document.getElementById('correctCount').textContent = correct;
+      document.getElementById('wrongCount').textContent   = wrong;
+      document.getElementById('emptyCount').textContent   = empty;
+
+      const m = Math.floor(timerSecs / 60).toString().padStart(2, '0');
+      const s = (timerSecs % 60).toString().padStart(2, '0');
+      document.getElementById('timeLeft').textContent = `${m}:${s}`;
+
+      const badge = document.getElementById('passFailBadge');
+      if (pass) {
+        badge.textContent = '✓ LULUS Passing Grade SKD';
+        badge.className   = 'mt-3 inline-block px-4 py-1 rounded-full text-sm font-bold bg-green-100 text-green-700';
+        document.getElementById('totalScore').className = 'text-6xl font-extrabold text-green-600';
+      } else {
+        badge.textContent = '✗ Belum Memenuhi Passing Grade';
+        badge.className   = 'mt-3 inline-block px-4 py-1 rounded-full text-sm font-bold bg-red-100 text-red-700';
+        document.getElementById('totalScore').className = 'text-6xl font-extrabold text-red-500';
+      }
+
+      const barCorrect = (correct / TOTAL * 100).toFixed(1);
+      const barWrong   = (wrong   / TOTAL * 100).toFixed(1);
+      setTimeout(() => {
+        document.getElementById('barCorrect').style.width = barCorrect + '%';
+        document.getElementById('barWrong').style.width   = barWrong   + '%';
+      }, 100);
+
+      // Review list
+      const reviewList = document.getElementById('reviewList');
+      reviewList.innerHTML = '';
+      fullQuestions.forEach((q, i) => {
+        const cat = getCategory(i);
+        const ans = answers[i];
+        const isCorrect = ans === q.correct;
+        const isEmpty   = ans === null;
+        const optLabels = ['A', 'B', 'C', 'D'];
+
+        const item = document.createElement('details');
+        item.className = `rounded-xl border overflow-hidden ${
+          isEmpty    ? 'border-gray-200' :
+          isCorrect  ? 'border-green-200 bg-green-50' :
+                       'border-red-200 bg-red-50'
+        }`;
+
+        item.innerHTML = `
+          <summary class="flex items-center gap-3 p-3 cursor-pointer select-none">
+            <span class="w-6 h-6 flex-shrink-0 rounded flex items-center justify-center text-xs font-bold ${
+              isEmpty   ? 'bg-gray-200 text-gray-500' :
+              isCorrect ? 'bg-green-500 text-white' :
+                          'bg-red-500 text-white'
+            }">${i + 1}</span>
+            <span class="text-sm font-medium text-gray-700 flex-1 line-clamp-1">${q.text}</span>
+            <span class="text-xs font-semibold ${CAT_CONFIG[cat].badge} px-2 py-0.5 rounded-full flex-shrink-0">${cat}</span>
+            <span class="text-xs font-bold flex-shrink-0 ${isEmpty ? 'text-gray-400' : isCorrect ? 'text-green-600' : 'text-red-600'}">
+              ${isEmpty ? 'Kosong' : isCorrect ? 'Benar' : 'Salah'}
+            </span>
+          </summary>
+          <div class="px-3 pb-3 text-sm">
+            <p class="text-gray-700 mb-2 leading-relaxed">${q.text}</p>
+            ${q.options.map((opt, oi) => `
+              <div class="flex items-center gap-2 py-1 px-2 rounded-lg mb-1 ${
+                oi === q.correct  ? 'bg-green-100 text-green-800 font-semibold' :
+                oi === ans && !isCorrect ? 'bg-red-100 text-red-700' :
+                'text-gray-600'
+              }">
+                <span class="font-bold">${optLabels[oi]}.</span>
+                <span>${opt}</span>
+                ${oi === q.correct   ? '<span class="ml-auto text-green-600 text-xs">✓ Kunci Jawaban</span>' : ''}
+                ${oi === ans && !isCorrect ? '<span class="ml-auto text-red-500 text-xs">✗ Jawaban Kamu</span>' : ''}
+              </div>
+            `).join('')}
+          </div>
+        `;
+        reviewList.appendChild(item);
+      });
+
+      document.getElementById('tryoutScreen').classList.add('hidden');
+      document.getElementById('resultScreen').classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function restartExam() {
+      answers     = new Array(TOTAL).fill(null);
+      flagged     = new Array(TOTAL).fill(false);
+      currentIndex = 0;
+      timerSecs   = 100 * 60;
+      examFinished = false;
+
+      document.getElementById('resultScreen').classList.add('hidden');
+      document.getElementById('tryoutScreen').classList.remove('hidden');
+
+      const box = document.getElementById('timerBox');
+      box.className = 'flex items-center gap-2 bg-red-50 border border-red-200 px-4 py-1.5 rounded-xl';
+      document.getElementById('timerDisplay').className = 'text-red-600 font-extrabold text-base tabular-nums';
+
+      renderQuestion();
+      updateTimerDisplay();
+      startTimer();
+    }
+
+    // ============================================================
+    // INIT
+    // ============================================================
+    renderQuestion();
+    startTimer();
+  </script>
+
+</body>
+</html>
