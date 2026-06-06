@@ -112,7 +112,7 @@
   <div id="progressBanner" class="hidden bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm p-4 mb-6">
     <div class="flex items-center justify-between mb-2">
       <p class="text-sm font-semibold text-gray-700 dark:text-gray-300">Progress Tryout Gratis</p>
-      <p class="text-sm font-bold text-primary-600"><span id="progressCount">0</span> dari 5 dikerjakan</p>
+      <p class="text-sm font-bold text-primary-600"><span id="progressCount">0</span> dari <span id="progressTotal">5</span> dikerjakan</p>
     </div>
     <div class="h-2.5 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden">
       <div id="progressBar" class="h-full bg-primary-600 rounded-full transition-all duration-700" style="width:0%"></div>
@@ -169,6 +169,9 @@
     await _sb.auth.signOut(); localStorage.removeItem('skorin_history'); window.location.href = 'index.html';
   }
 
+  let allPakets = [];
+  let filterAktif = 'semua';
+
   (async () => {
     const { data: { session } } = await _sb.auth.getSession();
     if (!session) { window.location.replace('login.html'); return; }
@@ -179,31 +182,51 @@
     else document.getElementById('sbAvatar').textContent = initials;
     document.getElementById('sbName').textContent = name;
     document.getElementById('sbEmail').textContent = session.user.email;
-
-    // Progress gratis
-    const history = JSON.parse(localStorage.getItem('skorin_history') || '[]');
-    const gratisDone = [...new Set(history.filter(h=>h.gratis).map(h=>h.paketId))].length;
-    if (history.length > 0) {
-      document.getElementById('progressBanner').classList.remove('hidden');
-      document.getElementById('progressCount').textContent = Math.min(5, gratisDone);
-      document.getElementById('progressBar').style.width = Math.min(100, gratisDone/5*100) + '%';
-      document.getElementById('progressMsg').textContent = gratisDone >= 5
-        ? '🎉 Semua tryout gratis sudah dikerjakan! Coba upgrade ke Premium untuk soal lebih banyak.'
-        : `Selesaikan ${5 - Math.min(5, gratisDone)} tryout gratis lagi untuk unlock statistik lengkap.`;
-    }
-    renderPakets();
+    await fetchPakets();
   })();
 
-  // latihanId = paket_id ganjil, ujianId = paket_id genap
-  const pakets = [
-    {latihanId:1, ujianId:2, judul:'SKD Simulasi #1', desc:'Tryout SKD lengkap dengan soal tingkat mudah. Cocok untuk latihan pertama kali.', soal:110, level:'Mudah', tipe:'gratis', icon:'📝'},
-    {latihanId:3, ujianId:4, judul:'SKD Simulasi #2', desc:'Variasi soal lebih beragam dan menantang. Evaluasi pemahaman dasar SKD Anda.', soal:110, level:'Menengah', tipe:'gratis', icon:'📋'},
-    {latihanId:5, ujianId:6, judul:'SKD Simulasi #3', desc:'Soal berdasarkan kisi-kisi CPNS terbaru. Latihan intensif untuk persiapan maksimal.', soal:110, level:'Sulit', tipe:'gratis', icon:'📄'},
-    {latihanId:7, ujianId:8, judul:'SKD Premium #1', desc:'Bank soal premium eksklusif. Pembahasan super lengkap dengan referensi pasal dan sumber.', soal:110, level:'Sulit', tipe:'premium', icon:'💎'},
-    {latihanId:9, ujianId:10, judul:'SKD Premium #2', desc:'Soal prediksi CPNS terkini. Passing rate tertinggi, divalidasi oleh ASN aktif.', soal:110, level:'Sangat Sulit', tipe:'premium', icon:'🏆'},
-  ];
+  async function fetchPakets() {
+    const grid = document.getElementById('tryoutGrid');
+    grid.innerHTML = `<div class="col-span-3 text-center py-16">
+      <div class="animate-spin w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full mx-auto mb-3"></div>
+      <p class="text-gray-400 dark:text-gray-500">Memuat paket tryout...</p>
+    </div>`;
 
-  let filterAktif = 'semua';
+    const { data, error } = await _sb
+      .from('pakets')
+      .select('id, kode, nama, tipe, level, deskripsi, icon, total_soal')
+      .eq('aktif', true)
+      .order('id', { ascending: true });
+
+    if (error) {
+      grid.innerHTML = `<div class="col-span-3 text-center py-16">
+        <div class="text-4xl mb-3">⚠️</div>
+        <p class="text-red-500 dark:text-red-400 font-semibold">Gagal memuat paket</p>
+        <p class="text-gray-400 text-sm mt-1">${error.message}</p>
+      </div>`;
+      return;
+    }
+
+    allPakets = data || [];
+    updateProgressBanner();
+    renderPakets();
+  }
+
+  function updateProgressBanner() {
+    const history = JSON.parse(localStorage.getItem('skorin_history') || '[]');
+    const gratisPakets = allPakets.filter(p => p.tipe === 'gratis');
+    const gratisDone = gratisPakets.filter(p => history.some(h => h.paket === p.nama)).length;
+    const total = gratisPakets.length;
+    if (history.length > 0) {
+      document.getElementById('progressBanner').classList.remove('hidden');
+      document.getElementById('progressCount').textContent = gratisDone;
+      document.getElementById('progressTotal').textContent = total;
+      document.getElementById('progressBar').style.width = (total > 0 ? gratisDone / total * 100 : 0) + '%';
+      document.getElementById('progressMsg').textContent = gratisDone >= total && total > 0
+        ? '🎉 Semua tryout gratis sudah dikerjakan! Coba upgrade ke Premium untuk soal lebih banyak.'
+        : `Selesaikan ${total - gratisDone} tryout gratis lagi untuk unlock statistik lengkap.`;
+    }
+  }
 
   function setFilter(f) {
     filterAktif = f;
@@ -215,8 +238,14 @@
 
   function renderPakets() {
     const grid = document.getElementById('tryoutGrid');
-    const filtered = filterAktif === 'semua' ? pakets : pakets.filter(p => p.tipe === filterAktif);
-    const levelColor = {Mudah:'bg-green-100 text-green-700', Menengah:'bg-amber-100 text-amber-700', Sulit:'bg-red-100 text-red-700', 'Sangat Sulit':'bg-red-200 text-red-800'};
+    const filtered = filterAktif === 'semua' ? allPakets : allPakets.filter(p => p.tipe === filterAktif);
+    const levelColor = {
+      Mudah: 'bg-green-100 text-green-700',
+      Menengah: 'bg-amber-100 text-amber-700',
+      Sulit: 'bg-red-100 text-red-700',
+      'Sangat Sulit': 'bg-red-200 text-red-800',
+      Khusus: 'bg-purple-100 text-purple-700'
+    };
 
     if (!filtered.length) {
       grid.innerHTML = '<div class="col-span-3 text-center py-16"><div class="text-5xl mb-3">🔍</div><p class="text-gray-400 dark:text-gray-500">Tidak ada paket ditemukan.</p></div>';
@@ -224,6 +253,11 @@
     }
 
     grid.innerHTML = filtered.map(p => {
+      const icon = p.icon || '📝';
+      const level = p.level || 'Menengah';
+      const desc = p.deskripsi || 'Latihan SKD CPNS lengkap dengan soal TWK, TIU, dan TKP.';
+      const soal = p.total_soal || 110;
+
       if (p.tipe === 'premium') {
         return `
         <div class="relative bg-gradient-to-br from-amber-400 via-orange-400 to-amber-500 rounded-2xl p-5 shadow-lg shadow-amber-200/50 dark:shadow-none overflow-hidden">
@@ -231,41 +265,42 @@
           <div class="absolute bottom-0 left-0 w-16 h-16 bg-black/5 rounded-full translate-y-1/2 -translate-x-1/2"></div>
           <div class="relative">
             <div class="flex items-start justify-between mb-3">
-              <div class="text-3xl">${p.icon}</div>
+              <div class="text-3xl">${icon}</div>
               <div class="flex flex-col items-end gap-1">
                 <span class="bg-white/25 text-white text-xs font-bold px-2.5 py-1 rounded-full">PREMIUM ✨</span>
-                <span class="text-amber-900 text-xs font-medium px-2 py-0.5 rounded-full bg-white/20">${p.level}</span>
+                <span class="text-amber-900 text-xs font-medium px-2 py-0.5 rounded-full bg-white/20">${level}</span>
               </div>
             </div>
-            <h3 class="font-black text-white text-base mb-1">${p.judul}</h3>
-            <p class="text-amber-100 text-xs leading-relaxed mb-4">${p.desc}</p>
+            <h3 class="font-black text-white text-base mb-1">${p.nama}</h3>
+            <p class="text-amber-100 text-xs leading-relaxed mb-4">${desc}</p>
             <div class="flex items-center gap-3 text-xs text-amber-200 mb-4">
-              <span>📝 ${p.soal} soal</span><span>⏱️ 100 menit</span>
+              <span>📝 ${soal} soal</span><span>⏱️ 100 menit</span>
             </div>
             <button onclick="alertPremium()" class="w-full text-center bg-white/20 hover:bg-white/30 backdrop-blur border border-white/30 text-white text-sm font-bold py-2.5 rounded-xl transition">🔒 Upgrade untuk Akses</button>
           </div>
         </div>`;
       }
+
       return `
       <div class="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm p-5 hover:shadow-md hover:border-primary-300 dark:hover:border-primary-700 transition">
         <div class="flex items-start justify-between mb-3">
-          <div class="text-3xl">${p.icon}</div>
+          <div class="text-3xl">${icon}</div>
           <div class="flex flex-col items-end gap-1">
             <span class="bg-green-100 text-green-700 text-xs font-bold px-2.5 py-1 rounded-full">GRATIS</span>
-            <span class="text-xs font-medium px-2 py-0.5 rounded-full ${levelColor[p.level]||'bg-gray-100 text-gray-600'}">${p.level}</span>
+            <span class="text-xs font-medium px-2 py-0.5 rounded-full ${levelColor[level] || 'bg-gray-100 text-gray-600'}">${level}</span>
           </div>
         </div>
-        <h3 class="font-bold text-gray-900 dark:text-white mb-1">${p.judul}</h3>
-        <p class="text-gray-500 dark:text-gray-400 text-xs leading-relaxed mb-4">${p.desc}</p>
+        <h3 class="font-bold text-gray-900 dark:text-white mb-1">${p.nama}</h3>
+        <p class="text-gray-500 dark:text-gray-400 text-xs leading-relaxed mb-4">${desc}</p>
         <div class="flex items-center gap-4 text-xs text-gray-400 dark:text-gray-500 mb-4">
-          <span>📝 ${p.soal} soal</span><span>⏱️ 100 menit</span><span>📊 TWK·TIU·TKP</span>
+          <span>📝 ${soal} soal</span><span>⏱️ 100 menit</span><span>📊 TWK·TIU·TKP</span>
         </div>
         <div class="space-y-2">
-          <a href="tryout.html?id=${p.latihanId}&nama=${encodeURIComponent(p.judul)}&mode=latihan"
+          <a href="tryout.html?id=${p.id}&nama=${encodeURIComponent(p.nama)}&mode=latihan"
              class="flex items-center justify-center gap-2 border border-gray-200 dark:border-slate-600 hover:bg-amber-50 dark:hover:bg-slate-700 text-gray-700 dark:text-gray-300 text-xs font-semibold py-2.5 rounded-xl transition">
             📖 Mode Latihan <span class="text-gray-400 font-normal">(langsung lihat jawaban)</span>
           </a>
-          <a href="tryout.html?id=${p.ujianId}&nama=${encodeURIComponent(p.judul)}"
+          <a href="tryout.html?id=${p.id}&nama=${encodeURIComponent(p.nama)}"
              class="flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 text-white text-xs font-bold py-2.5 rounded-xl transition">
             ⏱ Mode Ujian <span class="font-normal opacity-80">(timer · fullscreen)</span>
           </a>
