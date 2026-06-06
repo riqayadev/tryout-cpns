@@ -175,6 +175,7 @@
 
   let allPakets = [];
   let filterAktif = 'semua';
+  let attemptsByPaket = {};
 
   (async () => {
     const { data: { session } } = await _sb.auth.getSession();
@@ -186,32 +187,37 @@
     else document.getElementById('sbAvatar').textContent = initials;
     document.getElementById('sbName').textContent = name;
     document.getElementById('sbEmail').textContent = session.user.email;
-    await fetchPakets();
+    await fetchPakets(session);
   })();
 
-  async function fetchPakets() {
+  async function fetchPakets(session) {
     const grid = document.getElementById('tryoutGrid');
     grid.innerHTML = `<div class="col-span-3 text-center py-16">
       <div class="animate-spin w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full mx-auto mb-3"></div>
       <p class="text-gray-400 dark:text-gray-500">Memuat paket tryout...</p>
     </div>`;
 
-    const { data, error } = await _sb
-      .from('pakets')
-      .select('id, kode, nama, tipe, level, deskripsi, icon, total_soal')
-      .eq('aktif', true)
-      .order('id', { ascending: true });
+    const [pRes, hRes] = await Promise.all([
+      _sb.from('pakets').select('id, kode, nama, tipe, level, deskripsi, icon, total_soal').eq('aktif', true).order('id', { ascending: true }),
+      session ? _sb.from('hasil_tryout').select('paket_id').eq('user_id', session.user.id) : Promise.resolve({ data: [] })
+    ]);
 
-    if (error) {
+    if (pRes.error) {
       grid.innerHTML = `<div class="col-span-3 text-center py-16">
         <div class="text-4xl mb-3">⚠️</div>
         <p class="text-red-500 dark:text-red-400 font-semibold">Gagal memuat paket</p>
-        <p class="text-gray-400 text-sm mt-1">${error.message}</p>
+        <p class="text-gray-400 text-sm mt-1">${pRes.error.message}</p>
       </div>`;
       return;
     }
 
-    allPakets = data || [];
+    // Build attempts map: { paketId: count }
+    attemptsByPaket = {};
+    (hRes.data || []).forEach(row => {
+      if (row.paket_id) attemptsByPaket[row.paket_id] = (attemptsByPaket[row.paket_id] || 0) + 1;
+    });
+
+    allPakets = pRes.data || [];
     updateProgressBanner();
     renderPakets();
   }
@@ -285,6 +291,23 @@
         </div>`;
       }
 
+      const attempts = attemptsByPaket[p.id] || 0;
+      const attemptsLeft = Math.max(0, 2 - attempts);
+      const attemptBadge = attempts === 0
+        ? ''
+        : attempts === 1
+          ? `<span class="text-xs font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">Kesempatan 1/2</span>`
+          : `<span class="text-xs font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-700">Selesai 2/2</span>`;
+      const ujianBtn = attempts >= 2
+        ? `<a href="tryout.html?id=${p.id}&nama=${encodeURIComponent(p.nama)}&mode=latihan"
+               class="flex items-center justify-center gap-2 bg-gray-400 text-white text-xs font-bold py-2.5 rounded-xl cursor-default" title="Kesempatan ujian sudah habis">
+              🔒 Kesempatan Ujian Habis
+           </a>`
+        : `<a href="tryout.html?id=${p.id}&nama=${encodeURIComponent(p.nama)}"
+               class="flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 text-white text-xs font-bold py-2.5 rounded-xl transition">
+              ⏱ Mode Ujian <span class="font-normal opacity-80">(${attemptsLeft === 2 ? 'kesempatan 1/2' : 'kesempatan 2/2'})</span>
+           </a>`;
+
       return `
       <div class="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm p-5 hover:shadow-md hover:border-primary-300 dark:hover:border-primary-700 transition">
         <div class="flex items-start justify-between mb-3">
@@ -292,6 +315,7 @@
           <div class="flex flex-col items-end gap-1">
             <span class="bg-green-100 text-green-700 text-xs font-bold px-2.5 py-1 rounded-full">GRATIS</span>
             <span class="text-xs font-medium px-2 py-0.5 rounded-full ${levelColor[level] || 'bg-gray-100 text-gray-600'}">${level}</span>
+            ${attemptBadge}
           </div>
         </div>
         <h3 class="font-bold text-gray-900 dark:text-white mb-1">${p.nama}</h3>
@@ -301,13 +325,10 @@
         </div>
         <div class="space-y-2">
           <a href="tryout.html?id=${p.id}&nama=${encodeURIComponent(p.nama)}&mode=latihan"
-             class="flex items-center justify-center gap-2 border border-gray-200 dark:border-slate-600 hover:bg-amber-50 dark:hover:bg-slate-700 text-gray-700 dark:text-gray-300 text-xs font-semibold py-2.5 rounded-xl transition">
-            📖 Mode Latihan <span class="text-gray-400 font-normal">(langsung lihat jawaban)</span>
+             class="flex items-center justify-center gap-2 border border-amber-200 hover:bg-amber-50 dark:hover:bg-slate-700 text-amber-700 dark:text-amber-400 text-xs font-semibold py-2.5 rounded-xl transition">
+            📖 Latihan <span class="text-gray-400 font-normal">(55 soal · lihat jawaban langsung · ∞ ulang)</span>
           </a>
-          <a href="tryout.html?id=${p.id}&nama=${encodeURIComponent(p.nama)}"
-             class="flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 text-white text-xs font-bold py-2.5 rounded-xl transition">
-            ⏱ Mode Ujian <span class="font-normal opacity-80">(timer · fullscreen)</span>
-          </a>
+          ${ujianBtn}
         </div>
       </div>`;
     }).join('');

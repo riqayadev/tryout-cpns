@@ -133,30 +133,6 @@
   </div>
 </div>
 
-<!-- Anti-Cheat: Tab-switch / fullscreen warning -->
-<div id="cheatOverlay" class="fixed inset-0 z-[200] hidden items-center justify-center bg-black/95">
-  <div class="text-white text-center max-w-md mx-auto px-6">
-    <div class="text-7xl mb-6" id="cheatIcon">⚠️</div>
-    <h2 class="text-2xl font-black mb-3" id="cheatTitle">Peringatan!</h2>
-    <p class="text-gray-300 text-sm mb-8" id="cheatMsg">Anda meninggalkan halaman ujian!</p>
-    <button onclick="resumeExam()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-8 py-4 rounded-xl text-base transition w-full max-w-xs">
-      ↩ Kembali ke Ujian
-    </button>
-  </div>
-</div>
-
-<!-- Anti-Cheat: Fullscreen exit warning -->
-<div id="fsWarning" class="fixed inset-0 z-[190] hidden items-center justify-center bg-black/80">
-  <div class="bg-red-600 text-white rounded-2xl p-8 text-center max-w-sm mx-4 shadow-2xl">
-    <div class="text-5xl mb-4">🖥️</div>
-    <h3 class="text-xl font-black mb-2">Keluar dari Fullscreen!</h3>
-    <p class="text-sm text-red-100 mb-6">Mode ujian harus dalam fullscreen. Klik tombol untuk kembali.</p>
-    <button onclick="reenterFullscreen()" class="bg-white text-red-600 font-bold px-6 py-3 rounded-xl w-full transition hover:bg-red-50">
-      Kembali Fullscreen
-    </button>
-  </div>
-</div>
-
 <!-- Toast Container -->
 <div id="toastContainer" class="fixed bottom-6 right-6 z-[300] flex flex-col gap-2 items-end pointer-events-none"></div>
 
@@ -173,13 +149,12 @@
 <!-- Modal 1: Soal Belum Dijawab -->
 <div id="modalKosong" class="fixed inset-0 z-[100] hidden items-center justify-center p-4" style="background:rgba(0,0,0,.6)">
   <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-7 text-center">
-    <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center text-3xl mx-auto mb-4">⚠️</div>
+    <div class="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center text-3xl mx-auto mb-4">⚠️</div>
     <h3 class="text-xl font-black text-gray-900 mb-2">Soal Belum Lengkap</h3>
-    <p class="text-gray-600 text-sm mb-1">Masih ada <strong class="text-red-600 text-base" id="mcKosong">0</strong> soal yang belum dijawab.</p>
-    <p class="text-gray-400 text-xs mb-6">Yakin ingin submit sekarang?</p>
-    <div class="flex gap-3">
+    <p class="text-gray-600 text-sm mb-1">Masih ada <strong class="text-red-600 text-base" id="mcKosong">0</strong> soal yang belum terjawab. Lanjutkan mengerjakan atau tetap kumpulkan?</p>
+    <div class="flex gap-3 mt-5">
       <button onclick="closeAllModals()" class="flex-1 border border-gray-200 text-gray-700 font-semibold py-3 rounded-xl hover:bg-gray-50 transition text-sm">Lanjut Kerjakan</button>
-      <button onclick="doSubmit()" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl transition text-sm">Submit Tetap</button>
+      <button onclick="doSubmit()" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl transition text-sm">Kumpulkan</button>
     </div>
   </div>
 </div>
@@ -212,7 +187,7 @@
     <p class="text-xs text-gray-400 mb-6">Yakin mengumpulkan jawaban? Tidak bisa diubah setelah submit.</p>
     <div class="flex gap-3">
       <button onclick="closeAllModals()" class="flex-1 border border-gray-200 text-gray-600 font-semibold py-3 rounded-xl hover:bg-gray-50 transition">Batal</button>
-      <button onclick="doSubmit()" class="flex-1 bg-primary-600 hover:bg-primary-700 text-white font-bold py-3 rounded-xl transition">Ya, Submit!</button>
+      <button onclick="doSubmit()" class="flex-1 bg-primary-600 hover:bg-primary-700 text-white font-bold py-3 rounded-xl transition">Ya, Kumpulkan!</button>
     </div>
   </div>
 </div>
@@ -228,11 +203,13 @@
   const params = new URLSearchParams(location.search);
   const paketNama = decodeURIComponent(params.get('nama') || 'SKD Simulasi');
   const isLatihanMode = params.get('mode') === 'latihan';
-  document.getElementById('paketNamaHeader').textContent = paketNama + (isLatihanMode ? ' · Mode Latihan' : '');
+  document.getElementById('paketNamaHeader').textContent = paketNama + (isLatihanMode ? ' · Mode Latihan (55 soal)' : '');
   if (isLatihanMode) {
     const timerBox = document.getElementById('timerBox');
     timerBox.innerHTML = '<span class="bg-amber-100 text-amber-700 text-sm font-black px-3 py-1.5 rounded-xl">📖 Mode Latihan</span>';
     timerBox.className = '';
+    // In latihan mode, hide submit button
+    document.querySelector('button[onclick="konfirmasiSubmit()"]').style.display = 'none';
   }
 
   let soalDB = [];
@@ -242,8 +219,22 @@
   let timeLeft = 100 * 60;
   let timerInterval = null;
   let _submitted = false;
+  let _attemptNumber = 1;
 
   const katColor = {TWK:'bg-blue-100 text-blue-700', TIU:'bg-green-100 text-green-700', TKP:'bg-amber-100 text-amber-700'};
+
+  async function getAttemptCount(paketId) {
+    try {
+      const { data:{session} } = await _sb.auth.getSession();
+      if (!session) return 0;
+      const { count } = await _sb
+        .from('hasil_tryout')
+        .select('id', { count:'exact', head:true })
+        .eq('user_id', session.user.id)
+        .eq('paket_id', paketId);
+      return count || 0;
+    } catch(e) { return 0; }
+  }
 
   function renderQ(idx) {
     const card = document.getElementById('questionCard');
@@ -259,7 +250,6 @@
     const lockLatihan = isLatihanMode && answered;
     const opts = document.getElementById('optionsList');
 
-    // Render opsi — latihan mode yang sudah dijawab tampilkan highlight hijau/merah
     opts.innerHTML = s.opsi.map((o, i) => {
       let inlineStyle = '';
       if (lockLatihan) {
@@ -278,7 +268,7 @@
       </button>`;
     }).join('');
 
-    // Pembahasan muncul otomatis setelah jawab di latihan mode
+    // Latihan: tampilkan pembahasan otomatis setelah jawab
     if (lockLatihan && s.pembahasan) {
       const div = document.createElement('div');
       div.className = 'mt-3 p-4 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-800 leading-relaxed';
@@ -308,7 +298,6 @@
   }
 
   function selectAnswer(optIdx) {
-    // Di latihan mode yang sudah dijawab, tidak bisa ubah jawaban
     if (isLatihanMode && jawaban[currentQ] !== null) return;
     jawaban[currentQ] = optIdx;
     renderQ(currentQ);
@@ -325,7 +314,7 @@
   function jumpTo(idx) { currentQ = idx; renderQ(currentQ); }
 
   function updateNavGrid() {
-    // Kelompokkan soal berdasarkan tipe-nya, bukan hardcoded range
+    // Soal sudah diurutkan TWK→TIU→TKP, map indeks per tipe
     const groups = { Twk: [], Tiu: [], Tkp: [] };
     soalDB.forEach((s, i) => {
       if (s.tipe === 'TWK') groups.Twk.push(i);
@@ -438,22 +427,9 @@
     }, 1000);
   }
 
-  function doSubmit() {
-    if (_submitted) return;
-    _submitted = true;
-    clearInterval(timerInterval);
-    closeAllModals();
-    const lo = document.getElementById('loadingOverlay');
-    if (lo.classList.contains('hidden')) {
-      document.getElementById('loadingIcon').textContent = '📋';
-      document.getElementById('loadingMsg').textContent = 'Menyimpan jawaban...';
-      lo.classList.remove('hidden'); lo.classList.add('flex');
-    }
-    document.querySelectorAll('button').forEach(b => { b.disabled = true; });
+  function computeResult() {
     const soalSnap = soalDB.slice();
     const jawSnap  = jawaban.slice();
-    soalDB = [];
-    if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
     let twk = 0, tiu = 0, tkp = 0, twkBenar = 0, tiuBenar = 0;
     soalSnap.forEach((s, i) => {
       const ans = jawSnap[i];
@@ -461,12 +437,47 @@
       else if (s.tipe === 'TIU') { if (ans === s.benar) { tiu += 5; tiuBenar++; } }
       else if (s.tipe === 'TKP') { if (ans !== null) tkp += (s.nilai && s.nilai[ans] != null) ? s.nilai[ans] : 1; }
     });
-    const result = { paket: paketNama, paketId: parseInt(params.get('id') || '0'), tanggal: new Date().toISOString(), twk, tiu, tkp, total: twk+tiu+tkp, twkBenar, tiuBenar, soal: soalSnap, jawaban: jawSnap };
+    return { soalSnap, jawSnap, twk, tiu, tkp, twkBenar, tiuBenar };
+  }
+
+  function saveResultToLS(r) {
+    const result = {
+      paket: paketNama,
+      paketId: parseInt(params.get('id') || '0'),
+      tanggal: new Date().toISOString(),
+      twk: r.twk, tiu: r.tiu, tkp: r.tkp,
+      total: r.twk + r.tiu + r.tkp,
+      twkBenar: r.twkBenar, tiuBenar: r.tiuBenar,
+      soal: r.soalSnap, jawaban: r.jawSnap,
+      attemptNumber: isLatihanMode ? 0 : _attemptNumber
+    };
     localStorage.setItem('skorin_last_result', JSON.stringify(result));
     const history = JSON.parse(localStorage.getItem('skorin_history') || '[]');
-    history.push({ paket: paketNama, tanggal: result.tanggal, twk, tiu, tkp, total: result.total });
+    history.push({ paket: paketNama, tanggal: result.tanggal, twk: r.twk, tiu: r.tiu, tkp: r.tkp, total: result.total });
     if (history.length > 20) history.shift();
     localStorage.setItem('skorin_history', JSON.stringify(history));
+  }
+
+  function doSubmit() {
+    if (_submitted) return;
+    _submitted = true;
+    clearInterval(timerInterval);
+    closeAllModals();
+
+    // Compute and save to localStorage IMMEDIATELY (sync, before any async)
+    const r = computeResult();
+    soalDB = []; // prevent re-use
+    saveResultToLS(r);
+
+    // Show loading overlay
+    const lo = document.getElementById('loadingOverlay');
+    if (lo.classList.contains('hidden')) {
+      document.getElementById('loadingIcon').textContent = '📋';
+      document.getElementById('loadingMsg').textContent = 'Menyimpan jawaban...';
+      lo.classList.remove('hidden'); lo.classList.add('flex');
+    }
+    document.querySelectorAll('button').forEach(b => { b.disabled = true; });
+    if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
     setTimeout(() => { window.location.href = 'hasil.html'; }, 800);
   }
 
@@ -477,38 +488,25 @@
     const el = document.documentElement;
     (el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen)?.call(el);
   }
-  function reenterFullscreen() {
-    document.getElementById('fsWarning').classList.replace('flex', 'hidden');
-    enterFullscreen();
-  }
-  function showCheatOverlay(icon, title, msg) {
-    document.getElementById('cheatIcon').textContent = icon;
-    document.getElementById('cheatTitle').textContent = title;
-    document.getElementById('cheatMsg').textContent = msg;
-    const ov = document.getElementById('cheatOverlay');
-    ov.classList.remove('hidden'); ov.classList.add('flex');
-  }
-  function resumeExam() {
-    document.getElementById('cheatOverlay').classList.replace('flex', 'hidden');
-    if (!document.fullscreenElement) enterFullscreen();
-  }
 
+  // Auto-submit and emergency save for ujian mode
   if (!isLatihanMode) {
+    // Tab switch / minimize → auto submit immediately
     document.addEventListener('visibilitychange', () => {
-      if (document.hidden && soalDB.length > 0)
-        showCheatOverlay('⚠️', 'Anda Meninggalkan Halaman Ujian!', 'Kembali segera untuk melanjutkan ujian. Tindakan ini tercatat.');
-    });
-    const onFsChange = () => {
-      if (!(document.fullscreenElement || document.webkitFullscreenElement) && soalDB.length > 0) {
-        const fw = document.getElementById('fsWarning');
-        fw.classList.remove('hidden'); fw.classList.add('flex');
+      if (document.hidden && !_submitted && soalDB.length > 0) {
+        doSubmit();
       }
-    };
-    document.addEventListener('fullscreenchange', onFsChange);
-    document.addEventListener('webkitfullscreenchange', onFsChange);
-    window.addEventListener('beforeunload', e => {
-      if (soalDB.length > 0) { e.preventDefault(); e.returnValue = 'Ujian akan berakhir. Yakin keluar?'; }
     });
+
+    // Page unload (refresh, close, navigate away) → emergency sync save
+    window.addEventListener('pagehide', () => {
+      if (!_submitted && soalDB.length > 0) {
+        const r = computeResult();
+        saveResultToLS(r);
+      }
+    });
+
+    // Block devtools shortcuts
     document.addEventListener('keydown', e => {
       if (e.key === 'F12') { e.preventDefault(); return; }
       if (e.ctrlKey && e.shiftKey && ['i','j','c'].includes(e.key.toLowerCase())) { e.preventDefault(); return; }
@@ -555,22 +553,59 @@
       return;
     }
 
-    soalDB = allSoal;
-    if (!isLatihanMode) shuffle(soalDB); // ujian: acak urutan soal agar beda dari latihan
+    // Pisahkan per tipe, urutkan berdasarkan nomor
+    const soalTwk = allSoal.filter(s => s.tipe === 'TWK').sort((a,b) => a.nomor - b.nomor);
+    const soalTiu = allSoal.filter(s => s.tipe === 'TIU').sort((a,b) => a.nomor - b.nomor);
+    const soalTkp = allSoal.filter(s => s.tipe === 'TKP').sort((a,b) => a.nomor - b.nomor);
+
+    if (isLatihanMode) {
+      // Ambil ~55 soal secara proporsional, diacak per tipe
+      shuffle(soalTwk); shuffle(soalTiu); shuffle(soalTkp);
+      const nTwk = Math.min(15, soalTwk.length);
+      const nTiu = Math.min(17, soalTiu.length);
+      const nTkp = Math.min(55 - nTwk - nTiu, soalTkp.length);
+      soalDB = [...soalTwk.slice(0, nTwk), ...soalTiu.slice(0, nTiu), ...soalTkp.slice(0, nTkp)];
+      _attemptNumber = 0;
+    } else {
+      // Cek jumlah attempt sebelumnya
+      const attemptCount = await getAttemptCount(paketId);
+      if (attemptCount >= 2) {
+        document.getElementById('qText').innerHTML = `<div class="text-center py-8">
+          <div class="text-5xl mb-4">🔒</div>
+          <p class="text-xl font-black text-gray-900 mb-2">Kesempatan Ujian Habis</p>
+          <p class="text-gray-500 text-sm mb-5">Kamu sudah mengerjakan ujian paket ini <strong>2 kali</strong>.<br>Mode latihan masih bisa diakses kapan saja.</p>
+          <div class="flex gap-3 justify-center flex-wrap">
+            <a href="tryout.html?id=${paketId}&nama=${encodeURIComponent(paketNama)}&mode=latihan" class="bg-amber-500 hover:bg-amber-600 text-white font-bold px-5 py-2.5 rounded-xl text-sm transition">📖 Mode Latihan</a>
+            <a href="tryout-list.html" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-5 py-2.5 rounded-xl text-sm transition">← Paket Lain</a>
+          </div>
+        </div>`;
+        return;
+      }
+      _attemptNumber = attemptCount + 1;
+      // Ujian: acak soal di dalam setiap tipe (TWK tetap di blok pertama, TIU kedua, TKP ketiga)
+      shuffle(soalTwk); shuffle(soalTiu); shuffle(soalTkp);
+      soalDB = [...soalTwk, ...soalTiu, ...soalTkp];
+    }
 
     jawaban = new Array(soalDB.length).fill(null);
     flagged  = new Array(soalDB.length).fill(false);
 
-    // Update counter header dengan jumlah soal nyata
     document.getElementById('totalSoalCount').textContent = soalDB.length;
 
-    // Update label navigasi dengan hitungan per tipe
     const twkC = soalDB.filter(s => s.tipe === 'TWK').length;
     const tiuC = soalDB.filter(s => s.tipe === 'TIU').length;
     const tkpC = soalDB.filter(s => s.tipe === 'TKP').length;
     document.getElementById('navLabelTwk').textContent = `TWK (${twkC} soal)`;
     document.getElementById('navLabelTiu').textContent = `TIU (${tiuC} soal)`;
     document.getElementById('navLabelTkp').textContent = `TKP (${tkpC} soal)`;
+
+    // Show attempt badge for ujian mode
+    if (!isLatihanMode && _attemptNumber > 0) {
+      const badge = document.createElement('span');
+      badge.className = `ml-2 text-xs font-bold px-2 py-0.5 rounded-full ${_attemptNumber === 1 ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'}`;
+      badge.textContent = `Kesempatan ${_attemptNumber}/2`;
+      document.getElementById('paketNamaHeader').appendChild(badge);
+    }
 
     renderQ(0);
     if (!isLatihanMode) { startTimer(); enterFullscreen(); }
