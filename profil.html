@@ -110,9 +110,10 @@
       </div>
       <h1 class="text-xl font-black text-gray-900 dark:text-white" id="profileName">...</h1>
       <p class="text-gray-500 dark:text-gray-400 text-sm" id="profileEmail">...</p>
-      <div class="flex items-center gap-4 mt-2 text-xs text-gray-400 dark:text-gray-500">
+      <div class="flex items-center gap-4 mt-2 text-xs text-gray-400 dark:text-gray-500 flex-wrap">
         <span id="profileJoin">Bergabung: ...</span>
         <span id="targetInstansiDisplay" class="hidden">🏢 <span id="targetInstansiText"></span></span>
+        <span id="streakDisplay" class="hidden font-semibold text-orange-500"></span>
       </div>
     </div>
   </div>
@@ -259,7 +260,7 @@ async function deleteAccount(){
   const target=localStorage.getItem('skorin_target_instansi');
   if(target){document.getElementById('targetInstansiDisplay').classList.remove('hidden');document.getElementById('targetInstansiText').textContent=target;document.getElementById('editTarget').value=target;}
 
-  loadStats();loadHistory();renderAchievements();renderChart();
+  await loadProfileData();
 })();
 
 function uploadPhoto(input){
@@ -274,86 +275,145 @@ function uploadPhoto(input){
   reader.readAsDataURL(file);
 }
 
-function loadStats(){
-  const history=JSON.parse(localStorage.getItem('skorin_history')||'[]');
-  document.getElementById('statTotal').textContent=history.length;
-  if(history.length>0){
-    const scores=history.map(h=>h.total||0);
-    document.getElementById('statBest').textContent=Math.max(...scores);
-    document.getElementById('statAvg').textContent=Math.round(scores.reduce((a,b)=>a+b,0)/scores.length);
+// Hitung & simpan streak login harian via localStorage
+function updateStreak() {
+  const today = new Date().toISOString().split('T')[0];
+  const lastDate = localStorage.getItem('skorin_streak_date') || '';
+  let streak = parseInt(localStorage.getItem('skorin_streak_count') || '0');
+
+  if (lastDate !== today) {
+    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+    streak = (lastDate === yesterday) ? streak + 1 : 1;
+    localStorage.setItem('skorin_streak_date', today);
+    localStorage.setItem('skorin_streak_count', String(streak));
+  }
+
+  const el = document.getElementById('streakDisplay');
+  if (el) { el.textContent = `🔥 Streak: ${streak} hari`; el.classList.remove('hidden'); }
+  return streak;
+}
+
+// Fetch dari Supabase hasil_tryout, fallback ke localStorage
+async function loadProfileData() {
+  if (!currentUser) return;
+
+  const { data: dbData, error } = await _sb
+    .from('hasil_tryout')
+    .select('skor_twk, skor_tiu, skor_tkp, skor_total, status_lulus, paket_nama, tanggal')
+    .eq('user_id', currentUser.id)
+    .order('tanggal', { ascending: false })
+    .limit(200);
+
+  let records = [];
+  if (!error && dbData && dbData.length > 0) {
+    records = dbData.map(r => ({
+      paket: r.paket_nama,
+      tanggal: r.tanggal,
+      twk: r.skor_twk || 0,
+      tiu: r.skor_tiu || 0,
+      tkp: r.skor_tkp || 0,
+      total: r.skor_total || 0,
+      lulus: r.status_lulus
+    }));
+  } else {
+    const ls = JSON.parse(localStorage.getItem('skorin_history') || '[]');
+    records = ls.slice().reverse().map(r => ({
+      paket: r.paket,
+      tanggal: r.tanggal,
+      twk: r.twk || 0,
+      tiu: r.tiu || 0,
+      tkp: r.tkp || 0,
+      total: r.total || ((r.twk || 0) + (r.tiu || 0) + (r.tkp || 0)),
+      lulus: (r.twk >= 65 && r.tiu >= 80 && r.tkp >= 166)
+    }));
+  }
+
+  const streak = updateStreak();
+  loadStats(records);
+  renderChart(records);
+  renderAchievements(records, streak);
+  loadHistory(records);
+}
+
+function loadStats(records) {
+  document.getElementById('statTotal').textContent = records.length;
+  if (records.length > 0) {
+    const scores = records.map(h => h.total || 0);
+    document.getElementById('statBest').textContent = Math.max(...scores);
+    document.getElementById('statAvg').textContent = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
   }
 }
 
-function renderChart(){
-  const history=JSON.parse(localStorage.getItem('skorin_history')||'[]');
-  if(history.length<2)return;
+function renderChart(records) {
+  // records sudah desc; ambil 8 terbaru lalu flip ke kronologis untuk grafik
+  const chrono = records.slice(0, 8).reverse();
+  if (chrono.length < 2) return;
   document.getElementById('chartSection').classList.remove('hidden');
-  const chart=document.getElementById('scoreChart');
-  const last8=history.slice(-8);
-  const max=550;
-  chart.innerHTML=last8.map((h,i)=>{
-    const pct=Math.round((h.total||0)/max*100);
-    const pgPct=Math.round(311/max*100);
-    const color=(h.twk>=65&&h.tiu>=80&&h.tkp>=166)?'bg-green-500':'bg-red-400';
+  const max = 550;
+  document.getElementById('scoreChart').innerHTML = chrono.map((h, i) => {
+    const pct = Math.round((h.total || 0) / max * 100);
+    const pgPct = Math.round(311 / max * 100);
+    const color = h.lulus ? 'bg-green-500' : 'bg-red-400';
     return `<div class="flex-1 flex flex-col items-center gap-1">
-      <span class="text-xs font-bold text-gray-600 dark:text-gray-400">${h.total||0}</span>
+      <span class="text-xs font-bold text-gray-600 dark:text-gray-400">${h.total || 0}</span>
       <div class="w-full bg-gray-100 dark:bg-slate-700 rounded-t relative" style="height:80px">
         <div class="${color} bar-anim rounded-t absolute bottom-0 w-full" style="height:${pct}%"></div>
         <div class="absolute w-full border-t-2 border-dashed border-red-400" style="bottom:${pgPct}%"></div>
       </div>
-      <span class="text-xs text-gray-400">${i+1}</span>
+      <span class="text-xs text-gray-400">${i + 1}</span>
     </div>`;
   }).join('');
-  setTimeout(()=>document.querySelectorAll('.bar-anim').forEach(b=>{}),100);
 }
 
-function renderAchievements(){
-  const history=JSON.parse(localStorage.getItem('skorin_history')||'[]');
-  const scores=history.map(h=>h.total||0);
-  const maxScore=scores.length?Math.max(...scores):0;
-  const achievements=[
-    {icon:'🎯', label:'Tryout Pertama', desc:'Selesaikan 1 tryout', unlocked:history.length>=1},
-    {icon:'🔥', label:'5 Tryout', desc:'Selesaikan 5 tryout', unlocked:history.length>=5},
-    {icon:'💯', label:'Skor 300+', desc:'Total skor ≥ 300', unlocked:maxScore>=300},
-    {icon:'🏆', label:'Skor 400+', desc:'Total skor ≥ 400', unlocked:maxScore>=400},
-    {icon:'⭐', label:'Pertama Lulus', desc:'Lolos passing grade', unlocked:history.some(h=>h.twk>=65&&h.tiu>=80&&h.tkp>=166)},
-    {icon:'🎓', label:'Pelajar Aktif', desc:'Pelajari 3 materi', unlocked:Object.keys(JSON.parse(localStorage.getItem('skorin_materi_progress')||'{}')).length>=3},
-    {icon:'🌙', label:'Rajin Belajar', desc:'Login 7 hari berturut', unlocked:false},
-    {icon:'💎', label:'Master SKD', desc:'Skor ≥ 450', unlocked:maxScore>=450},
+function renderAchievements(records, streak) {
+  const scores = records.map(h => h.total || 0);
+  const maxScore = scores.length ? Math.max(...scores) : 0;
+  const achievements = [
+    { icon: '🎯', label: 'Tryout Pertama', desc: 'Selesaikan 1 tryout',       unlocked: records.length >= 1 },
+    { icon: '🔥', label: '5 Tryout',       desc: 'Selesaikan 5 tryout',       unlocked: records.length >= 5 },
+    { icon: '💯', label: 'Skor 300+',      desc: 'Total skor ≥ 300',          unlocked: maxScore >= 300 },
+    { icon: '🏆', label: 'Skor 400+',      desc: 'Total skor ≥ 400',          unlocked: maxScore >= 400 },
+    { icon: '⭐', label: 'Pertama Lulus',  desc: 'Lolos passing grade',       unlocked: records.some(h => h.lulus) },
+    { icon: '🎓', label: 'Pelajar Aktif',  desc: 'Login 3 hari berturut',     unlocked: streak >= 3 },
+    { icon: '🌙', label: 'Rajin Belajar',  desc: 'Login 7 hari berturut',     unlocked: streak >= 7 },
+    { icon: '💎', label: 'Master SKD',     desc: 'Skor ≥ 450',                unlocked: maxScore >= 450 },
   ];
-  document.getElementById('achievementGrid').innerHTML=achievements.map(a=>`
-    <div class="${a.unlocked?'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800':'bg-gray-50 dark:bg-slate-700 border-gray-100 dark:border-slate-600 badge-locked'} rounded-xl border p-3 text-center">
+  document.getElementById('achievementGrid').innerHTML = achievements.map(a => `
+    <div class="${a.unlocked ? 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800' : 'bg-gray-50 dark:bg-slate-700 border-gray-100 dark:border-slate-600 badge-locked'} rounded-xl border p-3 text-center">
       <div class="text-2xl mb-1">${a.icon}</div>
       <p class="text-xs font-bold text-gray-800 dark:text-gray-200">${a.label}</p>
       <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5">${a.desc}</p>
-      ${a.unlocked?'<p class="text-xs text-amber-600 font-semibold mt-1">✓ Unlocked</p>':''}
+      ${a.unlocked ? '<p class="text-xs text-amber-600 font-semibold mt-1">✓ Unlocked</p>' : ''}
     </div>`).join('');
 }
 
-function loadHistory(){
-  const history=JSON.parse(localStorage.getItem('skorin_history')||'[]');
-  if(!history.length)return;
-  document.getElementById('historyTable').innerHTML=`
+function loadHistory(records) {
+  if (!records.length) return;
+  document.getElementById('historyTable').innerHTML = `
     <div class="overflow-x-auto">
       <table class="w-full text-sm">
         <thead class="bg-gray-50 dark:bg-slate-900 text-xs text-gray-500 uppercase">
           <tr>
             <th class="px-5 py-3 text-left">Paket</th>
-            <th class="px-4 py-3 text-center">TWK</th><th class="px-4 py-3 text-center">TIU</th><th class="px-4 py-3 text-center">TKP</th>
-            <th class="px-4 py-3 text-center">Total</th><th class="px-4 py-3 text-center">Status</th>
+            <th class="px-4 py-3 text-center">TWK</th>
+            <th class="px-4 py-3 text-center">TIU</th>
+            <th class="px-4 py-3 text-center">TKP</th>
+            <th class="px-4 py-3 text-center">Total</th>
+            <th class="px-4 py-3 text-center">Status</th>
             <th class="px-5 py-3 text-left">Tanggal</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-100">
-          ${history.slice().reverse().map(h=>{const lulus=h.twk>=65&&h.tiu>=80&&h.tkp>=166;return`<tr class="hover:bg-gray-50 dark:hover:bg-slate-700 transition">
-            <td class="px-5 py-3.5 font-medium text-gray-900 dark:text-white">${h.paket||'SKD Simulasi'}</td>
-            <td class="px-4 py-3.5 text-center"><span class="${h.twk>=65?'text-green-600':'text-red-500'} font-semibold">${h.twk}</span></td>
-            <td class="px-4 py-3.5 text-center"><span class="${h.tiu>=80?'text-green-600':'text-red-500'} font-semibold">${h.tiu}</span></td>
-            <td class="px-4 py-3.5 text-center"><span class="${h.tkp>=166?'text-green-600':'text-red-500'} font-semibold">${h.tkp}</span></td>
-            <td class="px-4 py-3.5 text-center font-black text-gray-900 dark:text-white">${h.total||h.twk+h.tiu+h.tkp}</td>
-            <td class="px-4 py-3.5 text-center"><span class="px-2 py-0.5 rounded-full text-xs font-bold ${lulus?'bg-green-100 text-green-700':'bg-red-100 text-red-700'}">${lulus?'LULUS':'BELUM'}</span></td>
+          ${records.map(h => `
+          <tr class="hover:bg-gray-50 dark:hover:bg-slate-700 transition">
+            <td class="px-5 py-3.5 font-medium text-gray-900 dark:text-white">${h.paket || 'SKD Simulasi'}</td>
+            <td class="px-4 py-3.5 text-center"><span class="${h.twk >= 65 ? 'text-green-600' : 'text-red-500'} font-semibold">${h.twk}</span></td>
+            <td class="px-4 py-3.5 text-center"><span class="${h.tiu >= 80 ? 'text-green-600' : 'text-red-500'} font-semibold">${h.tiu}</span></td>
+            <td class="px-4 py-3.5 text-center"><span class="${h.tkp >= 166 ? 'text-green-600' : 'text-red-500'} font-semibold">${h.tkp}</span></td>
+            <td class="px-4 py-3.5 text-center font-black text-gray-900 dark:text-white">${h.total}</td>
+            <td class="px-4 py-3.5 text-center"><span class="px-2 py-0.5 rounded-full text-xs font-bold ${h.lulus ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">${h.lulus ? 'LULUS' : 'BELUM'}</span></td>
             <td class="px-5 py-3.5 text-gray-400 text-xs">${new Date(h.tanggal).toLocaleDateString('id-ID')}</td>
-          </tr>`;}).join('')}
+          </tr>`).join('')}
         </tbody>
       </table>
     </div>`;
