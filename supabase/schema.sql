@@ -93,7 +93,10 @@ DROP POLICY IF EXISTS "hasil_user_insert" ON hasil_tryout;
 CREATE POLICY "hasil_user_insert" ON hasil_tryout
   FOR INSERT TO authenticated WITH CHECK (user_id = auth.uid());
 
--- User hanya bisa membaca hasil miliknya sendiri
+-- Semua user authenticated bisa membaca semua hasil (untuk leaderboard)
 DROP POLICY IF EXISTS "hasil_user_read" ON hasil_tryout;
 CREATE POLICY "hasil_user_read" ON hasil_tryout
-  FOR SELECT TO authenticated USING (user_id = auth.uid());
+  FOR SELECT TO authenticated USING (true);
+
+-- 6. Tambah kolom display_name ke hasil_tryout (untuk leaderboard)
+ALTER TABLE hasil_tryout ADD COLUMN IF NOT EXISTS display_name VARCHAR(200);

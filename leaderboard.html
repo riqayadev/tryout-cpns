@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Leaderboard – SkorinCPNS</title>
+  <meta name="description" content="Leaderboard SkorinCPNS – Ranking skor SKD peserta terbaik"/>
+  <link rel="manifest" href="manifest.json"/>
+  <script>(function(){const d=localStorage.getItem('dark_mode');if(d==='1'||(d===null&&window.matchMedia('(prefers-color-scheme:dark)').matches))document.documentElement.classList.add('dark');})();</script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={darkMode:'class',theme:{extend:{colors:{primary:{50:'#eff6ff',100:'#dbeafe',600:'#2563eb',700:'#1d4ed8'}},fontFamily:{sans:['Inter','sans-serif']}}}}</script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <style>
+    #sidebar{transition:width .25s ease,transform .3s ease;width:16rem;}
+    #sidebar.collapsed{width:4rem;}
+    #sidebar.collapsed .sb-label{display:none!important;}
+    #sidebar.collapsed nav a,#sidebar.collapsed .sb-icon-btn{justify-content:center;padding-left:.625rem;padding-right:.625rem;}
+    #sidebar.collapsed .sb-user{display:none;}
+    html.dark body{background-color:#0f172a;color:#e2e8f0;}
+    html.dark .bg-gray-50{background-color:#0f172a!important;}
+    html.dark .bg-white{background-color:#1e293b!important;}
+    html.dark .border-gray-100,html.dark .border-gray-200{border-color:#334155!important;}
+    html.dark .text-gray-900{color:#f1f5f9!important;}
+    html.dark .text-gray-700{color:#cbd5e1!important;}
+    html.dark .text-gray-600{color:#94a3b8!important;}
+    html.dark .text-gray-500{color:#64748b!important;}
+    html.dark .bg-gray-100{background-color:#334155!important;}
+    html.dark table thead{background-color:#1e293b!important;}
+    html.dark .divide-gray-100>*+*{border-color:#334155!important;}
+    html.dark select,html.dark input{background-color:#0f172a!important;color:#e2e8f0!important;border-color:#334155!important;}
+    html.dark .bg-green-100{background-color:#14532d!important;}
+    html.dark .text-green-700{color:#4ade80!important;}
+    html.dark .bg-red-100{background-color:#450a0a!important;}
+    html.dark .text-red-700{color:#f87171!important;}
+    .page-fade{animation:fadeIn .25s ease;}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+    .rank-gold  {background:linear-gradient(135deg,#fef9c3,#fef08a);}
+    .rank-silver{background:linear-gradient(135deg,#f8fafc,#e2e8f0);}
+    .rank-bronze{background:linear-gradient(135deg,#fef3c7,#fde68a);}
+    html.dark .rank-gold  {background:linear-gradient(135deg,#422006,#78350f);}
+    html.dark .rank-silver{background:linear-gradient(135deg,#1e293b,#334155);}
+    html.dark .rank-bronze{background:linear-gradient(135deg,#431407,#7c2d12);}
+    .my-row{background:linear-gradient(135deg,#eff6ff,#dbeafe);}
+    html.dark .my-row{background:linear-gradient(135deg,#1e3a5f,#1e3a8a);}
+    .filter-btn{padding:.375rem .875rem;border-radius:.625rem;font-size:.75rem;font-weight:600;border:1px solid #e5e7eb;color:#6b7280;background:#fff;cursor:pointer;transition:all .15s;}
+    .filter-btn.active{background:#2563eb;color:#fff;border-color:#2563eb;}
+    html.dark .filter-btn{background:#1e293b;border-color:#334155;color:#94a3b8;}
+    html.dark .filter-btn.active{background:#2563eb;color:#fff;border-color:#2563eb;}
+  </style>
+</head>
+<body class="font-sans antialiased bg-gray-50 dark:bg-slate-900">
+
+<!-- SIDEBAR -->
+<aside id="sidebar" class="fixed inset-y-0 left-0 z-50 flex flex-col bg-gray-900 transform -translate-x-full lg:translate-x-0 transition-[width,transform] duration-300 overflow-hidden">
+  <div class="flex items-center gap-2 px-4 h-16 border-b border-white/10 flex-shrink-0 min-w-0">
+    <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0"><svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+    <span class="sb-label font-extrabold text-base text-white whitespace-nowrap flex-1">SkorinCPNS</span>
+    <button onclick="toggleSbCollapse()" class="hidden lg:flex p-1.5 rounded-lg text-gray-400 hover:bg-white/10 hover:text-white transition">
+      <svg id="sbColIcon" class="w-4 h-4 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/></svg>
+    </button>
+  </div>
+  <nav class="flex-1 px-2 py-4 space-y-0.5 overflow-y-auto">
+    <a href="dashboard.html" title="Dashboard" class="text-gray-400 hover:bg-white/10 hover:text-white flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm transition"><svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg><span class="sb-label">Dashboard</span></a>
+    <a href="tryout-list.html" title="Tryout" class="text-gray-400 hover:bg-white/10 hover:text-white flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm transition"><svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg><span class="sb-label">Tryout</span></a>
+    <a href="materi.html" title="Materi" class="text-gray-400 hover:bg-white/10 hover:text-white flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm transition"><svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg><span class="sb-label">Materi</span></a>
+    <a href="leaderboard.html" title="Leaderboard" class="bg-white/10 text-white flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm"><svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg><span class="sb-label">Leaderboard</span></a>
+    <a href="profil.html" title="Profil" class="text-gray-400 hover:bg-white/10 hover:text-white flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm transition"><svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg><span class="sb-label">Profil</span></a>
+  </nav>
+  <div class="flex-shrink-0 border-t border-white/10 p-3 space-y-1">
+    <button onclick="toggleDark()" title="Toggle dark mode" class="sb-icon-btn flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-gray-400 hover:bg-white/10 hover:text-white transition text-sm">
+      <svg id="sbDarkIcon" class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+      <span class="sb-label text-sm">Mode Gelap</span>
+    </button>
+    <div class="sb-user flex items-center gap-3 px-3 py-2">
+      <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0 overflow-hidden">
+        <img id="sbAvatarImg" src="" class="w-full h-full object-cover hidden"/><span id="sbAvatar">?</span>
+      </div>
+      <div class="min-w-0 flex-1"><div id="sbName" class="text-white text-sm font-semibold truncate">...</div><div id="sbEmail" class="text-gray-400 text-xs truncate">...</div></div>
+    </div>
+    <button onclick="confirmLogout()" title="Keluar" class="sb-icon-btn flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-red-400 hover:bg-red-500/10 hover:text-red-300 transition text-sm font-medium">
+      <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+      <span class="sb-label">Keluar</span>
+    </button>
+  </div>
+</aside>
+<div id="sbOverlay" onclick="closeSidebar()" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden"></div>
+<div class="lg:hidden fixed top-0 inset-x-0 z-30 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 flex items-center justify-between h-14 px-4">
+  <button onclick="openSidebar()" class="p-2 -ml-1 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-800"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+  <span class="font-extrabold text-primary-600">SkorinCPNS</span>
+  <div class="w-9"></div>
+</div>
+
+<div id="mainWrapper" class="lg:ml-64 min-h-screen bg-gray-50 dark:bg-slate-900 pt-14 lg:pt-0 transition-[margin] duration-300">
+<main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-5 page-fade">
+
+  <!-- Header -->
+  <div class="flex items-start justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-black text-gray-900 dark:text-white">🏆 Leaderboard</h1>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Ranking peserta berdasarkan skor SKD tertinggi</p>
+    </div>
+    <a href="tryout-list.html" class="hidden sm:inline-flex items-center gap-2 text-xs font-semibold bg-primary-600 text-white px-4 py-2.5 rounded-xl hover:bg-primary-700 transition flex-shrink-0">
+      ✍️ Ikut Tryout
+    </a>
+  </div>
+
+  <!-- My rank banner -->
+  <div id="myRankBanner" class="hidden bg-primary-50 dark:bg-blue-950/30 border border-primary-200 dark:border-blue-800 rounded-2xl p-4">
+    <div class="flex items-center justify-between gap-4 flex-wrap">
+      <div class="flex items-center gap-3">
+        <div class="w-14 h-14 bg-primary-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center font-black text-primary-700 dark:text-blue-300 text-xl" id="myRankCircle">#-</div>
+        <div>
+          <p class="text-xs text-primary-600 dark:text-primary-400 font-medium uppercase tracking-wide">Posisi kamu</p>
+          <p class="font-bold text-gray-900 dark:text-white">dari <span id="totalPeserta" class="text-primary-600 dark:text-primary-400">-</span> peserta</p>
+        </div>
+      </div>
+      <div class="text-right">
+        <p class="text-xs text-gray-500 dark:text-gray-400">Skor terbaik kamu</p>
+        <p class="text-3xl font-black text-primary-600 dark:text-primary-400" id="myBestScore">-</p>
+        <p class="text-xs text-gray-400 dark:text-gray-500" id="myStatusLabel"></p>
+      </div>
+    </div>
+  </div>
+  <div id="myRankNone" class="hidden bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-2xl p-4">
+    <p class="text-sm text-amber-700 dark:text-amber-400">⚠️ Kamu belum punya data di periode / paket ini. <a href="tryout-list.html" class="underline font-semibold">Mulai tryout</a> untuk masuk ranking!</p>
+  </div>
+
+  <!-- Filters -->
+  <div class="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm p-4">
+    <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+      <div class="flex items-center gap-2 flex-wrap">
+        <span class="text-xs text-gray-500 dark:text-gray-400 font-medium">Periode:</span>
+        <button id="btnAll"   onclick="setTime('all')"   class="filter-btn active">All time</button>
+        <button id="btnMonth" onclick="setTime('month')" class="filter-btn">Bulan ini</button>
+        <button id="btnWeek"  onclick="setTime('week')"  class="filter-btn">Minggu ini</button>
+      </div>
+      <div class="flex items-center gap-2 sm:ml-auto">
+        <span class="text-xs text-gray-500 dark:text-gray-400 font-medium whitespace-nowrap">Paket:</span>
+        <select id="paketSelect" onchange="setPaket(this.value)" class="text-xs border border-gray-200 dark:border-slate-600 rounded-lg px-3 py-1.5 bg-white dark:bg-slate-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:border-primary-600 transition">
+          <option value="all">Semua Paket</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leaderboard table -->
+  <div class="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm overflow-hidden">
+    <div id="leaderboardContent">
+      <div class="text-center py-16">
+        <div class="inline-block w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full animate-spin mb-3"></div>
+        <p class="text-gray-400 dark:text-gray-500 text-sm">Memuat leaderboard...</p>
+      </div>
+    </div>
+  </div>
+
+</main>
+</div>
+
+<script>
+const { createClient } = supabase;
+const _sb = createClient('https://ykvwwfsoqqhtijtnivmj.supabase.co', 'sb_publishable_p_RYUHTiKlARg_rDTe3Gaw_N3G8XPwl');
+let currentUser = null;
+let activeTime = 'all';
+let activePaket = 'all';
+
+function toggleDark() { const d = document.documentElement.classList.toggle('dark'); localStorage.setItem('dark_mode', d ? '1' : '0'); updateDarkIcon(); }
+function updateDarkIcon() {
+  const d = document.documentElement.classList.contains('dark');
+  document.getElementById('sbDarkIcon').innerHTML = d
+    ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>'
+    : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>';
+}
+updateDarkIcon();
+
+function toggleSbCollapse() {
+  const sb = document.getElementById('sidebar'); const mw = document.getElementById('mainWrapper');
+  const c = sb.classList.toggle('collapsed'); mw.style.marginLeft = c ? '4rem' : '';
+  const icon = document.getElementById('sbColIcon'); if (icon) icon.style.transform = c ? 'rotate(180deg)' : '';
+  localStorage.setItem('sb_c', c ? '1' : '0');
+}
+function openSidebar() { document.getElementById('sidebar').classList.remove('-translate-x-full'); document.getElementById('sbOverlay').classList.remove('hidden'); }
+function closeSidebar() { document.getElementById('sidebar').classList.add('-translate-x-full'); document.getElementById('sbOverlay').classList.add('hidden'); }
+
+async function confirmLogout() { if (!confirm('Yakin ingin keluar?')) return; await _sb.auth.signOut(); localStorage.removeItem('skorin_history'); window.location.href = 'index.html'; }
+
+function setTime(t) {
+  activeTime = t;
+  ['All', 'Month', 'Week'].forEach(k => document.getElementById('btn' + k).classList.remove('active'));
+  const map = { all: 'All', month: 'Month', week: 'Week' };
+  document.getElementById('btn' + map[t]).classList.add('active');
+  loadLeaderboard();
+}
+
+function setPaket(v) { activePaket = v; loadLeaderboard(); }
+
+async function loadPakets() {
+  const { data } = await _sb.from('pakets').select('id, nama').eq('aktif', true).order('id');
+  if (!data) return;
+  const sel = document.getElementById('paketSelect');
+  data.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.id; opt.textContent = p.nama;
+    sel.appendChild(opt);
+  });
+}
+
+async function loadLeaderboard() {
+  document.getElementById('leaderboardContent').innerHTML = `
+    <div class="text-center py-16">
+      <div class="inline-block w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full animate-spin mb-3"></div>
+      <p class="text-gray-400 dark:text-gray-500 text-sm">Memuat leaderboard...</p>
+    </div>`;
+  document.getElementById('myRankBanner').classList.add('hidden');
+  document.getElementById('myRankNone').classList.add('hidden');
+
+  let query = _sb
+    .from('hasil_tryout')
+    .select('user_id, display_name, skor_twk, skor_tiu, skor_tkp, skor_total, status_lulus, paket_nama, tanggal')
+    .order('skor_total', { ascending: false })
+    .limit(2000);
+
+  if (activeTime === 'week') {
+    query = query.gte('tanggal', new Date(Date.now() - 7 * 86400000).toISOString());
+  } else if (activeTime === 'month') {
+    query = query.gte('tanggal', new Date(Date.now() - 30 * 86400000).toISOString());
+  }
+
+  if (activePaket !== 'all') {
+    query = query.eq('paket_id', parseInt(activePaket));
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    document.getElementById('leaderboardContent').innerHTML = `
+      <div class="text-center py-16 px-6 max-w-lg mx-auto">
+        <div class="text-4xl mb-3">🔒</div>
+        <p class="font-semibold text-gray-700 dark:text-gray-300 mb-2">Leaderboard membutuhkan akses database</p>
+        <p class="text-xs text-gray-400 dark:text-gray-500 mb-3">Jalankan perintah SQL berikut di Supabase Dashboard → SQL Editor untuk mengaktifkan leaderboard:</p>
+        <code class="block text-left bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 px-4 py-3 rounded-xl text-xs leading-relaxed break-all">DROP POLICY IF EXISTS "hasil_user_read" ON hasil_tryout;<br>CREATE POLICY "hasil_user_read" ON hasil_tryout FOR SELECT TO authenticated USING (true);</code>
+      </div>`;
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    document.getElementById('myRankNone').classList.remove('hidden');
+    document.getElementById('leaderboardContent').innerHTML = `
+      <div class="text-center py-16">
+        <div class="text-5xl mb-3">🏆</div>
+        <p class="text-gray-400 dark:text-gray-500 text-sm mb-4">Belum ada data di periode / paket ini.</p>
+        <a href="tryout-list.html" class="inline-block bg-primary-600 text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-primary-700 transition">Mulai Tryout Sekarang</a>
+      </div>`;
+    return;
+  }
+
+  // Group by user_id → keep best score per user
+  const bestByUser = new Map();
+  for (const row of data) {
+    const prev = bestByUser.get(row.user_id);
+    if (!prev || row.skor_total > prev.skor_total) bestByUser.set(row.user_id, row);
+  }
+  const ranked = Array.from(bestByUser.values()).sort((a, b) => b.skor_total - a.skor_total);
+
+  // Find current user rank
+  const myIdx = ranked.findIndex(r => r.user_id === currentUser?.id);
+  const myData = myIdx >= 0 ? ranked[myIdx] : null;
+
+  // Update "Posisi kamu" banner
+  if (myData) {
+    document.getElementById('myRankCircle').textContent = '#' + (myIdx + 1);
+    document.getElementById('totalPeserta').textContent = ranked.length;
+    document.getElementById('myBestScore').textContent = myData.skor_total;
+    document.getElementById('myStatusLabel').textContent = myData.status_lulus ? '✅ Lulus passing grade' : '❌ Belum lulus passing grade';
+    document.getElementById('myRankBanner').classList.remove('hidden');
+  } else {
+    document.getElementById('myRankNone').classList.remove('hidden');
+  }
+
+  // Rank styles
+  const topIcons   = ['🥇', '🥈', '🥉'];
+  const topClasses = ['rank-gold', 'rank-silver', 'rank-bronze'];
+
+  const rows = ranked.map((r, i) => {
+    const isMe = r.user_id === currentUser?.id;
+    const rowCls = isMe
+      ? 'my-row font-semibold'
+      : i < 3
+        ? topClasses[i]
+        : i % 2 === 1 ? 'bg-gray-50/40 dark:bg-slate-800/40' : '';
+    const rankCell = i < 3
+      ? `<span class="text-xl">${topIcons[i]}</span>`
+      : `<span class="font-bold text-gray-500 dark:text-gray-400 text-sm">${i + 1}</span>`;
+    const name = r.display_name || `Peserta #${i + 1}`;
+    const initial = name[0].toUpperCase();
+    const avatarBg = isMe ? 'bg-primary-600' : (i === 0 ? 'bg-amber-400' : i === 1 ? 'bg-slate-400' : i === 2 ? 'bg-amber-600' : 'bg-gray-300 dark:bg-slate-600');
+    const tgl = new Date(r.tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+
+    return `<tr class="border-t border-gray-100 dark:border-slate-700 ${rowCls}">
+      <td class="px-4 py-3 text-center">${rankCell}</td>
+      <td class="px-4 py-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-full ${avatarBg} flex items-center justify-center text-white text-xs font-bold flex-shrink-0">${initial}</div>
+          <div>
+            <p class="text-gray-900 dark:text-white text-xs font-semibold leading-tight">${name}${isMe ? ' <span class="ml-1 text-xs text-primary-600 dark:text-primary-400 font-normal">(kamu)</span>' : ''}</p>
+            <p class="text-gray-400 dark:text-gray-500 text-xs">${r.paket_nama || ''}</p>
+          </div>
+        </div>
+      </td>
+      <td class="px-4 py-3 text-center font-black text-gray-900 dark:text-white text-sm">${r.skor_total}</td>
+      <td class="px-4 py-3 text-center hidden sm:table-cell"><span class="${r.skor_twk >= 65 ? 'text-green-600 dark:text-green-400' : 'text-red-500'} font-semibold text-xs">${r.skor_twk}</span></td>
+      <td class="px-4 py-3 text-center hidden sm:table-cell"><span class="${r.skor_tiu >= 80 ? 'text-green-600 dark:text-green-400' : 'text-red-500'} font-semibold text-xs">${r.skor_tiu}</span></td>
+      <td class="px-4 py-3 text-center hidden sm:table-cell"><span class="${r.skor_tkp >= 166 ? 'text-green-600 dark:text-green-400' : 'text-red-500'} font-semibold text-xs">${r.skor_tkp}</span></td>
+      <td class="px-4 py-3 text-center">
+        <span class="px-2 py-0.5 rounded-full text-xs font-bold ${r.status_lulus ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">${r.status_lulus ? 'LULUS' : 'BELUM'}</span>
+      </td>
+      <td class="px-4 py-3 text-gray-400 dark:text-gray-500 text-xs hidden md:table-cell whitespace-nowrap">${tgl}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('leaderboardContent').innerHTML = `
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50 dark:bg-slate-900 text-xs text-gray-500 uppercase tracking-wide">
+          <tr>
+            <th class="px-4 py-3 text-center w-14">Rank</th>
+            <th class="px-4 py-3 text-left">Peserta</th>
+            <th class="px-4 py-3 text-center">Skor</th>
+            <th class="px-4 py-3 text-center hidden sm:table-cell">TWK</th>
+            <th class="px-4 py-3 text-center hidden sm:table-cell">TIU</th>
+            <th class="px-4 py-3 text-center hidden sm:table-cell">TKP</th>
+            <th class="px-4 py-3 text-center">Status</th>
+            <th class="px-4 py-3 text-left hidden md:table-cell">Tanggal</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <p class="text-center text-xs text-gray-400 dark:text-gray-500 py-4">
+        ${ranked.length} peserta terdaftar · Ranking berdasarkan skor terbaik per peserta
+      </p>
+    </div>`;
+}
+
+// Auth & init
+(async () => {
+  const { data: { session } } = await _sb.auth.getSession();
+  if (!session) { window.location.replace('login.html'); return; }
+  currentUser = session.user;
+  const name = currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
+  const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  document.getElementById('sbName').textContent = name;
+  document.getElementById('sbEmail').textContent = currentUser.email;
+
+  const photo = localStorage.getItem('skorin_photo');
+  if (photo) {
+    const img = document.getElementById('sbAvatarImg'); const sp = document.getElementById('sbAvatar');
+    img.src = photo; img.classList.remove('hidden'); sp.style.display = 'none';
+  } else {
+    document.getElementById('sbAvatar').textContent = initials;
+  }
+
+  if (localStorage.getItem('sb_c') === '1' && window.innerWidth >= 1024) {
+    document.getElementById('sidebar')?.classList.add('collapsed');
+    document.getElementById('mainWrapper').style.marginLeft = '4rem';
+    const icon = document.getElementById('sbColIcon'); if (icon) icon.style.transform = 'rotate(180deg)';
+  }
+
+  await loadPakets();
+  await loadLeaderboard();
+})();
+</script>
+</body>
+</html>
