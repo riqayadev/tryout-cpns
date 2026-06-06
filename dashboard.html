@@ -304,7 +304,10 @@
   <!-- Tryout Terakhir + Paket -->
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
     <div class="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm p-5">
-      <h2 class="text-sm font-bold text-gray-900 dark:text-white mb-4">📊 Tryout Terakhir</h2>
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-sm font-bold text-gray-900 dark:text-white">📊 Riwayat Tryout</h2>
+        <span id="totalTryoutBadge" class="text-xs bg-primary-100 text-primary-700 dark:bg-blue-900 dark:text-blue-300 px-2.5 py-0.5 rounded-full font-semibold hidden"></span>
+      </div>
       <div id="lastTryout">
         <div class="text-center py-6">
           <div class="text-4xl mb-2">📝</div>
@@ -411,12 +414,13 @@
   }
   async function doLogout() { confirmLogout(); }
 
+  let _totalTryout = 0;
+
   // Notification
   function showNotif() {
-    const history = JSON.parse(localStorage.getItem('skorin_history') || '[]');
-    const msgs = history.length === 0
+    const msgs = _totalTryout === 0
       ? 'Belum ada tryout. Yuk mulai tryout pertamamu!'
-      : `Kamu sudah ${history.length} tryout. Teruskan semangat!`;
+      : `Kamu sudah ${_totalTryout} tryout. Teruskan semangat!`;
     alert('🔔 ' + msgs);
   }
 
@@ -441,72 +445,126 @@
       document.getElementById('sbAvatar').textContent = initials;
     }
 
-    loadStats();
-    loadLastTryout();
-    loadRekomendasi();
+    await loadDashboardData();
     loadTarget();
     checkOnboarding();
   })();
 
-  // Stats
-  function loadStats() {
-    const history = JSON.parse(localStorage.getItem('skorin_history') || '[]');
-    if (!history.length) return;
-    const avg = (key, max) => Math.round(history.reduce((a,b) => a + (b[key]||0), 0) / history.length);
-    const twk = avg('twk', 150), tiu = avg('tiu', 175), tkp = avg('tkp', 225);
-    const setProg = (id, bar, pct, val, max) => {
-      document.getElementById(id).textContent = val;
-      const p = Math.min(100, Math.round(val/max*100));
-      document.getElementById(bar).style.width = p + '%';
-      document.getElementById(pct).textContent = p + '%';
-    };
-    setProg('twkAvg', 'twkBar', 'twkPct', twk, 150);
-    setProg('tiuAvg', 'tiuBar', 'tiuPct', tiu, 175);
-    setProg('tkpAvg', 'tkpBar', 'tkpPct', tkp, 225);
-  }
+  // Dashboard data — fetch from Supabase hasil_tryout, fallback to localStorage
+  async function loadDashboardData() {
+    if (!userData) return;
 
-  // Last tryout
-  function loadLastTryout() {
-    const history = JSON.parse(localStorage.getItem('skorin_history') || '[]');
-    if (!history.length) return;
-    const last = history[history.length - 1];
-    const lulus = last.twk >= 65 && last.tiu >= 80 && last.tkp >= 166;
-    document.getElementById('lastTryout').innerHTML = `
-      <div class="space-y-2">
-        <div class="flex items-center justify-between">
-          <div><p class="font-semibold text-gray-900 dark:text-white text-sm">${last.paket || 'SKD Simulasi'}</p>
-          <p class="text-xs text-gray-400">${new Date(last.tanggal).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})}</p></div>
-          <span class="px-2 py-0.5 rounded-full text-xs font-bold ${lulus?'bg-green-100 text-green-700':'bg-red-100 text-red-700'}">${lulus?'LULUS':'BELUM'}</span>
-        </div>
-        <div class="grid grid-cols-3 gap-1.5 text-center">
-          <div class="bg-blue-50 dark:bg-blue-950/30 rounded-lg p-1.5"><p class="text-xs text-gray-500">TWK</p><p class="font-black text-primary-600 text-sm">${last.twk}</p></div>
-          <div class="bg-green-50 dark:bg-green-950/30 rounded-lg p-1.5"><p class="text-xs text-gray-500">TIU</p><p class="font-black text-green-600 text-sm">${last.tiu}</p></div>
-          <div class="bg-amber-50 dark:bg-amber-950/30 rounded-lg p-1.5"><p class="text-xs text-gray-500">TKP</p><p class="font-black text-amber-600 text-sm">${last.tkp}</p></div>
-        </div>
-        <div class="text-center text-xl font-black text-gray-900 dark:text-white">Total: ${last.total||last.twk+last.tiu+last.tkp}</div>
-        <a href="hasil.html" class="block text-center text-xs text-primary-600 hover:underline">Lihat detail →</a>
-      </div>`;
-  }
+    let records = [];
 
-  // Rekomendasi
-  function loadRekomendasi() {
-    const history = JSON.parse(localStorage.getItem('skorin_history') || '[]');
-    if (!history.length) return;
-    const last = history[history.length - 1];
-    const weak = [];
-    if (last.twk < 65) weak.push({label:'TWK', tip:'Pelajari Pancasila, UUD 1945, dan sejarah nasional lebih mendalam.', href:'materi.html'});
-    if (last.tiu < 80) weak.push({label:'TIU', tip:'Latih soal numerik, verbal, dan figural setiap hari minimal 30 menit.', href:'materi.html'});
-    if (last.tkp < 166) weak.push({label:'TKP', tip:'Pahami nilai-nilai ASN: integritas, orientasi pelayanan, dan kerjasama.', href:'materi.html'});
-    if (!weak.length) {
-      document.getElementById('rekomendasiContent').innerHTML = '<p class="text-green-600 dark:text-green-400 font-semibold text-sm">🎉 Semua kategori sudah melewati passing grade! Pertahankan!</p>';
+    // 1. Try Supabase
+    const { data: dbData, error } = await _sb
+      .from('hasil_tryout')
+      .select('skor_twk, skor_tiu, skor_tkp, skor_total, status_lulus, paket_nama, tanggal')
+      .eq('user_id', userData.id)
+      .order('tanggal', { ascending: false })
+      .limit(100);
+
+    if (!error && dbData && dbData.length > 0) {
+      records = dbData.map(r => ({
+        paket: r.paket_nama,
+        tanggal: r.tanggal,
+        twk: r.skor_twk || 0,
+        tiu: r.skor_tiu || 0,
+        tkp: r.skor_tkp || 0,
+        total: r.skor_total || 0,
+        lulus: r.status_lulus
+      }));
     } else {
-      document.getElementById('rekomendasiContent').innerHTML = weak.map(w => `
-        <div class="mb-3">
-          <p class="font-semibold text-red-500 text-xs mb-0.5">⚠️ Lemah di ${w.label}</p>
-          <p class="text-gray-500 dark:text-gray-400 text-xs">${w.tip}</p>
-          <a href="${w.href}" class="text-xs text-primary-600 hover:underline font-medium">Pelajari materi ${w.label} →</a>
+      // Fallback: localStorage history (format lama)
+      const ls = JSON.parse(localStorage.getItem('skorin_history') || '[]');
+      records = ls.slice().reverse().map(r => ({
+        paket: r.paket,
+        tanggal: r.tanggal,
+        twk: r.twk || 0,
+        tiu: r.tiu || 0,
+        tkp: r.tkp || 0,
+        total: r.total || (r.twk + r.tiu + r.tkp) || 0,
+        lulus: (r.twk >= 65 && r.tiu >= 80 && r.tkp >= 166)
+      }));
+    }
+
+    if (!records.length) return;
+
+    _totalTryout = records.length;
+
+    // Update badge total
+    const badge = document.getElementById('totalTryoutBadge');
+    if (badge) { badge.textContent = _totalTryout + '×'; badge.classList.remove('hidden'); }
+
+    // Hitung rata-rata
+    const mean = key => Math.round(records.reduce((a, r) => a + r[key], 0) / records.length);
+    const twkAvg = mean('twk'), tiuAvg = mean('tiu'), tkpAvg = mean('tkp');
+
+    // Update Progress SKD bars
+    const setBar = (id, barId, pctId, val, max) => {
+      const el = document.getElementById(id); if (el) el.textContent = val;
+      const p = Math.min(100, Math.round(val / max * 100));
+      const bar = document.getElementById(barId); if (bar) bar.style.width = p + '%';
+      const pct = document.getElementById(pctId); if (pct) pct.textContent = p + '%';
+    };
+    setBar('twkAvg', 'twkBar', 'twkPct', twkAvg, 150);
+    setBar('tiuAvg', 'tiuBar', 'tiuPct', tiuAvg, 175);
+    setBar('tkpAvg', 'tkpBar', 'tkpPct', tkpAvg, 225);
+
+    // Render riwayat terakhir (5 teratas)
+    const recent = records.slice(0, 5);
+    document.getElementById('lastTryout').innerHTML = recent.map(r => {
+      const tgl = new Date(r.tanggal).toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'});
+      return `
+      <div class="border-b border-gray-50 dark:border-slate-700 last:border-b-0 pb-3 last:pb-0 mb-3 last:mb-0">
+        <div class="flex items-center justify-between mb-1.5">
+          <div>
+            <p class="font-semibold text-gray-900 dark:text-white text-xs leading-tight">${r.paket || 'SKD Simulasi'}</p>
+            <p class="text-xs text-gray-400">${tgl}</p>
+          </div>
+          <span class="px-2 py-0.5 rounded-full text-xs font-bold ${r.lulus ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-400'}">${r.lulus ? 'LULUS' : 'BELUM'}</span>
         </div>
-      `).join('');
+        <div class="grid grid-cols-4 gap-1 text-center">
+          <div class="bg-gray-50 dark:bg-slate-700 rounded-lg p-1"><p class="text-xs text-gray-400">Total</p><p class="font-black text-gray-900 dark:text-white text-xs">${r.total}</p></div>
+          <div class="bg-blue-50 dark:bg-blue-950/30 rounded-lg p-1"><p class="text-xs text-gray-400">TWK</p><p class="font-black text-primary-600 text-xs">${r.twk}</p></div>
+          <div class="bg-green-50 dark:bg-green-950/30 rounded-lg p-1"><p class="text-xs text-gray-400">TIU</p><p class="font-black text-green-600 text-xs">${r.tiu}</p></div>
+          <div class="bg-amber-50 dark:bg-amber-950/30 rounded-lg p-1"><p class="text-xs text-gray-400">TKP</p><p class="font-black text-amber-600 text-xs">${r.tkp}</p></div>
+        </div>
+      </div>`;
+    }).join('') + `
+    <div class="mt-2 flex items-center justify-between">
+      <p class="text-xs text-gray-400 dark:text-gray-500">Total: <strong>${_totalTryout}</strong> tryout dikerjakan</p>
+      <a href="hasil.html" class="text-xs text-primary-600 hover:underline font-medium">Detail terakhir →</a>
+    </div>`;
+
+    // Rekomendasi berdasarkan rata-rata (bukan hanya tryout terakhir)
+    const weak = [];
+    if (twkAvg < 65)  weak.push({label:'TWK', score: twkAvg, pg: 65,  tip:'Pelajari Pancasila, UUD 1945, NKRI, dan sejarah nasional lebih mendalam.'});
+    if (tiuAvg < 80)  weak.push({label:'TIU', score: tiuAvg, pg: 80,  tip:'Latih soal numerik, verbal, dan figural setiap hari minimal 30 menit.'});
+    if (tkpAvg < 166) weak.push({label:'TKP', score: tkpAvg, pg: 166, tip:'Pahami nilai-nilai ASN: integritas, orientasi pelayanan, dan kerja sama tim.'});
+
+    if (!weak.length) {
+      document.getElementById('rekomendasiContent').innerHTML = `
+        <div class="flex items-start gap-2">
+          <span class="text-2xl">🎉</span>
+          <div>
+            <p class="text-green-600 dark:text-green-400 font-bold text-sm mb-1">Rata-rata semua kategori lulus passing grade!</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Pertahankan konsistensimu dan coba paket soal yang lebih sulit.</p>
+            <a href="tryout-list.html" class="mt-1.5 inline-block text-xs text-primary-600 hover:underline font-medium">Coba paket baru →</a>
+          </div>
+        </div>`;
+    } else {
+      // Urutkan: paling jauh di bawah PG tampil duluan
+      weak.sort((a, b) => (a.score - a.pg) - (b.score - b.pg));
+      document.getElementById('rekomendasiContent').innerHTML = weak.map(w => `
+        <div class="mb-3 last:mb-0">
+          <div class="flex items-center justify-between mb-0.5">
+            <p class="font-semibold text-red-500 text-xs">⚠️ ${w.label} — rata-rata ${w.score}</p>
+            <span class="text-xs text-gray-400">PG: ${w.pg}</span>
+          </div>
+          <p class="text-gray-500 dark:text-gray-400 text-xs mb-1">${w.tip}</p>
+          <a href="materi.html" class="text-xs text-primary-600 hover:underline font-medium">Pelajari materi ${w.label} →</a>
+        </div>`).join('');
     }
   }
 
