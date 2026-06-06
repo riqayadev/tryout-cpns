@@ -1,0 +1,42 @@
+{
+  "name": "SkorinCPNS",
+  "short_name": "SkorinCPNS",
+  "description": "Platform tryout SKD CPNS terbaik. Latihan soal TWK, TIU, TKP gratis!",
+  "start_url": "/dashboard.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "orientation": "portrait-primary",
+  "lang": "id",
+  "icons": [
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxOTIgMTkyIj48cmVjdCB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgcng9IjMyIiBmaWxsPSIjMjU2M2ViIi8+PHBhdGggZD0iTTU2IDk2bDI0IDI0IDU2LTU2IiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMTYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZmlsbD0ibm9uZSIvPjwvc3ZnPg==",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjY0IiBmaWxsPSIjMjU2M2ViIi8+PHBhdGggZD0iTTE0NCAyNTZsNjQgNjQgMTYwLTE2MCIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjQ4IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGZpbGw9Im5vbmUiLz48L3N2Zz4=",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["education", "productivity"],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "Buka dashboard tryout CPNS",
+      "url": "/dashboard.html",
+      "icons": [{"src": "data:image/png;base64,", "sizes": "96x96"}]
+    },
+    {
+      "name": "Mulai Tryout",
+      "short_name": "Tryout",
+      "description": "Pilih paket tryout",
+      "url": "/tryout-list.html",
+      "icons": [{"src": "data:image/png;base64,", "sizes": "96x96"}]
+    }
+  ]
+}

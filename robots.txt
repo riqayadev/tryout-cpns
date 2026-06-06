@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+Allow: /index.html
+Allow: /tentang.html
+Allow: /kontak.html
+Disallow: /dashboard.html
+Disallow: /tryout.html
+Disallow: /tryout-list.html
+Disallow: /hasil.html
+Disallow: /materi.html
+Disallow: /profil.html
+
+Sitemap: https://skorincpns.web.app/sitemap.xml

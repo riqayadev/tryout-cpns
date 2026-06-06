@@ -149,7 +149,13 @@
 
   const params = new URLSearchParams(location.search);
   const paketNama = decodeURIComponent(params.get('nama') || 'SKD Simulasi');
-  document.getElementById('paketNamaHeader').textContent = paketNama;
+  const isLatihanMode = params.get('mode') === 'latihan';
+  document.getElementById('paketNamaHeader').textContent = paketNama + (isLatihanMode ? ' · Mode Latihan' : '');
+  if (isLatihanMode) {
+    const timerBox = document.getElementById('timerBox');
+    timerBox.innerHTML = '<span class="bg-amber-100 text-amber-700 text-sm font-black px-3 py-1.5 rounded-xl">📖 Mode Latihan</span>';
+    timerBox.className = '';
+  }
 
   // ── SOAL ───────────────────────────────────────────────────────────
   const soalDB = [
@@ -315,7 +321,30 @@
     updateNavGrid();
   }
 
-  function selectAnswer(optIdx) { jawaban[currentQ]=optIdx; renderQ(currentQ); }
+  function selectAnswer(optIdx) {
+    jawaban[currentQ] = optIdx;
+    if (isLatihanMode) {
+      const s = soalDB[currentQ];
+      const btns = document.querySelectorAll('.option-btn');
+      btns.forEach((btn, i) => {
+        btn.disabled = true;
+        if (s.tipe !== 'TKP') {
+          if (i === s.benar) btn.style.cssText = 'border-color:#22c55e;background:#dcfce7;';
+          else if (i === optIdx && i !== s.benar) btn.style.cssText = 'border-color:#ef4444;background:#fee2e2;';
+        } else {
+          if (i === optIdx) btn.style.cssText = 'border-color:#2563eb;background:#dbeafe;';
+        }
+      });
+      if (s.pembahasan) {
+        const area = document.getElementById('optionsList');
+        const div = document.createElement('div');
+        div.className = 'mt-3 p-3 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-800';
+        div.innerHTML = '<strong>💡 Pembahasan:</strong> ' + s.pembahasan;
+        area.appendChild(div);
+      }
+    }
+    renderQ(currentQ);
+  }
   function toggleFlag() { flagged[currentQ]=!flagged[currentQ]; renderQ(currentQ); }
   function goPrev() { if(currentQ>0){ currentQ--; renderQ(currentQ); } }
   function goNext() { if(currentQ<109){ currentQ++; renderQ(currentQ); } else konfirmasiSubmit(); }
@@ -388,7 +417,17 @@
   document.addEventListener('contextmenu', e=>e.preventDefault());
 
   renderQ(0);
-  startTimer();
+  if (!isLatihanMode) startTimer();
+  // 10-minute timer alert
+  if (!isLatihanMode) {
+    const alertAt = 600;
+    const _origStart = startTimer;
+    setTimeout(() => {
+      if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+        new Notification('⏰ Waktu Tersisa 10 Menit!', {body:'Segera periksa dan submit jawabanmu.'});
+      }
+    }, (6000 - alertAt) * 1000);
+  }
 </script>
 </body>
 </html>

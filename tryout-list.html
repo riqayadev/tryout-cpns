@@ -4,70 +4,127 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Daftar Tryout – SkorinCPNS</title>
+  <meta name="description" content="Pilih paket tryout SKD CPNS. Tersedia gratis dan premium dengan soal lengkap TWK, TIU, TKP."/>
+  <link rel="manifest" href="manifest.json"/>
+  <meta name="theme-color" content="#2563eb"/>
+  <script>(function(){const d=localStorage.getItem('dark_mode');if(d==='1'||(d===null&&window.matchMedia('(prefers-color-scheme:dark)').matches))document.documentElement.classList.add('dark');})();</script>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config={theme:{extend:{colors:{primary:{50:'#eff6ff',100:'#dbeafe',600:'#2563eb',700:'#1d4ed8'}},fontFamily:{sans:['Inter','sans-serif']}}}}</script>
+  <script>tailwind.config={darkMode:'class',theme:{extend:{colors:{primary:{50:'#eff6ff',100:'#dbeafe',600:'#2563eb',700:'#1d4ed8'}},fontFamily:{sans:['Inter','sans-serif']}}}}</script>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <style>
+    #sidebar{transition:width .25s ease,transform .3s ease;width:16rem;}
+    #sidebar.collapsed{width:4rem;}
+    #sidebar.collapsed .sb-label{display:none!important;}
+    #sidebar.collapsed nav a,#sidebar.collapsed .sb-icon-btn{justify-content:center;padding-left:.625rem;padding-right:.625rem;}
+    #sidebar.collapsed .sb-user{display:none;}
+    html.dark body{background-color:#0f172a;color:#e2e8f0;}
+    html.dark .bg-gray-50{background-color:#0f172a!important;}
+    html.dark .bg-white{background-color:#1e293b!important;}
+    html.dark .border-gray-100,html.dark .border-gray-200{border-color:#334155!important;}
+    html.dark .text-gray-900{color:#f1f5f9!important;}
+    html.dark .text-gray-800{color:#e2e8f0!important;}
+    html.dark .text-gray-700{color:#cbd5e1!important;}
+    html.dark .text-gray-600{color:#94a3b8!important;}
+    html.dark .text-gray-500{color:#64748b!important;}
+    html.dark .shadow-sm,html.dark .hover\:shadow-md:hover{box-shadow:0 1px 3px rgba(0,0,0,.6)!important;}
+    html.dark .bg-green-100{background-color:#14532d!important;}
+    html.dark .text-green-700{color:#4ade80!important;}
+    html.dark .bg-amber-100{background-color:#451a03!important;}
+    html.dark .text-amber-700{color:#fbbf24!important;}
+    html.dark .bg-red-100{background-color:#450a0a!important;}
+    html.dark .text-red-700{color:#f87171!important;}
+    html.dark .bg-gray-100{background-color:#334155!important;}
+    html.dark .text-gray-400{color:#64748b!important;}
+    html.dark .border-amber-200{border-color:#92400e!important;}
+    html.dark input{background-color:#0f172a!important;color:#e2e8f0!important;border-color:#334155!important;}
+    .page-fade{animation:fadeIn .25s ease;}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+  </style>
 </head>
-<body class="font-sans antialiased bg-gray-50">
+<body class="font-sans antialiased bg-gray-50 dark:bg-slate-900">
 
 <!-- SIDEBAR -->
-<aside id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-gray-900 flex flex-col z-50 transform -translate-x-full lg:translate-x-0 transition-transform duration-300">
-  <div class="flex items-center gap-3 px-5 h-16 border-b border-white/10 flex-shrink-0">
+<aside id="sidebar" class="fixed inset-y-0 left-0 z-50 flex flex-col bg-gray-900 transform -translate-x-full lg:translate-x-0 transition-[width,transform] duration-300 overflow-hidden">
+  <div class="flex items-center gap-2 px-4 h-16 border-b border-white/10 flex-shrink-0 min-w-0">
     <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0"><svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
-    <span class="font-extrabold text-lg text-white">SkorinCPNS</span>
+    <span class="sb-label font-extrabold text-base text-white whitespace-nowrap flex-1">SkorinCPNS</span>
+    <button onclick="toggleSbCollapse()" class="hidden lg:flex p-1.5 rounded-lg text-gray-400 hover:bg-white/10 hover:text-white transition" title="Toggle sidebar">
+      <svg id="sbColIcon" class="w-4 h-4 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/></svg>
+    </button>
   </div>
-  <nav class="flex-1 px-3 py-5 space-y-0.5 overflow-y-auto">
-    <a href="dashboard.html" class="text-gray-400 hover:bg-white/10 hover:text-white flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm transition">
+  <nav class="flex-1 px-2 py-4 space-y-0.5 overflow-y-auto">
+    <a href="dashboard.html" title="Dashboard" class="text-gray-400 hover:bg-white/10 hover:text-white flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm transition">
       <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-      Dashboard
+      <span class="sb-label">Dashboard</span>
     </a>
-    <a href="tryout-list.html" class="bg-white/10 text-white flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm">
+    <a href="tryout-list.html" title="Tryout" class="bg-white/10 text-white flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm">
       <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
-      Tryout
+      <span class="sb-label">Tryout</span>
     </a>
-    <a href="materi.html" class="text-gray-400 hover:bg-white/10 hover:text-white flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm transition">
+    <a href="materi.html" title="Materi" class="text-gray-400 hover:bg-white/10 hover:text-white flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm transition">
       <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-      Materi
+      <span class="sb-label">Materi</span>
     </a>
-    <a href="profil.html" class="text-gray-400 hover:bg-white/10 hover:text-white flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm transition">
+    <a href="profil.html" title="Profil" class="text-gray-400 hover:bg-white/10 hover:text-white flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm transition">
       <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-      Profil
+      <span class="sb-label">Profil</span>
     </a>
   </nav>
-  <div class="px-3 py-4 border-t border-white/10 flex-shrink-0">
-    <div class="flex items-center gap-3 px-3 py-2 mb-1">
-      <div id="sbAvatar" class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">?</div>
+  <div class="flex-shrink-0 border-t border-white/10 p-3 space-y-1">
+    <button onclick="toggleDark()" title="Toggle dark mode" class="sb-icon-btn flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-gray-400 hover:bg-white/10 hover:text-white transition text-sm">
+      <svg id="sbDarkIcon" class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+      <span class="sb-label text-sm">Mode Gelap</span>
+    </button>
+    <div class="sb-user flex items-center gap-3 px-3 py-2">
+      <div id="sbAvatarWrap" class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0 overflow-hidden">
+        <img id="sbAvatarImg" src="" class="w-full h-full object-cover hidden"/><span id="sbAvatar">?</span>
+      </div>
       <div class="min-w-0 flex-1">
         <div id="sbName" class="text-white text-sm font-semibold truncate">...</div>
         <div id="sbEmail" class="text-gray-400 text-xs truncate">...</div>
       </div>
     </div>
-    <button onclick="doLogout()" class="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-red-400 hover:bg-red-500/10 hover:text-red-300 transition text-sm font-medium">
+    <button onclick="confirmLogout()" title="Keluar" class="sb-icon-btn flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-red-400 hover:bg-red-500/10 hover:text-red-300 transition text-sm font-medium">
       <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-      Keluar
+      <span class="sb-label">Keluar</span>
     </button>
   </div>
 </aside>
 <div id="sbOverlay" onclick="closeSidebar()" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden"></div>
-<div class="lg:hidden fixed top-0 inset-x-0 z-30 bg-white border-b border-gray-200 flex items-center h-14 px-4">
-  <button onclick="openSidebar()" class="p-2 -ml-1 rounded-lg text-gray-500 hover:bg-gray-100 mr-3"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+
+<!-- Mobile Topbar -->
+<div class="lg:hidden fixed top-0 inset-x-0 z-30 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 flex items-center justify-between h-14 px-4">
+  <button onclick="openSidebar()" class="p-2 -ml-1 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-800"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg></button>
   <span class="font-extrabold text-primary-600">SkorinCPNS</span>
+  <div class="w-9"></div>
 </div>
 
-<div class="lg:ml-64 min-h-screen bg-gray-50 pt-14 lg:pt-0">
-<main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-  <div class="mb-8">
-    <h1 class="text-2xl font-black text-gray-900 mb-2">Daftar Paket Tryout</h1>
-    <p class="text-gray-500">Pilih paket tryout SKD yang sesuai dengan level persiapan Anda.</p>
+<div id="mainWrapper" class="lg:ml-64 min-h-screen bg-gray-50 dark:bg-slate-900 pt-14 lg:pt-0 transition-[margin] duration-300">
+<main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 page-fade">
+  <div class="mb-6">
+    <h1 class="text-2xl font-black text-gray-900 dark:text-white mb-1">Daftar Paket Tryout</h1>
+    <p class="text-gray-500 dark:text-gray-400 text-sm">Pilih mode <span class="font-semibold text-amber-600">Latihan</span> (tampilkan jawaban langsung) atau <span class="font-semibold text-primary-600">Ujian</span> (timer aktif, simulasi nyata).</p>
+  </div>
+
+  <!-- Progress gratis -->
+  <div id="progressBanner" class="hidden bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm p-4 mb-6">
+    <div class="flex items-center justify-between mb-2">
+      <p class="text-sm font-semibold text-gray-700 dark:text-gray-300">Progress Tryout Gratis</p>
+      <p class="text-sm font-bold text-primary-600"><span id="progressCount">0</span> dari 5 dikerjakan</p>
+    </div>
+    <div class="h-2.5 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden">
+      <div id="progressBar" class="h-full bg-primary-600 rounded-full transition-all duration-700" style="width:0%"></div>
+    </div>
+    <p class="text-xs text-gray-400 dark:text-gray-500 mt-1.5" id="progressMsg">Yuk kerjakan tryout gratis untuk mulai perjalananmu!</p>
   </div>
 
   <!-- Filter -->
-  <div class="flex gap-2 mb-8 overflow-x-auto pb-1">
-    <button onclick="setFilter('semua')" id="f-semua" class="px-5 py-2.5 rounded-xl text-sm font-semibold bg-primary-600 text-white flex-shrink-0">Semua</button>
-    <button onclick="setFilter('gratis')" id="f-gratis" class="px-5 py-2.5 rounded-xl text-sm font-semibold bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 flex-shrink-0 transition">Gratis</button>
-    <button onclick="setFilter('premium')" id="f-premium" class="px-5 py-2.5 rounded-xl text-sm font-semibold bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 flex-shrink-0 transition">Premium</button>
+  <div class="flex gap-2 mb-6 overflow-x-auto pb-1">
+    <button onclick="setFilter('semua')" id="f-semua" class="px-4 py-2 rounded-xl text-sm font-semibold bg-primary-600 text-white flex-shrink-0">Semua</button>
+    <button onclick="setFilter('gratis')" id="f-gratis" class="px-4 py-2 rounded-xl text-sm font-semibold bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700 flex-shrink-0 transition">Gratis</button>
+    <button onclick="setFilter('premium')" id="f-premium" class="px-4 py-2 rounded-xl text-sm font-semibold bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700 flex-shrink-0 transition">Premium</button>
   </div>
 
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5" id="tryoutGrid"></div>
@@ -77,30 +134,77 @@
 <script>
   const { createClient } = supabase;
   const _sb = createClient('https://ykvwwfsoqqhtijtnivmj.supabase.co', 'sb_publishable_p_RYUHTiKlARg_rDTe3Gaw_N3G8XPwl');
+
+  function toggleDark() {
+    const isDark = document.documentElement.classList.toggle('dark');
+    localStorage.setItem('dark_mode', isDark ? '1' : '0');
+    updateDarkIcon();
+  }
+  function updateDarkIcon() {
+    const isDark = document.documentElement.classList.contains('dark');
+    document.getElementById('sbDarkIcon').innerHTML = isDark
+      ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>'
+      : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>';
+  }
+  updateDarkIcon();
+
+  function toggleSbCollapse() {
+    const sb = document.getElementById('sidebar');
+    const mw = document.getElementById('mainWrapper');
+    const collapsed = sb.classList.toggle('collapsed');
+    mw.style.marginLeft = collapsed ? '4rem' : '';
+    document.getElementById('sbColIcon').style.transform = collapsed ? 'rotate(180deg)' : '';
+    localStorage.setItem('sb_c', collapsed ? '1' : '0');
+  }
+  function openSidebar() { document.getElementById('sidebar').classList.remove('-translate-x-full'); document.getElementById('sbOverlay').classList.remove('hidden'); }
+  function closeSidebar() { document.getElementById('sidebar').classList.add('-translate-x-full'); document.getElementById('sbOverlay').classList.add('hidden'); }
+  if (localStorage.getItem('sb_c') === '1' && window.innerWidth >= 1024) {
+    document.getElementById('sidebar')?.classList.add('collapsed');
+    document.getElementById('mainWrapper').style.marginLeft = '4rem';
+    document.getElementById('sbColIcon').style.transform = 'rotate(180deg)';
+  }
+
+  async function confirmLogout() {
+    if (!confirm('Yakin ingin keluar dari SkorinCPNS?')) return;
+    await _sb.auth.signOut(); localStorage.removeItem('skorin_history'); window.location.href = 'index.html';
+  }
+
   (async () => {
     const { data: { session } } = await _sb.auth.getSession();
     if (!session) { window.location.replace('login.html'); return; }
     const name = session.user.user_metadata?.full_name || session.user.email.split('@')[0];
     const initials = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
-    document.getElementById('sbAvatar').textContent = initials;
+    const photo = localStorage.getItem('skorin_photo');
+    if (photo) { document.getElementById('sbAvatarImg').src = photo; document.getElementById('sbAvatarImg').classList.remove('hidden'); document.getElementById('sbAvatar').style.display='none'; }
+    else document.getElementById('sbAvatar').textContent = initials;
     document.getElementById('sbName').textContent = name;
     document.getElementById('sbEmail').textContent = session.user.email;
+
+    // Progress gratis
+    const history = JSON.parse(localStorage.getItem('skorin_history') || '[]');
+    const gratisDone = [...new Set(history.filter(h=>h.gratis).map(h=>h.paketId))].length;
+    if (history.length > 0) {
+      document.getElementById('progressBanner').classList.remove('hidden');
+      document.getElementById('progressCount').textContent = Math.min(5, gratisDone);
+      document.getElementById('progressBar').style.width = Math.min(100, gratisDone/5*100) + '%';
+      document.getElementById('progressMsg').textContent = gratisDone >= 5
+        ? '🎉 Semua tryout gratis sudah dikerjakan! Coba upgrade ke Premium untuk soal lebih banyak.'
+        : `Selesaikan ${5 - Math.min(5, gratisDone)} tryout gratis lagi untuk unlock statistik lengkap.`;
+    }
+    renderPakets();
   })();
-  async function doLogout() { await _sb.auth.signOut(); localStorage.removeItem('skorin_history'); window.location.href = 'index.html'; }
-  function openSidebar() { document.getElementById('sidebar').classList.remove('-translate-x-full'); document.getElementById('sbOverlay').classList.remove('hidden'); }
-  function closeSidebar() { document.getElementById('sidebar').classList.add('-translate-x-full'); document.getElementById('sbOverlay').classList.add('hidden'); }
 
   const pakets = [
-    {id:1, judul:'SKD Simulasi #1', desc:'Tryout SKD lengkap dengan soal-soal tingkat mudah. Cocok untuk latihan pertama kali.', soal:110, durasi:100, level:'Mudah', tipe:'gratis', icon:'📝'},
-    {id:2, judul:'SKD Simulasi #2', desc:'Kumpulan soal SKD tingkat menengah. Variasi soal lebih beragam dan menantang.', soal:110, durasi:100, level:'Menengah', tipe:'gratis', icon:'📋'},
-    {id:3, judul:'SKD Simulasi #3', desc:'Soal berdasarkan kisi-kisi CPNS 2024. Latihan intensif dengan waktu tertekan.', soal:110, durasi:100, level:'Menengah', tipe:'gratis', icon:'📄'},
-    {id:4, judul:'SKD Simulasi #4', desc:'Soal gabungan dari bank soal CPNS 3 tahun terakhir. Evaluasi kesiapan Anda.', soal:110, durasi:100, level:'Menengah', tipe:'gratis', icon:'🗒️'},
-    {id:5, judul:'SKD Simulasi #5', desc:'Tryout gratis terakhir. Soal tingkat tinggi sebagai final assessment sebelum upgrade.', soal:110, durasi:100, level:'Sulit', tipe:'gratis', icon:'📑'},
-    {id:6, judul:'SKD Premium #1', desc:'Bank soal premium eksklusif. Pembahasan super lengkap dengan referensi pasal dan sumber.', soal:110, durasi:100, level:'Sulit', tipe:'premium', icon:'💎'},
-    {id:7, judul:'SKD Premium #2', desc:'Soal prediksi CPNS 2026 berdasarkan tren soal terkini. Cocok untuk persiapan final.', soal:110, durasi:100, level:'Sulit', tipe:'premium', icon:'🏆'},
-    {id:8, judul:'SKD Premium #3', desc:'Paket intensif dengan passing rate tertinggi. Soal-soal divalidasi oleh ASN aktif.', soal:110, durasi:100, level:'Sangat Sulit', tipe:'premium', icon:'🎯'},
-    {id:9, judul:'SKD Fokus TWK', desc:'Khusus latihan soal Tes Wawasan Kebangsaan. 110 soal murni TWK untuk pendalaman.', soal:110, durasi:100, level:'Menengah', tipe:'premium', icon:'🇮🇩'},
-    {id:10, judul:'SKD Fokus TIU', desc:'Khusus latihan soal Tes Intelegensi Umum. Tingkatkan kemampuan verbal dan numerik.', soal:110, durasi:100, level:'Sulit', tipe:'premium', icon:'🧠'},
+    {id:1, judul:'SKD Simulasi #1', desc:'Tryout SKD lengkap dengan soal-soal tingkat mudah. Cocok untuk latihan pertama kali.', soal:110, level:'Mudah', tipe:'gratis', icon:'📝'},
+    {id:2, judul:'SKD Simulasi #2', desc:'Kumpulan soal SKD tingkat menengah. Variasi soal lebih beragam dan menantang.', soal:110, level:'Menengah', tipe:'gratis', icon:'📋'},
+    {id:3, judul:'SKD Simulasi #3', desc:'Soal berdasarkan kisi-kisi CPNS 2024. Latihan intensif dengan waktu tertekan.', soal:110, level:'Menengah', tipe:'gratis', icon:'📄'},
+    {id:4, judul:'SKD Simulasi #4', desc:'Soal gabungan dari bank soal CPNS 3 tahun terakhir. Evaluasi kesiapan Anda.', soal:110, level:'Menengah', tipe:'gratis', icon:'🗒️'},
+    {id:5, judul:'SKD Simulasi #5', desc:'Tryout gratis final. Soal tingkat tinggi sebagai assessment sebelum ujian sesungguhnya.', soal:110, level:'Sulit', tipe:'gratis', icon:'📑'},
+    {id:6, judul:'SKD Premium #1', desc:'Bank soal premium eksklusif. Pembahasan super lengkap dengan referensi pasal dan sumber.', soal:110, level:'Sulit', tipe:'premium', icon:'💎'},
+    {id:7, judul:'SKD Premium #2', desc:'Soal prediksi CPNS 2026 berdasarkan tren soal terkini. Cocok untuk persiapan final.', soal:110, level:'Sulit', tipe:'premium', icon:'🏆'},
+    {id:8, judul:'SKD Premium #3', desc:'Paket intensif dengan passing rate tertinggi. Soal divalidasi oleh ASN aktif.', soal:110, level:'Sangat Sulit', tipe:'premium', icon:'🎯'},
+    {id:9, judul:'SKD Fokus TWK', desc:'Khusus latihan soal Tes Wawasan Kebangsaan. Pendalaman materi Pancasila, UUD, dan NKRI.', soal:110, level:'Menengah', tipe:'premium', icon:'🇮🇩'},
+    {id:10, judul:'SKD Fokus TIU', desc:'Khusus latihan soal Tes Intelegensi Umum. Tingkatkan kemampuan verbal dan numerik.', soal:110, level:'Sulit', tipe:'premium', icon:'🧠'},
   ];
 
   let filterAktif = 'semua';
@@ -108,8 +212,7 @@
   function setFilter(f) {
     filterAktif = f;
     ['semua','gratis','premium'].forEach(k => {
-      const el = document.getElementById('f-'+k);
-      el.className = `px-5 py-2.5 rounded-xl text-sm font-semibold flex-shrink-0 transition ${k===f ? 'bg-primary-600 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}`;
+      document.getElementById('f-'+k).className = `px-4 py-2 rounded-xl text-sm font-semibold flex-shrink-0 transition ${k===f?'bg-primary-600 text-white':'bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700'}`;
     });
     renderPakets();
   }
@@ -119,34 +222,59 @@
     const filtered = filterAktif === 'semua' ? pakets : pakets.filter(p => p.tipe === filterAktif);
     const levelColor = {Mudah:'bg-green-100 text-green-700', Menengah:'bg-amber-100 text-amber-700', Sulit:'bg-red-100 text-red-700', 'Sangat Sulit':'bg-red-200 text-red-800'};
 
-    grid.innerHTML = filtered.map(p => `
-      <div class="bg-white rounded-2xl border ${p.tipe === 'premium' ? 'border-amber-200' : 'border-gray-100'} shadow-sm p-5 hover:shadow-md transition">
+    if (!filtered.length) {
+      grid.innerHTML = '<div class="col-span-3 text-center py-16"><div class="text-5xl mb-3">🔍</div><p class="text-gray-400 dark:text-gray-500">Tidak ada paket ditemukan.</p></div>';
+      return;
+    }
+
+    grid.innerHTML = filtered.map(p => {
+      if (p.tipe === 'premium') {
+        return `
+        <div class="relative bg-gradient-to-br from-amber-400 via-orange-400 to-amber-500 rounded-2xl p-5 shadow-lg shadow-amber-200/50 dark:shadow-none overflow-hidden">
+          <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+          <div class="absolute bottom-0 left-0 w-16 h-16 bg-black/5 rounded-full translate-y-1/2 -translate-x-1/2"></div>
+          <div class="relative">
+            <div class="flex items-start justify-between mb-3">
+              <div class="text-3xl">${p.icon}</div>
+              <div class="flex flex-col items-end gap-1">
+                <span class="bg-white/25 text-white text-xs font-bold px-2.5 py-1 rounded-full">PREMIUM ✨</span>
+                <span class="text-amber-900 text-xs font-medium px-2 py-0.5 rounded-full bg-white/20">${p.level}</span>
+              </div>
+            </div>
+            <h3 class="font-black text-white text-base mb-1">${p.judul}</h3>
+            <p class="text-amber-100 text-xs leading-relaxed mb-4">${p.desc}</p>
+            <div class="flex items-center gap-3 text-xs text-amber-200 mb-4">
+              <span>📝 ${p.soal} soal</span><span>⏱️ 100 menit</span>
+            </div>
+            <button onclick="alertPremium()" class="w-full text-center bg-white/20 hover:bg-white/30 backdrop-blur border border-white/30 text-white text-sm font-bold py-2.5 rounded-xl transition">🔒 Upgrade untuk Akses</button>
+          </div>
+        </div>`;
+      }
+      return `
+      <div class="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm p-5 hover:shadow-md hover:border-primary-300 dark:hover:border-primary-700 transition">
         <div class="flex items-start justify-between mb-3">
           <div class="text-3xl">${p.icon}</div>
-          <div class="flex items-center gap-2">
-            <span class="text-xs font-bold px-2.5 py-1 rounded-full ${p.tipe === 'gratis' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}">${p.tipe.toUpperCase()}</span>
-            <span class="text-xs font-medium px-2 py-1 rounded-full ${levelColor[p.level] || 'bg-gray-100 text-gray-600'}">${p.level}</span>
+          <div class="flex flex-col items-end gap-1">
+            <span class="bg-green-100 text-green-700 text-xs font-bold px-2.5 py-1 rounded-full">GRATIS</span>
+            <span class="text-xs font-medium px-2 py-0.5 rounded-full ${levelColor[p.level]||'bg-gray-100 text-gray-600'}">${p.level}</span>
           </div>
         </div>
-        <h3 class="font-bold text-gray-900 mb-1">${p.judul}</h3>
-        <p class="text-gray-500 text-sm leading-relaxed mb-4">${p.desc}</p>
-        <div class="flex items-center gap-4 text-xs text-gray-400 mb-4">
-          <span>📝 ${p.soal} soal</span>
-          <span>⏱️ ${p.durasi} menit</span>
-          <span>📊 TWK·TIU·TKP</span>
+        <h3 class="font-bold text-gray-900 dark:text-white mb-1">${p.judul}</h3>
+        <p class="text-gray-500 dark:text-gray-400 text-xs leading-relaxed mb-4">${p.desc}</p>
+        <div class="flex items-center gap-4 text-xs text-gray-400 dark:text-gray-500 mb-4">
+          <span>📝 ${p.soal} soal</span><span>⏱️ 100 menit</span><span>📊 TWK·TIU·TKP</span>
         </div>
-        ${p.tipe === 'gratis'
-          ? `<a href="tryout.html?id=${p.id}&nama=${encodeURIComponent(p.judul)}" class="block w-full text-center bg-primary-600 hover:bg-primary-700 text-white font-bold py-3 rounded-xl transition">Mulai Tryout →</a>`
-          : `<button onclick="alertPremium()" class="w-full text-center bg-amber-400 hover:bg-amber-500 text-gray-900 font-bold py-3 rounded-xl transition">🔒 Upgrade untuk Akses</button>`}
-      </div>
-    `).join('');
+        <div class="grid grid-cols-2 gap-2">
+          <a href="tryout.html?id=${p.id}&nama=${encodeURIComponent(p.judul)}&mode=latihan" class="text-center border border-gray-200 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-600 dark:text-gray-400 text-xs font-semibold py-2.5 rounded-xl transition">📖 Latihan</a>
+          <a href="tryout.html?id=${p.id}&nama=${encodeURIComponent(p.judul)}" class="text-center bg-primary-600 hover:bg-primary-700 text-white text-xs font-bold py-2.5 rounded-xl transition">⏱ Ujian</a>
+        </div>
+      </div>`;
+    }).join('');
   }
 
   function alertPremium() {
-    alert('Paket Premium akan segera tersedia! Pantau terus SkorinCPNS untuk info upgrade.');
+    alert('✨ Paket Premium akan segera tersedia!\n\nDaftarkan email Anda untuk mendapat notifikasi pertama saat Premium diluncurkan.');
   }
-
-  renderPakets();
 </script>
 </body>
 </html>

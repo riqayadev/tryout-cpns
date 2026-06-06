@@ -4,154 +4,389 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Materi Belajar – SkorinCPNS</title>
+  <meta name="description" content="Pelajari materi SKD CPNS lengkap: TWK, TIU, TKP dengan ringkasan, contoh soal, dan kuis interaktif."/>
+  <link rel="manifest" href="manifest.json"/>
+  <script>(function(){const d=localStorage.getItem('dark_mode');if(d==='1'||(d===null&&window.matchMedia('(prefers-color-scheme:dark)').matches))document.documentElement.classList.add('dark');})();</script>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config={theme:{extend:{colors:{primary:{50:'#eff6ff',100:'#dbeafe',600:'#2563eb',700:'#1d4ed8'}},fontFamily:{sans:['Inter','sans-serif']}}}}</script>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <script>tailwind.config={darkMode:'class',theme:{extend:{colors:{primary:{50:'#eff6ff',100:'#dbeafe',600:'#2563eb',700:'#1d4ed8'}},fontFamily:{sans:['Inter','sans-serif']}}}}</script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <style>
+    #sidebar{transition:width .25s ease,transform .3s ease;width:16rem;}
+    #sidebar.collapsed{width:4rem;}
+    #sidebar.collapsed .sb-label{display:none!important;}
+    #sidebar.collapsed nav a,#sidebar.collapsed .sb-icon-btn{justify-content:center;padding-left:.625rem;padding-right:.625rem;}
+    #sidebar.collapsed .sb-user{display:none;}
+    html.dark body{background-color:#0f172a;color:#e2e8f0;}
+    html.dark .bg-gray-50{background-color:#0f172a!important;}
+    html.dark .bg-white{background-color:#1e293b!important;}
+    html.dark .border-gray-100,html.dark .border-gray-200{border-color:#334155!important;}
+    html.dark .text-gray-900{color:#f1f5f9!important;}
+    html.dark .text-gray-800{color:#e2e8f0!important;}
+    html.dark .text-gray-700{color:#cbd5e1!important;}
+    html.dark .text-gray-600{color:#94a3b8!important;}
+    html.dark .text-gray-500{color:#64748b!important;}
+    html.dark .text-gray-400{color:#475569!important;}
+    html.dark .bg-gray-100{background-color:#334155!important;}
+    html.dark input{background-color:#1e293b!important;color:#e2e8f0!important;border-color:#334155!important;}
+    html.dark .bg-blue-50{background-color:#0c1a2e!important;}
+    html.dark .bg-green-50{background-color:#052e16!important;}
+    html.dark .bg-amber-50{background-color:#1c1200!important;}
+    html.dark .bg-green-100{background-color:#14532d!important;}
+    html.dark .text-green-700{color:#4ade80!important;}
+    html.dark .bg-amber-100{background-color:#451a03!important;}
+    html.dark .text-amber-700{color:#fbbf24!important;}
+    html.dark .bg-blue-100{background-color:#1e3a5f!important;}
+    html.dark .text-blue-700{color:#60a5fa!important;}
+    .page-fade{animation:fadeIn .25s ease;}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+    .modal-slide{animation:slideUp .25s ease;}
+    @keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+    .quiz-opt{transition:all .15s;}
+    .quiz-opt.correct{background:#dcfce7;border-color:#22c55e;color:#15803d;}
+    .quiz-opt.wrong{background:#fee2e2;border-color:#ef4444;color:#b91c1c;}
+  </style>
 </head>
-<body class="font-sans antialiased bg-gray-50">
+<body class="font-sans antialiased bg-gray-50 dark:bg-slate-900">
 
-<!-- SIDEBAR -->
-<aside id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-gray-900 flex flex-col z-50 transform -translate-x-full lg:translate-x-0 transition-transform duration-300">
-  <div class="flex items-center gap-3 px-5 h-16 border-b border-white/10 flex-shrink-0">
-    <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0"><svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
-    <span class="font-extrabold text-lg text-white">SkorinCPNS</span>
-  </div>
-  <nav class="flex-1 px-3 py-5 space-y-0.5 overflow-y-auto">
-    <a href="dashboard.html" class="text-gray-400 hover:bg-white/10 hover:text-white flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm transition">
-      <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-      Dashboard
-    </a>
-    <a href="tryout-list.html" class="text-gray-400 hover:bg-white/10 hover:text-white flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm transition">
-      <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
-      Tryout
-    </a>
-    <a href="materi.html" class="bg-white/10 text-white flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm">
-      <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-      Materi
-    </a>
-    <a href="profil.html" class="text-gray-400 hover:bg-white/10 hover:text-white flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm transition">
-      <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-      Profil
-    </a>
-  </nav>
-  <div class="px-3 py-4 border-t border-white/10 flex-shrink-0">
-    <div class="flex items-center gap-3 px-3 py-2 mb-1">
-      <div id="sbAvatar" class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">?</div>
-      <div class="min-w-0 flex-1">
-        <div id="sbName" class="text-white text-sm font-semibold truncate">...</div>
-        <div id="sbEmail" class="text-gray-400 text-xs truncate">...</div>
+<!-- MATERI MODAL -->
+<div id="materiModal" class="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm hidden flex items-start justify-center p-4 overflow-y-auto">
+  <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-2xl my-4 modal-slide">
+    <div id="modalHeader" class="p-6 border-b border-gray-100 dark:border-slate-700 flex items-start justify-between">
+      <div><span id="modalKatBadge" class="text-xs font-bold px-2.5 py-1 rounded-full bg-blue-100 text-blue-700"></span>
+      <h2 id="modalTitle" class="text-xl font-black text-gray-900 dark:text-white mt-2"></h2>
+      <p id="modalMeta" class="text-xs text-gray-400 mt-1"></p></div>
+      <button onclick="closeMateriModal()" class="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-400 hover:text-gray-600 flex-shrink-0 ml-3">&times;</button>
+    </div>
+    <div class="p-6 space-y-6">
+      <!-- Ringkasan -->
+      <div><h3 class="font-bold text-gray-900 dark:text-white mb-2">📋 Ringkasan Materi</h3><div id="modalRingkasan" class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed space-y-2"></div></div>
+      <!-- Poin Kunci -->
+      <div><h3 class="font-bold text-gray-900 dark:text-white mb-2">🔑 Poin-Poin Kunci</h3><ul id="modalPoin" class="space-y-1.5 text-sm text-gray-600 dark:text-gray-400"></ul></div>
+      <!-- Contoh Soal -->
+      <div><h3 class="font-bold text-gray-900 dark:text-white mb-3">📝 Contoh Soal</h3><div id="modalSoal" class="space-y-4"></div></div>
+      <!-- Kuis -->
+      <div class="bg-gradient-to-br from-primary-600 to-blue-700 rounded-2xl p-5 text-white">
+        <h3 class="font-bold mb-1">🎯 Mini Kuis (5 Soal)</h3>
+        <p class="text-blue-200 text-xs mb-4">Uji pemahaman kamu setelah membaca materi!</p>
+        <div id="quizArea"></div>
       </div>
     </div>
-    <button onclick="doLogout()" class="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-red-400 hover:bg-red-500/10 hover:text-red-300 transition text-sm font-medium">
+    <!-- Footer -->
+    <div class="p-5 border-t border-gray-100 dark:border-slate-700 flex items-center justify-between">
+      <button id="bookmarkBtn" onclick="toggleBookmark()" class="flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-primary-600 transition">
+        <svg id="bookmarkIcon" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
+        <span id="bookmarkLabel">Bookmark</span>
+      </button>
+      <button onclick="closeMateriModal()" class="bg-primary-600 hover:bg-primary-700 text-white font-bold px-5 py-2.5 rounded-xl transition text-sm">Selesai ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- SIDEBAR -->
+<aside id="sidebar" class="fixed inset-y-0 left-0 z-50 flex flex-col bg-gray-900 transform -translate-x-full lg:translate-x-0 transition-[width,transform] duration-300 overflow-hidden">
+  <div class="flex items-center gap-2 px-4 h-16 border-b border-white/10 flex-shrink-0 min-w-0">
+    <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0"><svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+    <span class="sb-label font-extrabold text-base text-white whitespace-nowrap flex-1">SkorinCPNS</span>
+    <button onclick="toggleSbCollapse()" class="hidden lg:flex p-1.5 rounded-lg text-gray-400 hover:bg-white/10 hover:text-white transition">
+      <svg id="sbColIcon" class="w-4 h-4 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/></svg>
+    </button>
+  </div>
+  <nav class="flex-1 px-2 py-4 space-y-0.5 overflow-y-auto">
+    <a href="dashboard.html" title="Dashboard" class="text-gray-400 hover:bg-white/10 hover:text-white flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm transition"><svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg><span class="sb-label">Dashboard</span></a>
+    <a href="tryout-list.html" title="Tryout" class="text-gray-400 hover:bg-white/10 hover:text-white flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm transition"><svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg><span class="sb-label">Tryout</span></a>
+    <a href="materi.html" title="Materi" class="bg-white/10 text-white flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm"><svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg><span class="sb-label">Materi</span></a>
+    <a href="profil.html" title="Profil" class="text-gray-400 hover:bg-white/10 hover:text-white flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm transition"><svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg><span class="sb-label">Profil</span></a>
+  </nav>
+  <div class="flex-shrink-0 border-t border-white/10 p-3 space-y-1">
+    <button onclick="toggleDark()" title="Toggle dark mode" class="sb-icon-btn flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-gray-400 hover:bg-white/10 hover:text-white transition text-sm">
+      <svg id="sbDarkIcon" class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+      <span class="sb-label text-sm">Mode Gelap</span>
+    </button>
+    <div class="sb-user flex items-center gap-3 px-3 py-2">
+      <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0 overflow-hidden">
+        <img id="sbAvatarImg" src="" class="w-full h-full object-cover hidden"/><span id="sbAvatar">?</span>
+      </div>
+      <div class="min-w-0 flex-1"><div id="sbName" class="text-white text-sm font-semibold truncate">...</div><div id="sbEmail" class="text-gray-400 text-xs truncate">...</div></div>
+    </div>
+    <button onclick="confirmLogout()" title="Keluar" class="sb-icon-btn flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-red-400 hover:bg-red-500/10 hover:text-red-300 transition text-sm font-medium">
       <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-      Keluar
+      <span class="sb-label">Keluar</span>
     </button>
   </div>
 </aside>
 <div id="sbOverlay" onclick="closeSidebar()" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden"></div>
-<div class="lg:hidden fixed top-0 inset-x-0 z-30 bg-white border-b border-gray-200 flex items-center h-14 px-4">
-  <button onclick="openSidebar()" class="p-2 -ml-1 rounded-lg text-gray-500 hover:bg-gray-100 mr-3"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+<div class="lg:hidden fixed top-0 inset-x-0 z-30 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 flex items-center justify-between h-14 px-4">
+  <button onclick="openSidebar()" class="p-2 -ml-1 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-800"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg></button>
   <span class="font-extrabold text-primary-600">SkorinCPNS</span>
+  <div class="w-9"></div>
 </div>
 
-<div class="lg:ml-64 min-h-screen bg-gray-50 pt-14 lg:pt-0">
-<main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-  <div class="mb-8">
-    <h1 class="text-2xl font-black text-gray-900 mb-2">Materi Belajar SKD</h1>
-    <p class="text-gray-500">Pelajari materi TWK, TIU, dan TKP secara terstruktur untuk memaksimalkan skor Anda.</p>
+<div id="mainWrapper" class="lg:ml-64 min-h-screen bg-gray-50 dark:bg-slate-900 pt-14 lg:pt-0 transition-[margin] duration-300">
+<main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 page-fade">
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+    <div><h1 class="text-2xl font-black text-gray-900 dark:text-white">Materi Belajar SKD</h1>
+    <p class="text-gray-500 dark:text-gray-400 text-sm mt-0.5">Pelajari <span id="doneCount" class="font-semibold text-primary-600">0</span> dari <span id="totalCount">0</span> materi tersedia.</p></div>
+    <!-- Search -->
+    <div class="relative w-full sm:w-64">
+      <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+      <input id="searchInput" oninput="renderMateri()" type="text" placeholder="Cari materi..." class="w-full pl-9 pr-4 py-2.5 border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-xl text-sm focus:border-primary-500 outline-none"/>
+    </div>
   </div>
 
   <!-- Category Tabs -->
-  <div class="flex gap-2 mb-8 overflow-x-auto pb-1">
-    <button onclick="filterKat('semua')" id="btn-semua" class="px-5 py-2.5 rounded-xl text-sm font-semibold bg-primary-600 text-white flex-shrink-0">Semua</button>
-    <button onclick="filterKat('twk')" id="btn-twk" class="px-5 py-2.5 rounded-xl text-sm font-semibold bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 flex-shrink-0 transition">TWK</button>
-    <button onclick="filterKat('tiu')" id="btn-tiu" class="px-5 py-2.5 rounded-xl text-sm font-semibold bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 flex-shrink-0 transition">TIU</button>
-    <button onclick="filterKat('tkp')" id="btn-tkp" class="px-5 py-2.5 rounded-xl text-sm font-semibold bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 flex-shrink-0 transition">TKP</button>
+  <div class="flex gap-2 mb-5 overflow-x-auto pb-1">
+    <button onclick="filterKat('semua')" id="btn-semua" class="px-4 py-2 rounded-xl text-sm font-semibold bg-primary-600 text-white flex-shrink-0">Semua</button>
+    <button onclick="filterKat('twk')" id="btn-twk" class="px-4 py-2 rounded-xl text-sm font-semibold bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700 flex-shrink-0 transition">TWK</button>
+    <button onclick="filterKat('tiu')" id="btn-tiu" class="px-4 py-2 rounded-xl text-sm font-semibold bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700 flex-shrink-0 transition">TIU</button>
+    <button onclick="filterKat('tkp')" id="btn-tkp" class="px-4 py-2 rounded-xl text-sm font-semibold bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700 flex-shrink-0 transition">TKP</button>
+    <button onclick="filterKat('bookmark')" id="btn-bookmark" class="px-4 py-2 rounded-xl text-sm font-semibold bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700 flex-shrink-0 transition">🔖 Bookmark</button>
   </div>
 
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5" id="materiGrid"></div>
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="materiGrid"></div>
 </main>
 </div>
 
 <script>
-  const { createClient } = supabase;
-  const _sb = createClient('https://ykvwwfsoqqhtijtnivmj.supabase.co', 'sb_publishable_p_RYUHTiKlARg_rDTe3Gaw_N3G8XPwl');
-  (async () => {
-    const { data: { session } } = await _sb.auth.getSession();
-    if (!session) { window.location.replace('login.html'); return; }
-    const name = session.user.user_metadata?.full_name || session.user.email.split('@')[0];
-    const initials = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
-    document.getElementById('sbAvatar').textContent = initials;
-    document.getElementById('sbName').textContent = name;
-    document.getElementById('sbEmail').textContent = session.user.email;
-  })();
-  async function doLogout() { await _sb.auth.signOut(); localStorage.removeItem('skorin_history'); window.location.href = 'index.html'; }
-  function openSidebar() { document.getElementById('sidebar').classList.remove('-translate-x-full'); document.getElementById('sbOverlay').classList.remove('hidden'); }
-  function closeSidebar() { document.getElementById('sidebar').classList.add('-translate-x-full'); document.getElementById('sbOverlay').classList.add('hidden'); }
+const {createClient}=supabase;
+const _sb=createClient('https://ykvwwfsoqqhtijtnivmj.supabase.co','sb_publishable_p_RYUHTiKlARg_rDTe3Gaw_N3G8XPwl');
 
-  const materiList = [
-    // TWK
-    {kat:'twk', icon:'🏛️', judul:'Pancasila & Ideologi Negara', desc:'Sejarah perumusan Pancasila, nilai-nilai setiap sila, dan penerapannya dalam kehidupan bernegara.', tersedia:true, level:'Dasar'},
-    {kat:'twk', icon:'📜', judul:'UUD 1945 & Amandemen', desc:'Isi UUD 1945 beserta amandemen 1-4, hak dan kewajiban warga negara, serta kelembagaan negara.', tersedia:true, level:'Menengah'},
-    {kat:'twk', icon:'🇮🇩', judul:'Sejarah Indonesia', desc:'Perjuangan kemerdekaan, orde lama, orde baru, reformasi, dan peristiwa penting bangsa Indonesia.', tersedia:true, level:'Dasar'},
-    {kat:'twk', icon:'🤝', judul:'Bhinneka Tunggal Ika', desc:'Keberagaman SARA, toleransi, integrasi nasional, dan nilai-nilai persatuan bangsa.', tersedia:false, level:'Dasar'},
-    {kat:'twk', icon:'🗺️', judul:'Wawasan Nusantara & NKRI', desc:'Konsep geopolitik Indonesia, wawasan nusantara, ketahanan nasional, dan otonomi daerah.', tersedia:false, level:'Menengah'},
-    {kat:'twk', icon:'⚖️', judul:'Sistem Pemerintahan & Politik', desc:'Sistem pemerintahan Indonesia, pemilu, partai politik, dan lembaga-lembaga negara.', tersedia:false, level:'Lanjut'},
-    // TIU
-    {kat:'tiu', icon:'📖', judul:'Kemampuan Verbal', desc:'Sinonim, antonim, analogi kata, pemahaman wacana, dan logika verbal untuk soal TIU.', tersedia:true, level:'Dasar'},
-    {kat:'tiu', icon:'🔢', judul:'Kemampuan Numerik', desc:'Aritmatika dasar, aljabar, statistika, deret angka, dan soal cerita matematika.', tersedia:true, level:'Menengah'},
-    {kat:'tiu', icon:'🔷', judul:'Kemampuan Figural', desc:'Analogi gambar, seri gambar, pengelompokan gambar, dan kemampuan spasial.', tersedia:false, level:'Menengah'},
-    {kat:'tiu', icon:'🧩', judul:'Logika & Penalaran', desc:'Silogisme, deduksi, induksi, dan berbagai jenis soal penalaran logis.', tersedia:false, level:'Lanjut'},
-    {kat:'tiu', icon:'📐', judul:'Geometri & Pengukuran', desc:'Luas, keliling, volume bangun datar dan ruang, serta soal pengukuran terapan.', tersedia:false, level:'Dasar'},
-    // TKP
-    {kat:'tkp', icon:'🤲', judul:'Pelayanan Publik', desc:'Etika pelayanan publik, orientasi pelayanan prima, dan penanganan keluhan warga.', tersedia:true, level:'Dasar'},
-    {kat:'tkp', icon:'🌐', judul:'Jejaring Kerja', desc:'Kerja sama tim, membangun hubungan profesional, komunikasi efektif di lingkungan kerja.', tersedia:true, level:'Dasar'},
-    {kat:'tkp', icon:'🏡', judul:'Sosial Budaya', desc:'Kepekaan sosial, empati, kemampuan adaptasi dengan lingkungan sosial yang beragam.', tersedia:false, level:'Menengah'},
-    {kat:'tkp', icon:'💻', judul:'Teknologi Informasi', desc:'Literasi digital, pemanfaatan TIK dalam pekerjaan, dan keamanan informasi dasar.', tersedia:false, level:'Dasar'},
-    {kat:'tkp', icon:'🎯', judul:'Profesionalisme', desc:'Integritas, komitmen kerja, pengembangan diri, dan orientasi pada prestasi kerja.', tersedia:false, level:'Lanjut'},
-    {kat:'tkp', icon:'🧠', judul:'Pengendalian Diri', desc:'Manajemen emosi, ketahanan menghadapi tekanan kerja, dan pengelolaan konflik.', tersedia:false, level:'Menengah'},
-  ];
+function toggleDark(){const d=document.documentElement.classList.toggle('dark');localStorage.setItem('dark_mode',d?'1':'0');updateDarkIcon();}
+function updateDarkIcon(){const d=document.documentElement.classList.contains('dark');document.getElementById('sbDarkIcon').innerHTML=d?'<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>':'<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>';}
+updateDarkIcon();
 
-  let katAktif = 'semua';
+function toggleSbCollapse(){const sb=document.getElementById('sidebar');const mw=document.getElementById('mainWrapper');const c=sb.classList.toggle('collapsed');mw.style.marginLeft=c?'4rem':'';document.getElementById('sbColIcon').style.transform=c?'rotate(180deg)':'';localStorage.setItem('sb_c',c?'1':'0');}
+function openSidebar(){document.getElementById('sidebar').classList.remove('-translate-x-full');document.getElementById('sbOverlay').classList.remove('hidden');}
+function closeSidebar(){document.getElementById('sidebar').classList.add('-translate-x-full');document.getElementById('sbOverlay').classList.add('hidden');}
+if(localStorage.getItem('sb_c')==='1'&&window.innerWidth>=1024){document.getElementById('sidebar')?.classList.add('collapsed');document.getElementById('mainWrapper').style.marginLeft='4rem';document.getElementById('sbColIcon').style.transform='rotate(180deg)';}
+async function confirmLogout(){if(!confirm('Yakin ingin keluar?'))return;await _sb.auth.signOut();localStorage.removeItem('skorin_history');window.location.href='index.html';}
 
-  function filterKat(kat) {
-    katAktif = kat;
-    ['semua','twk','tiu','tkp'].forEach(k => {
-      const el = document.getElementById('btn-'+k);
-      el.className = `px-5 py-2.5 rounded-xl text-sm font-semibold flex-shrink-0 transition ${k===kat ? 'bg-primary-600 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}`;
-    });
-    renderMateri();
+(async()=>{
+  const {data:{session}}=await _sb.auth.getSession();
+  if(!session){window.location.replace('login.html');return;}
+  const name=session.user.user_metadata?.full_name||session.user.email.split('@')[0];
+  const initials=name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+  const photo=localStorage.getItem('skorin_photo');
+  if(photo){document.getElementById('sbAvatarImg').src=photo;document.getElementById('sbAvatarImg').classList.remove('hidden');document.getElementById('sbAvatar').style.display='none';}
+  else document.getElementById('sbAvatar').textContent=initials;
+  document.getElementById('sbName').textContent=name;
+  document.getElementById('sbEmail').textContent=session.user.email;
+})();
+
+const materiDB = [
+  {id:'pancasila', kat:'twk', icon:'🏛️', judul:'Pancasila & Ideologi Negara', level:'Dasar', waktu:'8 menit', tersedia:true,
+    ringkasan:['Pancasila adalah dasar negara Indonesia yang terdiri dari 5 sila. Dirumuskan oleh BPUPKI dan ditetapkan 18 Agustus 1945.','Sila 1 (Ketuhanan Yang Maha Esa): mengakui keberadaan Tuhan YME. Sila 2 (Kemanusiaan yang Adil dan Beradab): menghargai martabat manusia. Sila 3 (Persatuan Indonesia): menjaga keutuhan NKRI. Sila 4 (Kerakyatan...): demokrasi musyawarah. Sila 5 (Keadilan Sosial): pemerataan kesejahteraan.'],
+    poin:['BPUPKI dibentuk 29 April 1945; sidang pertama 29 Mei – 1 Juni 1945','Pidato Bung Karno "Lahirnya Pancasila" pada 1 Juni 1945','Panitia Sembilan merumuskan Piagam Jakarta 22 Juni 1945','Penetapan Pancasila sebagai dasar negara: 18 Agustus 1945','Pancasila sebagai ideologi terbuka: bisa menyesuaikan perkembangan zaman'],
+    soal:[{q:'Sidang pertama BPUPKI berlangsung pada?',a:'29 Mei – 1 Juni 1945',pilihan:['17–18 Agustus 1945','1–10 Juli 1945','29 Mei – 1 Juni 1945','1–5 Maret 1945'],jawaban:2},{q:'Siapa yang mengusulkan nama "Pancasila"?',a:'Ir. Soekarno',pilihan:['Moh. Hatta','Moh. Yamin','Soepomo','Ir. Soekarno'],jawaban:3},{q:'Piagam Jakarta ditandatangani tanggal?',a:'22 Juni 1945',pilihan:['1 Juni 1945','22 Juni 1945','17 Agustus 1945','18 Agustus 1945'],jawaban:1}],
+    kuis:[{q:'Berapa anggota Panitia Sembilan?',opts:['7 orang','9 orang','11 orang','5 orang'],j:1},{q:'Sila ke-3 Pancasila berbunyi?',opts:['Keadilan Sosial bagi Seluruh Rakyat Indonesia','Persatuan Indonesia','Kerakyatan yang Dipimpin oleh Hikmat...','Ketuhanan Yang Maha Esa'],j:1},{q:'Pancasila sebagai dasar negara ditetapkan pada?',opts:['1 Juni 1945','22 Juni 1945','17 Agustus 1945','18 Agustus 1945'],j:3},{q:'Lambang sila ke-4 Pancasila adalah?',opts:['Bintang','Rantai','Kepala Banteng','Pohon Beringin'],j:2},{q:'Ideologi Pancasila bersifat terbuka artinya?',opts:['Dapat diganti sesuai kebutuhan','Nilai dasarnya tetap, penafsiran bisa berkembang','Boleh diubah oleh MPR','Tidak memiliki nilai baku'],j:1}]
+  },
+  {id:'uud1945', kat:'twk', icon:'📜', judul:'UUD 1945 & Amandemen', level:'Menengah', waktu:'10 menit', tersedia:true,
+    ringkasan:['UUD 1945 adalah hukum dasar tertulis negara Indonesia. Terdiri dari Pembukaan (4 alinea) dan Batang Tubuh (37 pasal asli, bertambah setelah amandemen).','Amandemen dilakukan 4 kali: 1999, 2000, 2001, 2002. Total setelah amandemen: 37 pasal, 16 bab, 3 pasal aturan peralihan, 2 pasal aturan tambahan.'],
+    poin:['Pembukaan UUD 1945 memuat 4 tujuan negara (alinea ke-4)','Pasal 1: Indonesia adalah negara kesatuan berbentuk republik','Pasal 28A-28J: Hak Asasi Manusia ditambahkan pada amandemen ke-2','Amandemen ke-3 (2001): penetapan Presiden melalui pemilu langsung','DPR, DPD, dan MPR diatur dalam Pasal 19-22D'],
+    soal:[{q:'Berapa kali UUD 1945 diamandemen?',a:'4 kali',pilihan:['2 kali','3 kali','4 kali','5 kali'],jawaban:2},{q:'Pasal berapa yang mengatur tentang HAM?',a:'Pasal 28A-28J',pilihan:['Pasal 27','Pasal 28A-28J','Pasal 30','Pasal 33'],jawaban:1},{q:'Tujuan negara Indonesia tercantum dalam?',a:'Pembukaan UUD 1945 Alinea ke-4',pilihan:['Pasal 1','Pembukaan Alinea 2','Pembukaan Alinea 4','Pasal 29'],jawaban:2}],
+    kuis:[{q:'Amandemen UUD 1945 ke-1 dilakukan tahun?',opts:['1998','1999','2000','2001'],j:1},{q:'Presiden dipilih langsung oleh rakyat sejak amandemen?',opts:['Pertama','Kedua','Ketiga','Keempat'],j:2},{q:'Pasal 33 UUD 1945 mengatur tentang?',opts:['HAM','Perekonomian Nasional','Pendidikan','Pertahanan'],j:1},{q:'Jumlah bab dalam UUD 1945 setelah amandemen?',opts:['13 bab','16 bab','18 bab','21 bab'],j:1},{q:'Mahkamah Konstitusi dibentuk berdasarkan amandemen?',opts:['Ke-1','Ke-2','Ke-3','Ke-4'],j:2}]
+  },
+  {id:'sejarah', kat:'twk', icon:'🇮🇩', judul:'Sejarah Indonesia', level:'Dasar', waktu:'12 menit', tersedia:true,
+    ringkasan:['Proklamasi kemerdekaan Indonesia dibacakan Soekarno-Hatta pada 17 Agustus 1945 pukul 10.00 WIB di Jalan Pegangsaan Timur No. 56, Jakarta.','Setelah kemerdekaan, Indonesia menghadapi berbagai tantangan: agresi militer Belanda (1947 & 1948), pemberontakan PKI (1948 & 1965), dan akhirnya memasuki era Orde Baru (1966-1998) lalu Reformasi (1998-sekarang).'],
+    poin:['Peristiwa Rengasdengklok: 16 Agustus 1945 – pemuda mendesak proklamasi segera','Naskah proklamasi disusun di rumah Laksamana Maeda','Agresi Militer Belanda I: 21 Juli 1947; Belanda II: 19 Desember 1948','Konferensi Meja Bundar: 23 Agustus – 2 November 1949, Belanda mengakui RIS','Reformasi 1998: Soeharto mundur 21 Mei 1998 digantikan Habibie'],
+    soal:[{q:'Proklamasi kemerdekaan dibacakan di jalan?',a:'Jl. Pegangsaan Timur No. 56',pilihan:['Jl. Merdeka Selatan','Jl. Pegangsaan Timur No. 56','Jl. Imam Bonjol','Jl. Diponegoro'],jawaban:1},{q:'Agresi Militer Belanda I terjadi pada?',a:'21 Juli 1947',pilihan:['19 Desember 1948','21 Juli 1947','10 November 1945','1 Maret 1949'],jawaban:1},{q:'Soeharto mundur sebagai Presiden pada?',a:'21 Mei 1998',pilihan:['27 Maret 1998','21 Mei 1998','1 Juni 1998','17 Agustus 1998'],jawaban:1}],
+    kuis:[{q:'Siapa yang membacakan teks proklamasi?',opts:['Moh. Hatta','Soekarno','Soekarno didampingi Moh. Hatta','Ahmad Soebardjo'],j:2},{q:'Peristiwa Rengasdengklok terjadi tanggal?',opts:['15 Agustus 1945','16 Agustus 1945','17 Agustus 1945','18 Agustus 1945'],j:1},{q:'Pemberontakan PKI Madiun terjadi tahun?',opts:['1945','1947','1948','1965'],j:2},{q:'Konferensi Meja Bundar menghasilkan?',opts:['Proklamasi kemerdekaan','Pengakuan RIS oleh Belanda','Pembubaran tentara','Perjanjian damai'],j:1},{q:'Hari Pahlawan diperingati tiap?',opts:['17 Agustus','10 November','1 Oktober','20 Mei'],j:1}]
+  },
+  {id:'bhineka', kat:'twk', icon:'🤝', judul:'Bhinneka Tunggal Ika', level:'Dasar', waktu:'7 menit', tersedia:false, ringkasan:[],poin:[],soal:[],kuis:[]},
+  {id:'nusantara', kat:'twk', icon:'🗺️', judul:'Wawasan Nusantara & NKRI', level:'Menengah', waktu:'9 menit', tersedia:false, ringkasan:[],poin:[],soal:[],kuis:[]},
+  {id:'pemerintahan', kat:'twk', icon:'⚖️', judul:'Sistem Pemerintahan & Politik', level:'Lanjut', waktu:'11 menit', tersedia:false, ringkasan:[],poin:[],soal:[],kuis:[]},
+  {id:'verbal', kat:'tiu', icon:'📖', judul:'Kemampuan Verbal', level:'Dasar', waktu:'8 menit', tersedia:true,
+    ringkasan:['Kemampuan verbal dalam TIU meliputi sinonim (persamaan kata), antonim (lawan kata), analogi (hubungan kata), dan pemahaman bacaan.','Tips: perbanyak membaca kamus, artikel, dan novel. Hafalkan minimal 10 kata baru per hari dengan artinya.'],
+    poin:['Sinonim: kata yang bermakna sama/mirip. Contoh: cepat = tangkas = sigap','Antonim: kata berlawanan makna. Contoh: boros ↔ hemat','Analogi: menemukan hubungan logis antara 2 pasang kata','Soal meliputi pemahaman paragraf, menemukan ide pokok, dan kesimpulan','Waspadai kata-kata berhomograf (ejaan sama, makna berbeda)'],
+    soal:[{q:'Sinonim dari kata "KONSISTEN" adalah?',a:'Tetap',pilihan:['Berubah','Tetap','Fleksibel','Sebentar'],jawaban:1},{q:'Antonim dari kata "AMBIGU" adalah?',a:'Jelas',pilihan:['Kabur','Membingungkan','Jelas','Tersembunyi'],jawaban:2},{q:'DOKTER : PASIEN = GURU : ?',a:'Murid',pilihan:['Kepala Sekolah','Buku','Murid','Kelas'],jawaban:2}],
+    kuis:[{q:'Sinonim "URGEN" adalah?',opts:['Penting mendesak','Lambat','Biasa','Tidak perlu'],j:0},{q:'Antonim "INTROVERT" adalah?',opts:['Pemalu','Ekstrovert','Pendiam','Tertutup'],j:1},{q:'PANAS : DINGIN = SIANG : ?',opts:['Terang','Malam','Pagi','Sore'],j:1},{q:'Kata yang tepat untuk mengisi: "Dia sangat _____ dalam bekerja" (artinya teliti)?',opts:['Ceroboh','Seksama','Lamban','Acuh'],j:1},{q:'Kalimat manakah yang menggunakan kata baku?',opts:['"Nomer" teleponnya hilang','"Nomor" teleponnya hilang','"Nomer" teleponnya hilang','Keduanya salah'],j:1}]
+  },
+  {id:'numerik', kat:'tiu', icon:'🔢', judul:'Kemampuan Numerik', level:'Menengah', waktu:'10 menit', tersedia:true,
+    ringkasan:['Kemampuan numerik dalam TIU meliputi: deret angka, soal cerita matematika, statistika dasar, dan geometri. Kunci: latihan rutin dan hafal rumus dasar.','Strategi mengerjakan: identifikasi pola deret terlebih dahulu, eliminasi jawaban yang tidak mungkin, gunakan estimasi untuk menghemat waktu.'],
+    poin:['Deret aritmatika: beda antar suku sama (Un = a + (n-1)b)','Deret geometri: rasio antar suku sama (Un = ar^(n-1))','FPB dan KPK: sering muncul dalam soal CPNS','Persentase: perubahan % = (selisih/nilai awal) × 100%','Rata-rata, median, modus: tiga ukuran tendensi sentral'],
+    soal:[{q:'Berapa suku ke-7 dari deret: 2, 5, 8, 11, ...?',a:'20',pilihan:['17','20','23','26'],jawaban:1},{q:'Jika rata-rata 5 bilangan adalah 12, berapa total kelimanya?',a:'60',pilihan:['50','55','60','65'],jawaban:2},{q:'40% dari 250 adalah?',a:'100',pilihan:['80','90','100','110'],jawaban:2}],
+    kuis:[{q:'Suku ke-5 dari deret 3, 6, 12, 24, ...?',opts:['36','48','72','96'],j:1},{q:'Nilai median dari 3, 7, 5, 9, 1 adalah?',opts:['1','3','5','7'],j:2},{q:'75% dari 400 adalah?',opts:['250','275','300','325'],j:2},{q:'FPB dari 24 dan 36 adalah?',opts:['6','8','12','18'],j:2},{q:'Jika 3x + 6 = 21, maka x = ?',opts:['3','4','5','6'],j:2}]
+  },
+  {id:'figural', kat:'tiu', icon:'🔷', judul:'Kemampuan Figural', level:'Menengah', waktu:'8 menit', tersedia:false, ringkasan:[],poin:[],soal:[],kuis:[]},
+  {id:'logika', kat:'tiu', icon:'🧩', judul:'Logika & Penalaran', level:'Lanjut', waktu:'9 menit', tersedia:false, ringkasan:[],poin:[],soal:[],kuis:[]},
+  {id:'geometri', kat:'tiu', icon:'📐', judul:'Geometri & Pengukuran', level:'Dasar', waktu:'7 menit', tersedia:false, ringkasan:[],poin:[],soal:[],kuis:[]},
+  {id:'pelayanan', kat:'tkp', icon:'🤲', judul:'Pelayanan Publik', level:'Dasar', waktu:'6 menit', tersedia:true,
+    ringkasan:['Orientasi pelayanan dalam TKP mengukur komitmen terhadap pelayanan prima. ASN dituntut melayani dengan sepenuh hati, professional, dan tidak diskriminatif.','Dalam soal TKP, pilih jawaban yang mencerminkan: proaktif, inovatif, empati tinggi, dan berorientasi solusi.'],
+    poin:['Prinsip pelayanan prima: cepat, tepat, mudah, murah, dan berkeadilan','Tidak pernah menolak permohonan tanpa alasan jelas','Selalu mencari solusi terbaik untuk masyarakat','Hindari birokrasi yang mempersulit (red tape)','UU No. 25/2009 tentang Pelayanan Publik menjadi landasan hukum'],
+    soal:[{q:'Seorang warga datang dengan dokumen tidak lengkap. Tindakan terbaik ASN adalah?',a:'Membantu dan menjelaskan dokumen yang perlu dilengkapi',pilihan:['Langsung menolak','Mempersilakan pulang dan kembali besok','Membantu dan menjelaskan dokumen yang perlu dilengkapi','Meminta seseorang lain menanganinya'],jawaban:2},{q:'Prinsip utama pelayanan publik yang baik adalah?',a:'Berorientasi pada kebutuhan masyarakat',pilihan:['Mengutamakan kepentingan pribadi','Berorientasi pada kebutuhan masyarakat','Mengikuti prosedur tanpa fleksibilitas','Melayani selektif berdasarkan kondisi'],jawaban:1},{q:'Menghadapi antrian panjang di kantor, prioritas tindakan adalah?',a:'Mencari cara mempercepat proses layanan',pilihan:['Menutup loket','Membiarkan antrian','Mencari cara mempercepat proses layanan','Menyuruh warga kembali besok'],jawaban:2}],
+    kuis:[{q:'Nilai utama dalam pelayanan publik ASN adalah?',opts:['Efisiensi biaya','Orientasi kepada pelanggan/masyarakat','Minimasi pekerjaan','Menjaga citra pribadi'],j:1},{q:'Jika ada pengaduan warga, langkah pertama adalah?',opts:['Mengabaikannya','Mendengarkan dan mencatat dengan serius','Meminta atasan menangani','Menyuruh warga datang besok'],j:1},{q:'Pelayanan tanpa diskriminasi artinya?',opts:['Hanya melayani yang mampu bayar','Melayani semua tanpa membeda-bedakan','Mengutamakan yang berkepentingan','Melayani sesuai kedekatan'],j:1},{q:'UU Pelayanan Publik nomor berapa?',opts:['UU No. 23/2004','UU No. 25/2009','UU No. 5/2014','UU No. 30/2014'],j:1},{q:'ASN yang baik dalam pelayanan harus bersikap?',opts:['Pasif menunggu instruksi','Proaktif mencari solusi','Mengikuti prosedur kaku','Menghindari komplain'],j:1}]
+  },
+  {id:'jejaring', kat:'tkp', icon:'🌐', judul:'Jejaring Kerja', level:'Dasar', waktu:'6 menit', tersedia:true,
+    ringkasan:['Jejaring kerja (networking) dalam konteks ASN berarti kemampuan membangun hubungan profesional yang efektif untuk menyelesaikan tugas dan mencapai tujuan organisasi.','Soal TKP tentang jejaring kerja menguji kemampuan komunikasi, kolaborasi, dan koordinasi lintas unit/instansi.'],
+    poin:['Membangun komunikasi dua arah yang efektif dengan atasan dan rekan','Bersedia berbagi informasi dan pengetahuan untuk kepentingan bersama','Aktif berpartisipasi dalam kegiatan tim dan organisasi','Menghargai perbedaan pendapat dalam tim','Membangun hubungan baik dengan stakeholder eksternal'],
+    soal:[{q:'Rekan kerja Anda mengalami kesulitan dalam proyek. Tindakan Anda adalah?',a:'Menawarkan bantuan dan berkolaborasi menyelesaikannya',pilihan:['Membiarkan dia menyelesaikan sendiri','Melaporkan ke atasan','Menawarkan bantuan dan berkolaborasi','Mengerjakan bagiannya tanpa koordinasi'],jawaban:2},{q:'Saat ada konflik pendapat dalam tim, yang Anda lakukan adalah?',a:'Mendengarkan semua pihak dan mencari solusi bersama',pilihan:['Memaksakan pendapat sendiri','Diam saja agar tidak masalah','Mendengarkan semua pihak dan mencari solusi bersama','Melapor ke atasan untuk memutuskan'],jawaban:2},{q:'Membangun jejaring kerja yang baik bertujuan untuk?',a:'Mempermudah pencapaian tujuan bersama',pilihan:['Mendapat keuntungan pribadi','Mempermudah pencapaian tujuan bersama','Menghindari beban kerja','Mendapat penilaian bagus dari atasan'],jawaban:1}],
+    kuis:[{q:'Komunikasi efektif dalam tim memerlukan?',opts:['Mendengar aktif dan berbicara jelas','Mendominasi percakapan','Diam dan menunggu','Hanya berbicara saat diminta'],j:0},{q:'Saat rapat, ada rekan yang mengemukakan ide. Respons terbaik?',opts:['Langsung mengkritik','Mengabaikan','Mendengarkan dan memberi masukan konstruktif','Menyetujui semua'],j:2},{q:'Jejaring kerja lintas instansi berguna untuk?',opts:['Memperlambat proses','Koordinasi dan sinergi antar unit','Menambah birokrasi','Mendapat promosi'],j:1},{q:'Sikap terbaik menghadapi anggota tim yang tidak berkontribusi?',opts:['Mengerjakan semua sendiri','Mengabaikannya','Mengkomunikasikan baik-baik dan mencari solusi','Melaporkan ke atasan tanpa diskusi'],j:2},{q:'Berbagi pengetahuan dengan rekan kerja adalah wujud dari?',opts:['Kesombongan','Teamwork dan profesionalisme','Pemborosan waktu','Kewajiban terpaksa'],j:1}]
+  },
+  {id:'sosial', kat:'tkp', icon:'🏡', judul:'Sosial Budaya', level:'Menengah', waktu:'7 menit', tersedia:false, ringkasan:[],poin:[],soal:[],kuis:[]},
+  {id:'ti', kat:'tkp', icon:'💻', judul:'Teknologi Informasi', level:'Dasar', waktu:'6 menit', tersedia:false, ringkasan:[],poin:[],soal:[],kuis:[]},
+  {id:'profesional', kat:'tkp', icon:'🎯', judul:'Profesionalisme', level:'Lanjut', waktu:'8 menit', tersedia:false, ringkasan:[],poin:[],soal:[],kuis:[]},
+  {id:'diri', kat:'tkp', icon:'🧠', judul:'Pengendalian Diri', level:'Menengah', waktu:'7 menit', tersedia:false, ringkasan:[],poin:[],soal:[],kuis:[]},
+];
+
+let katAktif = 'semua';
+let currentMateriId = null;
+let quizState = { soalIdx:0, answers:[], done:false };
+
+const progress = JSON.parse(localStorage.getItem('skorin_materi_progress') || '{}');
+const bookmarks = JSON.parse(localStorage.getItem('skorin_bookmarks') || '[]');
+
+document.getElementById('totalCount').textContent = materiDB.filter(m=>m.tersedia).length;
+
+function filterKat(kat) {
+  katAktif = kat;
+  ['semua','twk','tiu','tkp','bookmark'].forEach(k => {
+    document.getElementById('btn-'+k).className = `px-4 py-2 rounded-xl text-sm font-semibold flex-shrink-0 transition ${k===kat?'bg-primary-600 text-white':'bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700'}`;
+  });
+  renderMateri();
+}
+
+function renderMateri() {
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  const grid = document.getElementById('materiGrid');
+  let filtered = materiDB.filter(m => {
+    if (katAktif === 'bookmark') return bookmarks.includes(m.id);
+    if (katAktif !== 'semua') return m.kat === katAktif;
+    return true;
+  }).filter(m => !search || m.judul.toLowerCase().includes(search));
+
+  const katColor = {twk:'bg-blue-100 text-blue-700', tiu:'bg-green-100 text-green-700', tkp:'bg-amber-100 text-amber-700'};
+  const katLabel = {twk:'TWK', tiu:'TIU', tkp:'TKP'};
+
+  if (!filtered.length) {
+    grid.innerHTML = '<div class="col-span-3 text-center py-16"><div class="text-5xl mb-3">🔍</div><p class="text-gray-400 dark:text-gray-500 text-sm">Materi tidak ditemukan.</p></div>';
+    return;
   }
 
-  function renderMateri() {
-    const grid = document.getElementById('materiGrid');
-    const filtered = katAktif === 'semua' ? materiList : materiList.filter(m => m.kat === katAktif);
-    const katLabel = {twk:'TWK', tiu:'TIU', tkp:'TKP'};
-    const katColor = {twk:'bg-blue-100 text-blue-700', tiu:'bg-green-100 text-green-700', tkp:'bg-amber-100 text-amber-700'};
-    grid.innerHTML = filtered.map(m => `
-      <div class="bg-white rounded-2xl border ${m.tersedia ? 'border-gray-100' : 'border-gray-100 opacity-80'} shadow-sm p-5 ${m.tersedia ? 'hover:border-primary-300 hover:shadow-md transition' : ''}">
-        <div class="flex items-start justify-between mb-3">
-          <div class="text-3xl">${m.icon}</div>
-          <div class="flex items-center gap-2">
-            <span class="text-xs font-bold px-2.5 py-1 rounded-full ${katColor[m.kat]}">${katLabel[m.kat]}</span>
-            ${m.tersedia ? '' : '<span class="bg-gray-100 text-gray-500 text-xs font-semibold px-2.5 py-1 rounded-full">Coming Soon</span>'}
-          </div>
-        </div>
-        <h3 class="font-bold text-gray-900 mb-2">${m.judul}</h3>
-        <p class="text-gray-500 text-sm leading-relaxed mb-4">${m.desc}</p>
-        <div class="flex items-center justify-between">
-          <span class="text-xs text-gray-400">Level: ${m.level}</span>
-          ${m.tersedia
-            ? `<button class="bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition">Pelajari →</button>`
-            : `<button disabled class="bg-gray-100 text-gray-400 text-xs font-semibold px-4 py-2 rounded-lg cursor-not-allowed">Segera Hadir</button>`}
+  grid.innerHTML = filtered.map(m => {
+    const done = progress[m.id];
+    const bm = bookmarks.includes(m.id);
+    return `<div class="bg-white dark:bg-slate-800 rounded-2xl border ${m.tersedia?'border-gray-100 dark:border-slate-700 hover:border-primary-300 dark:hover:border-primary-700 hover:shadow-md':'border-gray-100 dark:border-slate-700 opacity-70'} shadow-sm p-5 transition ${m.tersedia?'cursor-pointer':''}" ${m.tersedia?`onclick="openMateri('${m.id}')"`:''}>
+      <div class="flex items-start justify-between mb-3">
+        <div class="text-3xl">${m.icon}</div>
+        <div class="flex items-center gap-1.5 flex-wrap justify-end">
+          ${done?'<span class="bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-400 text-xs font-bold px-2 py-0.5 rounded-full">✓ Selesai</span>':''}
+          ${bm?'<span class="text-amber-500">🔖</span>':''}
+          <span class="text-xs font-bold px-2.5 py-1 rounded-full ${katColor[m.kat]}">${katLabel[m.kat]}</span>
+          ${!m.tersedia?'<span class="bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-gray-400 text-xs font-semibold px-2 py-0.5 rounded-full">Coming Soon</span>':''}
         </div>
       </div>
-    `).join('');
-  }
+      <h3 class="font-bold text-gray-900 dark:text-white mb-1 text-sm">${m.judul}</h3>
+      <div class="flex items-center gap-3 text-xs text-gray-400 dark:text-gray-500 mb-3">
+        <span>Level: ${m.level}</span><span>🕐 ${m.waktu}</span>
+      </div>
+      ${m.tersedia?`<button onclick="event.stopPropagation();openMateri('${m.id}')" class="w-full text-center bg-primary-600 hover:bg-primary-700 text-white text-xs font-bold py-2 rounded-lg transition">Pelajari →</button>`:`<button disabled class="w-full text-center bg-gray-100 dark:bg-slate-700 text-gray-400 text-xs font-semibold py-2 rounded-lg cursor-not-allowed">Segera Hadir</button>`}
+    </div>`;
+  }).join('');
 
+  document.getElementById('doneCount').textContent = Object.keys(progress).length;
+}
+
+function openMateri(id) {
+  const m = materiDB.find(x => x.id === id);
+  if (!m || !m.tersedia) return;
+  currentMateriId = id;
+  quizState = { soalIdx:0, answers:[], done:false };
+
+  const katColor = {twk:'bg-blue-100 text-blue-700', tiu:'bg-green-100 text-green-700', tkp:'bg-amber-100 text-amber-700'};
+  const katLabel = {twk:'TWK', tiu:'TIU', tkp:'TKP'};
+
+  document.getElementById('modalKatBadge').className = `text-xs font-bold px-2.5 py-1 rounded-full ${katColor[m.kat]}`;
+  document.getElementById('modalKatBadge').textContent = katLabel[m.kat];
+  document.getElementById('modalTitle').textContent = m.judul;
+  document.getElementById('modalMeta').textContent = `${m.icon} Level ${m.level}  •  🕐 ${m.waktu} membaca`;
+  document.getElementById('modalRingkasan').innerHTML = m.ringkasan.map(p=>`<p>${p}</p>`).join('');
+  document.getElementById('modalPoin').innerHTML = m.poin.map(p=>`<li class="flex items-start gap-2"><span class="text-primary-600 font-bold flex-shrink-0">•</span>${p}</li>`).join('');
+  document.getElementById('modalSoal').innerHTML = m.soal.map((s,i)=>`
+    <div class="bg-gray-50 dark:bg-slate-700 rounded-xl p-4">
+      <p class="font-semibold text-gray-900 dark:text-white text-sm mb-2">${i+1}. ${s.q}</p>
+      <p class="text-green-700 dark:text-green-400 text-sm font-medium">✓ Jawaban: ${s.a}</p>
+    </div>`).join('');
+
+  updateBookmarkUI();
+  renderQuiz();
+  document.getElementById('materiModal').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+function renderQuiz() {
+  const m = materiDB.find(x => x.id === currentMateriId);
+  if (!m) return;
+  const qa = document.getElementById('quizArea');
+  if (quizState.done) {
+    const score = quizState.answers.filter((a,i) => a === m.kuis[i].j).length;
+    qa.innerHTML = `<div class="text-center py-2">
+      <div class="text-5xl font-black mb-2">${score}/5</div>
+      <p class="text-blue-200 mb-4">${score>=4?'Luar biasa! 🎉':score>=3?'Hampir sempurna! 💪':'Terus berlatih! 📚'}</p>
+      <button onclick="restartQuiz()" class="bg-white/20 hover:bg-white/30 text-white text-sm font-bold px-5 py-2.5 rounded-xl transition border border-white/30">Ulangi Kuis</button>
+    </div>`;
+    markDone();
+    return;
+  }
+  const q = m.kuis[quizState.soalIdx];
+  qa.innerHTML = `<div>
+    <div class="flex items-center justify-between mb-2">
+      <p class="text-blue-200 text-xs font-semibold">Soal ${quizState.soalIdx+1} dari 5</p>
+      <div class="flex gap-1">${[0,1,2,3,4].map(i=>`<div class="w-2 h-2 rounded-full ${i<=quizState.soalIdx?'bg-white':'bg-white/30'}"></div>`).join('')}</div>
+    </div>
+    <p class="text-white font-semibold mb-3 text-sm">${q.q}</p>
+    <div class="space-y-2" id="quizOpts">
+      ${q.opts.map((opt,i)=>`<button class="quiz-opt w-full text-left bg-white/15 hover:bg-white/25 text-white text-sm px-4 py-2.5 rounded-xl border border-transparent transition" onclick="answerQuiz(${i})">${String.fromCharCode(65+i)}. ${opt}</button>`).join('')}
+    </div>
+  </div>`;
+}
+
+function answerQuiz(idx) {
+  const m = materiDB.find(x => x.id === currentMateriId);
+  const q = m.kuis[quizState.soalIdx];
+  quizState.answers.push(idx);
+  const opts = document.querySelectorAll('.quiz-opt');
+  opts[idx].classList.add(idx === q.j ? 'correct' : 'wrong');
+  if (idx !== q.j) opts[q.j].classList.add('correct');
+  opts.forEach(o => o.disabled = true);
+  setTimeout(() => {
+    quizState.soalIdx++;
+    if (quizState.soalIdx >= 5) quizState.done = true;
+    renderQuiz();
+  }, 1200);
+}
+
+function restartQuiz() { quizState = {soalIdx:0, answers:[], done:false}; renderQuiz(); }
+
+function markDone() {
+  progress[currentMateriId] = true;
+  localStorage.setItem('skorin_materi_progress', JSON.stringify(progress));
+  document.getElementById('doneCount').textContent = Object.keys(progress).length;
+}
+
+function toggleBookmark() {
+  const idx = bookmarks.indexOf(currentMateriId);
+  if (idx === -1) bookmarks.push(currentMateriId);
+  else bookmarks.splice(idx, 1);
+  localStorage.setItem('skorin_bookmarks', JSON.stringify(bookmarks));
+  updateBookmarkUI();
   renderMateri();
+}
+
+function updateBookmarkUI() {
+  const saved = bookmarks.includes(currentMateriId);
+  document.getElementById('bookmarkLabel').textContent = saved ? 'Tersimpan' : 'Bookmark';
+  document.getElementById('bookmarkIcon').setAttribute('fill', saved ? '#2563eb' : 'none');
+  document.getElementById('bookmarkIcon').setAttribute('stroke', saved ? '#2563eb' : 'currentColor');
+}
+
+function closeMateriModal() {
+  document.getElementById('materiModal').classList.add('hidden');
+  document.body.style.overflow = '';
+  renderMateri();
+}
+document.getElementById('materiModal').addEventListener('click', e => { if(e.target===document.getElementById('materiModal'))closeMateriModal(); });
+
+renderMateri();
 </script>
 </body>
 </html>

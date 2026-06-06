@@ -4,203 +4,353 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Dashboard – SkorinCPNS</title>
+  <meta name="description" content="Dashboard personal tryout CPNS. Pantau progress SKD, riwayat tryout, dan persiapan CPNS 2026."/>
+  <meta property="og:title" content="Dashboard – SkorinCPNS"/>
+  <meta property="og:description" content="Platform tryout CPNS terbaik untuk persiapan SKD 2026."/>
+  <link rel="manifest" href="manifest.json"/>
+  <meta name="theme-color" content="#2563eb"/>
+  <script>
+    (function(){
+      const d=localStorage.getItem('dark_mode');
+      if(d==='1'||(d===null&&window.matchMedia('(prefers-color-scheme:dark)').matches))
+        document.documentElement.classList.add('dark');
+    })();
+  </script>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config={theme:{extend:{colors:{primary:{50:'#eff6ff',100:'#dbeafe',600:'#2563eb',700:'#1d4ed8',900:'#1e3a8a'}},fontFamily:{sans:['Inter','sans-serif']}}}}</script>
+  <script>tailwind.config={darkMode:'class',theme:{extend:{colors:{primary:{50:'#eff6ff',100:'#dbeafe',600:'#2563eb',700:'#1d4ed8',900:'#1e3a8a'}},fontFamily:{sans:['Inter','sans-serif']}}}}</script>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <style>
+    #sidebar{transition:width .25s ease,transform .3s ease;width:16rem;}
+    #sidebar.collapsed{width:4rem;}
+    #sidebar.collapsed .sb-label{display:none!important;}
+    #sidebar.collapsed nav a,#sidebar.collapsed .sb-icon-btn{justify-content:center;padding-left:.625rem;padding-right:.625rem;}
+    #sidebar.collapsed .sb-user{display:none;}
+    .page-fade{animation:fadeIn .25s ease;}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+    /* Dark mode overrides */
+    html.dark body{background-color:#0f172a;color:#e2e8f0;}
+    html.dark .bg-gray-50{background-color:#0f172a!important;}
+    html.dark .bg-gray-100{background-color:#1e293b!important;}
+    html.dark .bg-white{background-color:#1e293b!important;}
+    html.dark .border-gray-100,html.dark .border-gray-200{border-color:#334155!important;}
+    html.dark .text-gray-900{color:#f1f5f9!important;}
+    html.dark .text-gray-800{color:#e2e8f0!important;}
+    html.dark .text-gray-700{color:#cbd5e1!important;}
+    html.dark .text-gray-600{color:#94a3b8!important;}
+    html.dark .text-gray-500{color:#64748b!important;}
+    html.dark .shadow-sm{box-shadow:0 1px 3px rgba(0,0,0,.6)!important;}
+    html.dark .bg-amber-50{background-color:#1c1200!important;}
+    html.dark .border-amber-200{border-color:#78350f!important;}
+    html.dark .text-amber-800{color:#fbbf24!important;}
+    html.dark .text-amber-700{color:#f59e0b!important;}
+    html.dark .bg-blue-50{background-color:#0c1a2e!important;}
+    html.dark .bg-green-50{background-color:#052e16!important;}
+    html.dark .bg-green-100{background-color:#14532d!important;}
+    html.dark .text-green-700{color:#4ade80!important;}
+    html.dark .bg-amber-100{background-color:#451a03!important;}
+    html.dark .text-amber-700{color:#f59e0b!important;}
+    html.dark .bg-red-50{background-color:#2d0a0a!important;}
+    html.dark .bg-red-100{background-color:#450a0a!important;}
+    html.dark .text-red-700{color:#f87171!important;}
+    html.dark input,html.dark textarea,html.dark select{background-color:#0f172a!important;color:#e2e8f0!important;border-color:#334155!important;}
+    html.dark .text-primary-600,.text-blue-600{color:#60a5fa!important;}
+    .countdown-digit{font-variant-numeric:tabular-nums;}
+  </style>
 </head>
-<body class="font-sans antialiased bg-gray-50 text-gray-800">
+<body class="font-sans antialiased bg-gray-50 dark:bg-slate-900">
+
+<!-- ONBOARDING MODAL -->
+<div id="onboardingModal" class="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+  <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-md p-8 text-center">
+    <div id="ob1">
+      <div class="text-6xl mb-4">🎉</div>
+      <h2 class="text-2xl font-black text-gray-900 dark:text-white mb-2">Selamat Datang di SkorinCPNS!</h2>
+      <p class="text-gray-500 dark:text-gray-400 mb-6 text-sm leading-relaxed">Platform tryout CPNS gratis yang membantu kamu lolos SKD. Mari kenali fitur-fiturnya!</p>
+      <button onclick="obNext(2)" class="w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-3.5 rounded-xl transition">Lanjut →</button>
+    </div>
+    <div id="ob2" class="hidden">
+      <div class="text-6xl mb-4">📋</div>
+      <h2 class="text-2xl font-black text-gray-900 dark:text-white mb-2">Tryout Mirip Ujian Asli</h2>
+      <p class="text-gray-500 dark:text-gray-400 mb-6 text-sm leading-relaxed">110 soal (30 TWK + 35 TIU + 45 TKP), 100 menit, passing grade otomatis. Sama persis format BKN!</p>
+      <div class="flex gap-3">
+        <button onclick="obNext(1)" class="flex-1 border border-gray-200 text-gray-600 font-semibold py-3 rounded-xl hover:bg-gray-50 transition">← Kembali</button>
+        <button onclick="obNext(3)" class="flex-1 bg-primary-600 hover:bg-primary-700 text-white font-bold py-3 rounded-xl transition">Lanjut →</button>
+      </div>
+    </div>
+    <div id="ob3" class="hidden">
+      <div class="text-6xl mb-4">🚀</div>
+      <h2 class="text-2xl font-black text-gray-900 dark:text-white mb-2">Mulai Belajar Sekarang</h2>
+      <p class="text-gray-500 dark:text-gray-400 mb-6 text-sm leading-relaxed">Pantau skor di dashboard, kerjakan tryout, pelajari materi, dan pantau perkembanganmu. Semangat!</p>
+      <div class="flex gap-3">
+        <button onclick="obNext(2)" class="flex-1 border border-gray-200 text-gray-600 font-semibold py-3 rounded-xl hover:bg-gray-50 transition">← Kembali</button>
+        <button onclick="closeOnboarding()" class="flex-1 bg-primary-600 hover:bg-primary-700 text-white font-bold py-3 rounded-xl transition">Mulai Sekarang! 🎯</button>
+      </div>
+    </div>
+    <!-- Dots -->
+    <div class="flex justify-center gap-2 mt-5" id="obDots">
+      <span id="d1" class="w-2 h-2 rounded-full bg-primary-600"></span>
+      <span id="d2" class="w-2 h-2 rounded-full bg-gray-300"></span>
+      <span id="d3" class="w-2 h-2 rounded-full bg-gray-300"></span>
+    </div>
+  </div>
+</div>
 
 <!-- SIDEBAR -->
-<aside id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-gray-900 flex flex-col z-50 transform -translate-x-full lg:translate-x-0 transition-transform duration-300">
-  <div class="flex items-center gap-3 px-5 h-16 border-b border-white/10 flex-shrink-0">
+<aside id="sidebar" class="fixed inset-y-0 left-0 z-50 flex flex-col bg-gray-900 transform -translate-x-full lg:translate-x-0 transition-[width,transform] duration-300 overflow-hidden">
+  <div class="flex items-center gap-2 px-4 h-16 border-b border-white/10 flex-shrink-0 min-w-0">
     <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0"><svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
-    <span class="font-extrabold text-lg text-white">SkorinCPNS</span>
+    <span class="sb-label font-extrabold text-base text-white whitespace-nowrap flex-1">SkorinCPNS</span>
+    <button onclick="toggleSbCollapse()" class="hidden lg:flex p-1.5 rounded-lg text-gray-400 hover:bg-white/10 hover:text-white transition" title="Sembunyikan sidebar">
+      <svg id="sbColIcon" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/></svg>
+    </button>
   </div>
-  <nav class="flex-1 px-3 py-5 space-y-0.5 overflow-y-auto">
-    <a href="dashboard.html" class="bg-white/10 text-white flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm">
+  <nav class="flex-1 px-2 py-4 space-y-0.5 overflow-y-auto">
+    <a href="dashboard.html" title="Dashboard" class="bg-white/10 text-white flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm">
       <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-      Dashboard
+      <span class="sb-label">Dashboard</span>
     </a>
-    <a href="tryout-list.html" class="text-gray-400 hover:bg-white/10 hover:text-white flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm transition">
+    <a href="tryout-list.html" title="Tryout" class="text-gray-400 hover:bg-white/10 hover:text-white flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm transition">
       <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
-      Tryout
+      <span class="sb-label">Tryout</span>
     </a>
-    <a href="materi.html" class="text-gray-400 hover:bg-white/10 hover:text-white flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm transition">
+    <a href="materi.html" title="Materi" class="text-gray-400 hover:bg-white/10 hover:text-white flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm transition">
       <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-      Materi
+      <span class="sb-label">Materi</span>
     </a>
-    <a href="profil.html" class="text-gray-400 hover:bg-white/10 hover:text-white flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm transition">
+    <a href="profil.html" title="Profil" class="text-gray-400 hover:bg-white/10 hover:text-white flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm transition">
       <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-      Profil
+      <span class="sb-label">Profil</span>
     </a>
   </nav>
-  <div class="px-3 py-4 border-t border-white/10 flex-shrink-0">
-    <div class="flex items-center gap-3 px-3 py-2 mb-1">
-      <div id="sbAvatar" class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">?</div>
+  <div class="flex-shrink-0 border-t border-white/10 p-3 space-y-1">
+    <button onclick="toggleDark()" title="Toggle dark mode" class="sb-icon-btn flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-gray-400 hover:bg-white/10 hover:text-white transition text-sm">
+      <svg id="sbDarkIcon" class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+      <span class="sb-label text-sm">Mode Gelap</span>
+    </button>
+    <div class="sb-user flex items-center gap-3 px-3 py-2">
+      <div id="sbAvatarWrap" class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0 overflow-hidden">
+        <img id="sbAvatarImg" src="" class="w-full h-full object-cover hidden"/>
+        <span id="sbAvatar">?</span>
+      </div>
       <div class="min-w-0 flex-1">
         <div id="sbName" class="text-white text-sm font-semibold truncate">...</div>
         <div id="sbEmail" class="text-gray-400 text-xs truncate">...</div>
       </div>
     </div>
-    <button onclick="doLogout()" class="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-red-400 hover:bg-red-500/10 hover:text-red-300 transition text-sm font-medium">
+    <button onclick="confirmLogout()" title="Keluar" class="sb-icon-btn flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-red-400 hover:bg-red-500/10 hover:text-red-300 transition text-sm font-medium">
       <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-      Keluar
+      <span class="sb-label">Keluar</span>
     </button>
   </div>
 </aside>
 <div id="sbOverlay" onclick="closeSidebar()" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden"></div>
-<div class="lg:hidden fixed top-0 inset-x-0 z-30 bg-white border-b border-gray-200 flex items-center h-14 px-4">
-  <button onclick="openSidebar()" class="p-2 -ml-1 rounded-lg text-gray-500 hover:bg-gray-100 mr-3"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+
+<!-- Mobile Topbar -->
+<div class="lg:hidden fixed top-0 inset-x-0 z-30 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 flex items-center justify-between h-14 px-4">
+  <button onclick="openSidebar()" class="p-2 -ml-1 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-800"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg></button>
   <span class="font-extrabold text-primary-600">SkorinCPNS</span>
+  <button onclick="showNotif()" class="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-800 relative">
+    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+    <span id="notifDot" class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full hidden"></span>
+  </button>
 </div>
 
-<div class="lg:ml-64 min-h-screen bg-gray-50 pt-14 lg:pt-0">
-<main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+<div id="mainWrapper" class="lg:ml-64 min-h-screen bg-gray-50 dark:bg-slate-900 pt-14 lg:pt-0 transition-[margin] duration-300">
+<main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 page-fade">
 
-  <!-- Welcome + Countdown -->
-  <div class="bg-gradient-to-r from-primary-600 to-primary-800 rounded-2xl p-6 sm:p-8 text-white">
-    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-      <div>
-        <p class="text-blue-200 text-sm font-medium mb-1">Selamat datang kembali 👋</p>
-        <h1 class="text-2xl sm:text-3xl font-black mb-2" id="greetName">Pengguna</h1>
-        <p class="text-blue-100 text-sm">Semangat belajar! Konsistensi adalah kunci keberhasilan.</p>
-      </div>
-      <!-- Countdown -->
-      <div class="bg-white/15 backdrop-blur rounded-xl p-4 text-center min-w-[200px]">
-        <p class="text-blue-200 text-xs font-medium mb-2">⏳ Hitung Mundur CPNS 2026</p>
-        <div class="grid grid-cols-4 gap-2" id="countdown">
-          <div class="text-center"><div class="text-xl font-black" id="cntH">--</div><div class="text-blue-300 text-xs">Hari</div></div>
-          <div class="text-center"><div class="text-xl font-black" id="cntJ">--</div><div class="text-blue-300 text-xs">Jam</div></div>
-          <div class="text-center"><div class="text-xl font-black" id="cntM">--</div><div class="text-blue-300 text-xs">Menit</div></div>
-          <div class="text-center"><div class="text-xl font-black" id="cntS">--</div><div class="text-blue-300 text-xs">Detik</div></div>
-        </div>
-        <p class="text-blue-300 text-xs mt-2">Estimasi Pendaftaran CPNS 2026</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- Motivasi Harian -->
-  <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3">
-    <span class="text-2xl flex-shrink-0">💡</span>
+  <!-- Welcome Header -->
+  <div class="flex items-center justify-between">
     <div>
-      <p class="text-sm font-semibold text-amber-800 mb-0.5">Motivasi Hari Ini</p>
-      <p class="text-sm text-amber-700 leading-relaxed" id="motivasiText">"Setiap soal yang kamu kerjakan hari ini adalah selangkah lebih dekat menuju seragam ASN impianmu."</p>
+      <p class="text-sm text-gray-500 dark:text-gray-400" id="todayDate"></p>
+      <h1 class="text-xl font-black text-gray-900 dark:text-white">Halo, <span id="greetName">Pengguna</span>! 👋</h1>
+    </div>
+    <button onclick="showNotif()" class="hidden lg:flex p-2.5 rounded-xl bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-500 hover:bg-gray-50 shadow-sm relative transition">
+      <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+      <span id="notifDot2" class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full hidden"></span>
+    </button>
+  </div>
+
+  <!-- Countdown + Motivasi -->
+  <div class="grid grid-cols-1 lg:grid-cols-5 gap-4">
+    <!-- Countdown -->
+    <div class="lg:col-span-3 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 rounded-2xl p-6 text-white shadow-xl shadow-blue-200 dark:shadow-none relative overflow-hidden">
+      <div class="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+      <div class="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2"></div>
+      <p class="text-blue-200 text-xs font-semibold uppercase tracking-widest mb-1">⏳ Hitung Mundur</p>
+      <h2 class="text-lg font-black mb-4">Estimasi Pendaftaran CPNS 2026</h2>
+      <div class="grid grid-cols-4 gap-3 mb-4">
+        <div class="bg-white/15 backdrop-blur rounded-xl p-3 text-center">
+          <div class="countdown-digit text-3xl sm:text-4xl font-black" id="cntH">--</div>
+          <div class="text-blue-200 text-xs mt-1">Hari</div>
+        </div>
+        <div class="bg-white/15 backdrop-blur rounded-xl p-3 text-center">
+          <div class="countdown-digit text-3xl sm:text-4xl font-black" id="cntJ">--</div>
+          <div class="text-blue-200 text-xs mt-1">Jam</div>
+        </div>
+        <div class="bg-white/15 backdrop-blur rounded-xl p-3 text-center">
+          <div class="countdown-digit text-3xl sm:text-4xl font-black" id="cntM">--</div>
+          <div class="text-blue-200 text-xs mt-1">Menit</div>
+        </div>
+        <div class="bg-white/15 backdrop-blur rounded-xl p-3 text-center">
+          <div class="countdown-digit text-3xl sm:text-4xl font-black" id="cntS">--</div>
+          <div class="text-blue-200 text-xs mt-1">Detik</div>
+        </div>
+      </div>
+      <a href="tentang.html" class="inline-flex items-center gap-1 text-blue-200 hover:text-white text-xs font-medium transition">Lihat info CPNS lengkap →</a>
+    </div>
+    <!-- Tips + Motivasi -->
+    <div class="lg:col-span-2 space-y-4">
+      <div class="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-2xl p-4">
+        <div class="flex items-start gap-3">
+          <span class="text-xl flex-shrink-0">💡</span>
+          <div>
+            <p class="text-xs font-bold text-amber-700 dark:text-amber-400 uppercase tracking-widest mb-1">Tips Hari Ini</p>
+            <p class="text-sm text-amber-800 dark:text-amber-300 leading-relaxed" id="tipsText">Memuat...</p>
+          </div>
+        </div>
+      </div>
+      <div class="bg-gradient-to-br from-violet-500 to-purple-700 rounded-2xl p-4 text-white shadow-lg shadow-purple-200 dark:shadow-none">
+        <p class="text-xs text-purple-200 font-semibold uppercase tracking-widest mb-1">✨ Motivasi</p>
+        <p class="text-sm leading-relaxed font-medium italic" id="motivasiText">"Konsistensi mengalahkan bakat."</p>
+      </div>
     </div>
   </div>
 
-  <!-- Progress Overview -->
+  <!-- Rekomendasi + Target Skor -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <!-- Rekomendasi -->
+    <div id="rekomendasiCard" class="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm p-5">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="text-xl">🎯</span>
+        <h3 class="font-bold text-gray-900 dark:text-white text-sm">Rekomendasi Belajar</h3>
+      </div>
+      <div id="rekomendasiContent" class="text-sm text-gray-500 dark:text-gray-400">
+        <p>Selesaikan tryout pertama untuk mendapat rekomendasi personal.</p>
+        <a href="tryout-list.html" class="mt-3 inline-block bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition">Mulai Tryout</a>
+      </div>
+    </div>
+    <!-- Target Skor -->
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm p-5">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">🏆</span>
+          <h3 class="font-bold text-gray-900 dark:text-white text-sm">Target Skor SKD</h3>
+        </div>
+        <button onclick="toggleTargetEdit()" class="text-xs text-primary-600 hover:underline font-medium">Edit</button>
+      </div>
+      <div id="targetDisplay" class="space-y-2">
+        <div class="flex justify-between text-sm"><span class="text-gray-500">TWK</span><span class="font-bold text-gray-900 dark:text-white" id="tgTwk">-</span></div>
+        <div class="flex justify-between text-sm"><span class="text-gray-500">TIU</span><span class="font-bold text-gray-900 dark:text-white" id="tgTiu">-</span></div>
+        <div class="flex justify-between text-sm"><span class="text-gray-500">TKP</span><span class="font-bold text-gray-900 dark:text-white" id="tgTkp">-</span></div>
+        <div class="pt-1 border-t border-gray-100 dark:border-slate-700 flex justify-between text-sm">
+          <span class="text-gray-500 font-medium">Total Target</span>
+          <span class="font-black text-primary-600" id="tgTotal">-</span>
+        </div>
+      </div>
+      <div id="targetEdit" class="hidden space-y-2 mt-2">
+        <div class="flex items-center gap-2"><label class="text-xs text-gray-500 w-10">TWK</label><input id="inTwk" type="number" min="65" max="150" placeholder="≥65" class="flex-1 border border-gray-200 dark:border-slate-600 rounded-lg px-2 py-1.5 text-xs focus:border-primary-500 outline-none"/></div>
+        <div class="flex items-center gap-2"><label class="text-xs text-gray-500 w-10">TIU</label><input id="inTiu" type="number" min="80" max="175" placeholder="≥80" class="flex-1 border border-gray-200 dark:border-slate-600 rounded-lg px-2 py-1.5 text-xs focus:border-primary-500 outline-none"/></div>
+        <div class="flex items-center gap-2"><label class="text-xs text-gray-500 w-10">TKP</label><input id="inTkp" type="number" min="166" max="225" placeholder="≥166" class="flex-1 border border-gray-200 dark:border-slate-600 rounded-lg px-2 py-1.5 text-xs focus:border-primary-500 outline-none"/></div>
+        <button onclick="saveTarget()" class="w-full bg-primary-600 hover:bg-primary-700 text-white text-xs font-bold py-2 rounded-lg transition">Simpan Target</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Progress SKD -->
   <div>
-    <h2 class="text-lg font-bold text-gray-900 mb-4">Progress SKD Anda</h2>
+    <h2 class="text-base font-bold text-gray-900 dark:text-white mb-3">Progress SKD Anda</h2>
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-      <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+      <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-gray-100 dark:border-slate-700 shadow-sm">
         <div class="flex items-center justify-between mb-3">
-          <div><p class="text-xs text-gray-400 font-medium">TWK</p><p class="text-sm font-semibold text-gray-700">Tes Wawasan Kebangsaan</p></div>
+          <div><p class="text-xs text-gray-400 font-medium">TWK</p><p class="text-sm font-semibold text-gray-700 dark:text-gray-300">Wawasan Kebangsaan</p></div>
           <span class="text-2xl">🇮🇩</span>
         </div>
-        <div class="mb-2">
-          <div class="flex justify-between text-xs text-gray-500 mb-1"><span>Rata-rata skor</span><span id="twkAvg">-</span></div>
-          <div class="h-2.5 bg-gray-100 rounded-full overflow-hidden">
-            <div id="twkBar" class="h-full bg-primary-600 rounded-full transition-all" style="width:0%"></div>
-          </div>
+        <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1.5"><span>Rata-rata skor</span><span id="twkAvg" class="font-semibold text-gray-700 dark:text-gray-300">-</span></div>
+        <div class="h-3 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden mb-1">
+          <div id="twkBar" class="h-full bg-primary-600 rounded-full transition-all duration-700" style="width:0%"></div>
         </div>
-        <p class="text-xs text-gray-400">Passing grade: <span class="text-primary-600 font-semibold">≥ 65</span></p>
+        <div class="flex justify-between text-xs"><span class="text-gray-400">0</span><span id="twkPct" class="font-semibold text-primary-600">0%</span><span class="text-gray-400">150</span></div>
+        <p class="text-xs text-gray-400 dark:text-gray-500 mt-2">Passing grade: <span class="text-primary-600 font-semibold">≥ 65</span></p>
       </div>
-      <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+      <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-gray-100 dark:border-slate-700 shadow-sm">
         <div class="flex items-center justify-between mb-3">
-          <div><p class="text-xs text-gray-400 font-medium">TIU</p><p class="text-sm font-semibold text-gray-700">Tes Intelegensi Umum</p></div>
+          <div><p class="text-xs text-gray-400 font-medium">TIU</p><p class="text-sm font-semibold text-gray-700 dark:text-gray-300">Intelegensi Umum</p></div>
           <span class="text-2xl">🧠</span>
         </div>
-        <div class="mb-2">
-          <div class="flex justify-between text-xs text-gray-500 mb-1"><span>Rata-rata skor</span><span id="tiuAvg">-</span></div>
-          <div class="h-2.5 bg-gray-100 rounded-full overflow-hidden">
-            <div id="tiuBar" class="h-full bg-green-500 rounded-full transition-all" style="width:0%"></div>
-          </div>
+        <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1.5"><span>Rata-rata skor</span><span id="tiuAvg" class="font-semibold text-gray-700 dark:text-gray-300">-</span></div>
+        <div class="h-3 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden mb-1">
+          <div id="tiuBar" class="h-full bg-green-500 rounded-full transition-all duration-700" style="width:0%"></div>
         </div>
-        <p class="text-xs text-gray-400">Passing grade: <span class="text-green-600 font-semibold">≥ 80</span></p>
+        <div class="flex justify-between text-xs"><span class="text-gray-400">0</span><span id="tiuPct" class="font-semibold text-green-600">0%</span><span class="text-gray-400">175</span></div>
+        <p class="text-xs text-gray-400 dark:text-gray-500 mt-2">Passing grade: <span class="text-green-600 font-semibold">≥ 80</span></p>
       </div>
-      <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+      <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-gray-100 dark:border-slate-700 shadow-sm">
         <div class="flex items-center justify-between mb-3">
-          <div><p class="text-xs text-gray-400 font-medium">TKP</p><p class="text-sm font-semibold text-gray-700">Tes Karakteristik Pribadi</p></div>
+          <div><p class="text-xs text-gray-400 font-medium">TKP</p><p class="text-sm font-semibold text-gray-700 dark:text-gray-300">Karakteristik Pribadi</p></div>
           <span class="text-2xl">🤝</span>
         </div>
-        <div class="mb-2">
-          <div class="flex justify-between text-xs text-gray-500 mb-1"><span>Rata-rata skor</span><span id="tkpAvg">-</span></div>
-          <div class="h-2.5 bg-gray-100 rounded-full overflow-hidden">
-            <div id="tkpBar" class="h-full bg-amber-500 rounded-full transition-all" style="width:0%"></div>
-          </div>
+        <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1.5"><span>Rata-rata skor</span><span id="tkpAvg" class="font-semibold text-gray-700 dark:text-gray-300">-</span></div>
+        <div class="h-3 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden mb-1">
+          <div id="tkpBar" class="h-full bg-amber-500 rounded-full transition-all duration-700" style="width:0%"></div>
         </div>
-        <p class="text-xs text-gray-400">Passing grade: <span class="text-amber-600 font-semibold">≥ 166</span></p>
+        <div class="flex justify-between text-xs"><span class="text-gray-400">0</span><span id="tkpPct" class="font-semibold text-amber-600">0%</span><span class="text-gray-400">225</span></div>
+        <p class="text-xs text-gray-400 dark:text-gray-500 mt-2">Passing grade: <span class="text-amber-600 font-semibold">≥ 166</span></p>
       </div>
     </div>
   </div>
 
-  <!-- Tryout Terakhir & Paket Tryout -->
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    <!-- Last Tryout -->
-    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-      <h2 class="text-lg font-bold text-gray-900 mb-4">Tryout Terakhir</h2>
+  <!-- Tryout Terakhir + Paket -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm p-5">
+      <h2 class="text-sm font-bold text-gray-900 dark:text-white mb-4">📊 Tryout Terakhir</h2>
       <div id="lastTryout">
-        <div class="text-center py-8">
-          <div class="text-5xl mb-3">📝</div>
-          <p class="text-gray-500 text-sm">Belum ada riwayat tryout</p>
-          <a href="tryout-list.html" class="mt-4 inline-block bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition">Mulai Tryout Pertama</a>
+        <div class="text-center py-6">
+          <div class="text-4xl mb-2">📝</div>
+          <p class="text-gray-400 dark:text-gray-500 text-sm">Belum ada riwayat tryout</p>
+          <a href="tryout-list.html" class="mt-3 inline-block bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition">Mulai Tryout Pertama</a>
         </div>
       </div>
     </div>
-
-    <!-- Paket Tryout -->
     <div class="lg:col-span-2">
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="text-lg font-bold text-gray-900">Paket Tryout Tersedia</h2>
-        <a href="tryout-list.html" class="text-sm text-primary-600 hover:underline font-medium">Lihat semua →</a>
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-sm font-bold text-gray-900 dark:text-white">📋 Paket Tersedia</h2>
+        <a href="tryout-list.html" class="text-xs text-primary-600 hover:underline font-medium">Lihat semua →</a>
       </div>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:border-primary-300 transition">
-          <div class="flex items-center justify-between mb-3">
-            <span class="bg-green-100 text-green-700 text-xs font-bold px-2.5 py-1 rounded-full">GRATIS</span>
-            <span class="text-gray-400 text-xs">110 soal · 100 mnt</span>
-          </div>
-          <h3 class="font-bold text-gray-900 mb-1">SKD Simulasi #1</h3>
-          <p class="text-gray-500 text-xs mb-4">Tryout SKD lengkap: TWK, TIU, TKP. Cocok untuk latihan awal.</p>
-          <div class="flex items-center justify-between">
-            <span class="text-xs text-gray-400">Tingkat: Mudah</span>
-            <a href="tryout.html?id=1" class="bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition">Mulai</a>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div class="bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm p-4 hover:border-primary-300 transition">
+          <div class="flex items-center justify-between mb-2"><span class="bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-400 text-xs font-bold px-2 py-0.5 rounded-full">GRATIS</span><span class="text-gray-400 text-xs">110 soal</span></div>
+          <h3 class="font-bold text-gray-900 dark:text-white text-sm mb-1">SKD Simulasi #1</h3>
+          <p class="text-gray-500 dark:text-gray-400 text-xs mb-3">Tryout SKD lengkap. Cocok untuk latihan awal.</p>
+          <div class="flex gap-2">
+            <a href="tryout.html?id=1&nama=SKD+Simulasi+%231&mode=latihan" class="flex-1 text-center border border-gray-200 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-600 dark:text-gray-400 text-xs font-medium py-1.5 rounded-lg transition">📖 Latihan</a>
+            <a href="tryout.html?id=1&nama=SKD+Simulasi+%231" class="flex-1 text-center bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold py-1.5 rounded-lg transition">⏱ Ujian</a>
           </div>
         </div>
-        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:border-primary-300 transition">
-          <div class="flex items-center justify-between mb-3">
-            <span class="bg-green-100 text-green-700 text-xs font-bold px-2.5 py-1 rounded-full">GRATIS</span>
-            <span class="text-gray-400 text-xs">110 soal · 100 mnt</span>
-          </div>
-          <h3 class="font-bold text-gray-900 mb-1">SKD Simulasi #2</h3>
-          <p class="text-gray-500 text-xs mb-4">Kumpulan soal SKD tingkat menengah dengan soal-soal bervariasi.</p>
-          <div class="flex items-center justify-between">
-            <span class="text-xs text-gray-400">Tingkat: Menengah</span>
-            <a href="tryout.html?id=2" class="bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition">Mulai</a>
+        <div class="bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm p-4 hover:border-primary-300 transition">
+          <div class="flex items-center justify-between mb-2"><span class="bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-400 text-xs font-bold px-2 py-0.5 rounded-full">GRATIS</span><span class="text-gray-400 text-xs">110 soal</span></div>
+          <h3 class="font-bold text-gray-900 dark:text-white text-sm mb-1">SKD Simulasi #2</h3>
+          <p class="text-gray-500 dark:text-gray-400 text-xs mb-3">Soal tingkat menengah dengan variasi baru.</p>
+          <div class="flex gap-2">
+            <a href="tryout.html?id=2&nama=SKD+Simulasi+%232&mode=latihan" class="flex-1 text-center border border-gray-200 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-600 dark:text-gray-400 text-xs font-medium py-1.5 rounded-lg transition">📖 Latihan</a>
+            <a href="tryout.html?id=2&nama=SKD+Simulasi+%232" class="flex-1 text-center bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold py-1.5 rounded-lg transition">⏱ Ujian</a>
           </div>
         </div>
-        <div class="bg-white rounded-2xl border-2 border-amber-200 shadow-sm p-5 relative">
-          <div class="absolute top-3 right-3"><span class="bg-amber-100 text-amber-700 text-xs font-bold px-2.5 py-1 rounded-full">PREMIUM</span></div>
-          <div class="mb-3 mt-4"><span class="text-gray-400 text-xs">110 soal · 100 mnt</span></div>
-          <h3 class="font-bold text-gray-900 mb-1">SKD Premium #1</h3>
-          <p class="text-gray-500 text-xs mb-4">Soal premium level tinggi. Pembahasan super lengkap disertai referensi.</p>
-          <div class="flex items-center justify-between">
-            <span class="text-xs text-gray-400">Tingkat: Sulit</span>
-            <button class="bg-amber-400 hover:bg-amber-500 text-gray-900 text-xs font-semibold px-4 py-2 rounded-lg transition">🔒 Upgrade</button>
-          </div>
+        <div class="bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl p-4 relative overflow-hidden">
+          <div class="absolute top-0 right-0 w-16 h-16 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+          <div class="flex items-center justify-between mb-2"><span class="bg-white/20 text-white text-xs font-bold px-2 py-0.5 rounded-full">PREMIUM</span><span class="text-amber-100 text-xs">110 soal</span></div>
+          <h3 class="font-bold text-white text-sm mb-1">SKD Premium #1</h3>
+          <p class="text-amber-100 text-xs mb-3">Soal level tinggi + pembahasan super lengkap.</p>
+          <button onclick="alert('Paket Premium segera hadir! Daftarkan email untuk notifikasi.')" class="w-full text-center bg-white/20 hover:bg-white/30 text-white text-xs font-semibold py-1.5 rounded-lg transition">🔒 Upgrade Premium</button>
         </div>
-        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:border-primary-300 transition">
-          <div class="flex items-center justify-between mb-3">
-            <span class="bg-green-100 text-green-700 text-xs font-bold px-2.5 py-1 rounded-full">GRATIS</span>
-            <span class="text-gray-400 text-xs">110 soal · 100 mnt</span>
-          </div>
-          <h3 class="font-bold text-gray-900 mb-1">SKD Simulasi #3</h3>
-          <p class="text-gray-500 text-xs mb-4">Latihan intensif dengan soal-soal berdasarkan kisi-kisi CPNS 2024.</p>
-          <div class="flex items-center justify-between">
-            <span class="text-xs text-gray-400">Tingkat: Menengah</span>
-            <a href="tryout.html?id=3" class="bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition">Mulai</a>
+        <div class="bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-sm p-4 hover:border-primary-300 transition">
+          <div class="flex items-center justify-between mb-2"><span class="bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-400 text-xs font-bold px-2 py-0.5 rounded-full">GRATIS</span><span class="text-gray-400 text-xs">110 soal</span></div>
+          <h3 class="font-bold text-gray-900 dark:text-white text-sm mb-1">SKD Simulasi #3</h3>
+          <p class="text-gray-500 dark:text-gray-400 text-xs mb-3">Soal berdasarkan kisi-kisi CPNS 2024.</p>
+          <div class="flex gap-2">
+            <a href="tryout.html?id=3&nama=SKD+Simulasi+%233&mode=latihan" class="flex-1 text-center border border-gray-200 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-600 dark:text-gray-400 text-xs font-medium py-1.5 rounded-lg transition">📖 Latihan</a>
+            <a href="tryout.html?id=3&nama=SKD+Simulasi+%233" class="flex-1 text-center bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold py-1.5 rounded-lg transition">⏱ Ujian</a>
           </div>
         </div>
       </div>
@@ -213,9 +363,64 @@
 <script>
   const { createClient } = supabase;
   const _sb = createClient('https://ykvwwfsoqqhtijtnivmj.supabase.co', 'sb_publishable_p_RYUHTiKlARg_rDTe3Gaw_N3G8XPwl');
-
   let userData = null;
 
+  // Dark mode
+  function toggleDark() {
+    const isDark = document.documentElement.classList.toggle('dark');
+    localStorage.setItem('dark_mode', isDark ? '1' : '0');
+    updateDarkIcon();
+  }
+  function updateDarkIcon() {
+    const isDark = document.documentElement.classList.contains('dark');
+    document.getElementById('sbDarkIcon').innerHTML = isDark
+      ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>'
+      : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>';
+  }
+  updateDarkIcon();
+
+  // Sidebar collapse
+  function toggleSbCollapse() {
+    const sb = document.getElementById('sidebar');
+    const mw = document.getElementById('mainWrapper');
+    const collapsed = sb.classList.toggle('collapsed');
+    mw.style.marginLeft = collapsed ? '4rem' : '';
+    const icon = document.getElementById('sbColIcon');
+    if (icon) icon.style.transform = collapsed ? 'rotate(180deg)' : '';
+    localStorage.setItem('sb_c', collapsed ? '1' : '0');
+  }
+  function openSidebar() { document.getElementById('sidebar').classList.remove('-translate-x-full'); document.getElementById('sbOverlay').classList.remove('hidden'); }
+  function closeSidebar() { document.getElementById('sidebar').classList.add('-translate-x-full'); document.getElementById('sbOverlay').classList.add('hidden'); }
+
+  // Init sidebar collapse state
+  if (localStorage.getItem('sb_c') === '1' && window.innerWidth >= 1024) {
+    const sb = document.getElementById('sidebar');
+    const mw = document.getElementById('mainWrapper');
+    sb?.classList.add('collapsed');
+    if (mw) mw.style.marginLeft = '4rem';
+    const icon = document.getElementById('sbColIcon');
+    if (icon) icon.style.transform = 'rotate(180deg)';
+  }
+
+  // Logout
+  async function confirmLogout() {
+    if (!confirm('Yakin ingin keluar dari SkorinCPNS?')) return;
+    await _sb.auth.signOut();
+    localStorage.removeItem('skorin_history');
+    window.location.href = 'index.html';
+  }
+  async function doLogout() { confirmLogout(); }
+
+  // Notification
+  function showNotif() {
+    const history = JSON.parse(localStorage.getItem('skorin_history') || '[]');
+    const msgs = history.length === 0
+      ? 'Belum ada tryout. Yuk mulai tryout pertamamu!'
+      : `Kamu sudah ${history.length} tryout. Teruskan semangat!`;
+    alert('🔔 ' + msgs);
+  }
+
+  // Auth & user load
   (async () => {
     const { data: { session } } = await _sb.auth.getSession();
     if (!session) { window.location.replace('login.html'); return; }
@@ -223,86 +428,167 @@
     const name = userData.user_metadata?.full_name || userData.email.split('@')[0];
     const initials = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
     document.getElementById('greetName').textContent = name;
-    document.getElementById('sbAvatar').textContent = initials;
     document.getElementById('sbName').textContent = name;
     document.getElementById('sbEmail').textContent = userData.email;
+
+    // Photo profil dari localStorage
+    const photo = localStorage.getItem('skorin_photo');
+    if (photo) {
+      const img = document.getElementById('sbAvatarImg');
+      const span = document.getElementById('sbAvatar');
+      if (img && span) { img.src = photo; img.classList.remove('hidden'); span.style.display = 'none'; }
+    } else {
+      document.getElementById('sbAvatar').textContent = initials;
+    }
+
     loadStats();
     loadLastTryout();
+    loadRekomendasi();
+    loadTarget();
+    checkOnboarding();
   })();
 
+  // Stats
   function loadStats() {
     const history = JSON.parse(localStorage.getItem('skorin_history') || '[]');
-    if (history.length === 0) return;
-    const avgTwk = Math.round(history.reduce((a,b) => a + (b.twk||0), 0) / history.length);
-    const avgTiu = Math.round(history.reduce((a,b) => a + (b.tiu||0), 0) / history.length);
-    const avgTkp = Math.round(history.reduce((a,b) => a + (b.tkp||0), 0) / history.length);
-    document.getElementById('twkAvg').textContent = avgTwk;
-    document.getElementById('tiuAvg').textContent = avgTiu;
-    document.getElementById('tkpAvg').textContent = avgTkp;
-    document.getElementById('twkBar').style.width = Math.min(100, (avgTwk / 150) * 100) + '%';
-    document.getElementById('tiuBar').style.width = Math.min(100, (avgTiu / 175) * 100) + '%';
-    document.getElementById('tkpBar').style.width = Math.min(100, (avgTkp / 225) * 100) + '%';
+    if (!history.length) return;
+    const avg = (key, max) => Math.round(history.reduce((a,b) => a + (b[key]||0), 0) / history.length);
+    const twk = avg('twk', 150), tiu = avg('tiu', 175), tkp = avg('tkp', 225);
+    const setProg = (id, bar, pct, val, max) => {
+      document.getElementById(id).textContent = val;
+      const p = Math.min(100, Math.round(val/max*100));
+      document.getElementById(bar).style.width = p + '%';
+      document.getElementById(pct).textContent = p + '%';
+    };
+    setProg('twkAvg', 'twkBar', 'twkPct', twk, 150);
+    setProg('tiuAvg', 'tiuBar', 'tiuPct', tiu, 175);
+    setProg('tkpAvg', 'tkpBar', 'tkpPct', tkp, 225);
   }
 
+  // Last tryout
   function loadLastTryout() {
     const history = JSON.parse(localStorage.getItem('skorin_history') || '[]');
-    if (history.length === 0) return;
+    if (!history.length) return;
     const last = history[history.length - 1];
     const lulus = last.twk >= 65 && last.tiu >= 80 && last.tkp >= 166;
     document.getElementById('lastTryout').innerHTML = `
-      <div class="space-y-3">
+      <div class="space-y-2">
         <div class="flex items-center justify-between">
-          <div>
-            <p class="font-semibold text-gray-900">${last.paket || 'SKD Simulasi'}</p>
-            <p class="text-xs text-gray-400">${new Date(last.tanggal).toLocaleDateString('id-ID', {day:'numeric',month:'long',year:'numeric'})}</p>
-          </div>
-          <span class="px-2.5 py-1 rounded-full text-xs font-bold ${lulus ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">${lulus ? '✓ LULUS' : '✗ BELUM'}</span>
+          <div><p class="font-semibold text-gray-900 dark:text-white text-sm">${last.paket || 'SKD Simulasi'}</p>
+          <p class="text-xs text-gray-400">${new Date(last.tanggal).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})}</p></div>
+          <span class="px-2 py-0.5 rounded-full text-xs font-bold ${lulus?'bg-green-100 text-green-700':'bg-red-100 text-red-700'}">${lulus?'LULUS':'BELUM'}</span>
         </div>
-        <div class="grid grid-cols-3 gap-2 text-center">
-          <div class="bg-blue-50 rounded-xl p-2"><p class="text-xs text-gray-500">TWK</p><p class="font-black text-primary-600">${last.twk}</p></div>
-          <div class="bg-green-50 rounded-xl p-2"><p class="text-xs text-gray-500">TIU</p><p class="font-black text-green-600">${last.tiu}</p></div>
-          <div class="bg-amber-50 rounded-xl p-2"><p class="text-xs text-gray-500">TKP</p><p class="font-black text-amber-600">${last.tkp}</p></div>
+        <div class="grid grid-cols-3 gap-1.5 text-center">
+          <div class="bg-blue-50 dark:bg-blue-950/30 rounded-lg p-1.5"><p class="text-xs text-gray-500">TWK</p><p class="font-black text-primary-600 text-sm">${last.twk}</p></div>
+          <div class="bg-green-50 dark:bg-green-950/30 rounded-lg p-1.5"><p class="text-xs text-gray-500">TIU</p><p class="font-black text-green-600 text-sm">${last.tiu}</p></div>
+          <div class="bg-amber-50 dark:bg-amber-950/30 rounded-lg p-1.5"><p class="text-xs text-gray-500">TKP</p><p class="font-black text-amber-600 text-sm">${last.tkp}</p></div>
         </div>
-        <div class="text-center text-2xl font-black text-gray-900">Total: ${last.total}</div>
-        <a href="hasil.html?from=history" class="block text-center text-xs text-primary-600 hover:underline">Lihat hasil lengkap →</a>
+        <div class="text-center text-xl font-black text-gray-900 dark:text-white">Total: ${last.total||last.twk+last.tiu+last.tkp}</div>
+        <a href="hasil.html" class="block text-center text-xs text-primary-600 hover:underline">Lihat detail →</a>
       </div>`;
   }
 
-  // Countdown to estimated CPNS 2026 registration (September 2026)
+  // Rekomendasi
+  function loadRekomendasi() {
+    const history = JSON.parse(localStorage.getItem('skorin_history') || '[]');
+    if (!history.length) return;
+    const last = history[history.length - 1];
+    const weak = [];
+    if (last.twk < 65) weak.push({label:'TWK', tip:'Pelajari Pancasila, UUD 1945, dan sejarah nasional lebih mendalam.', href:'materi.html'});
+    if (last.tiu < 80) weak.push({label:'TIU', tip:'Latih soal numerik, verbal, dan figural setiap hari minimal 30 menit.', href:'materi.html'});
+    if (last.tkp < 166) weak.push({label:'TKP', tip:'Pahami nilai-nilai ASN: integritas, orientasi pelayanan, dan kerjasama.', href:'materi.html'});
+    if (!weak.length) {
+      document.getElementById('rekomendasiContent').innerHTML = '<p class="text-green-600 dark:text-green-400 font-semibold text-sm">🎉 Semua kategori sudah melewati passing grade! Pertahankan!</p>';
+    } else {
+      document.getElementById('rekomendasiContent').innerHTML = weak.map(w => `
+        <div class="mb-3">
+          <p class="font-semibold text-red-500 text-xs mb-0.5">⚠️ Lemah di ${w.label}</p>
+          <p class="text-gray-500 dark:text-gray-400 text-xs">${w.tip}</p>
+          <a href="${w.href}" class="text-xs text-primary-600 hover:underline font-medium">Pelajari materi ${w.label} →</a>
+        </div>
+      `).join('');
+    }
+  }
+
+  // Target skor
+  function loadTarget() {
+    const t = JSON.parse(localStorage.getItem('skorin_target') || 'null');
+    if (!t) { document.getElementById('targetDisplay').innerHTML = '<p class="text-gray-400 dark:text-gray-500 text-xs">Belum ada target. Klik Edit untuk set target skor.</p>'; return; }
+    document.getElementById('tgTwk').textContent = t.twk;
+    document.getElementById('tgTiu').textContent = t.tiu;
+    document.getElementById('tgTkp').textContent = t.tkp;
+    document.getElementById('tgTotal').textContent = t.twk + t.tiu + t.tkp;
+  }
+  function toggleTargetEdit() {
+    const t = JSON.parse(localStorage.getItem('skorin_target') || '{}');
+    if (t.twk) { document.getElementById('inTwk').value = t.twk; document.getElementById('inTiu').value = t.tiu; document.getElementById('inTkp').value = t.tkp; }
+    document.getElementById('targetDisplay').classList.toggle('hidden');
+    document.getElementById('targetEdit').classList.toggle('hidden');
+  }
+  function saveTarget() {
+    const twk = parseInt(document.getElementById('inTwk').value) || 65;
+    const tiu = parseInt(document.getElementById('inTiu').value) || 80;
+    const tkp = parseInt(document.getElementById('inTkp').value) || 166;
+    localStorage.setItem('skorin_target', JSON.stringify({twk, tiu, tkp}));
+    toggleTargetEdit();
+    loadTarget();
+  }
+
+  // Countdown
   const target = new Date('2026-09-01T00:00:00');
   function updateCountdown() {
-    const now = new Date();
-    const diff = target - now;
-    if (diff <= 0) { document.getElementById('countdown').innerHTML = '<p class="text-center">Pendaftaran Dibuka!</p>'; return; }
-    const d = Math.floor(diff / 86400000);
-    const h = Math.floor((diff % 86400000) / 3600000);
-    const m = Math.floor((diff % 3600000) / 60000);
-    const s = Math.floor((diff % 60000) / 1000);
-    document.getElementById('cntH').textContent = d;
-    document.getElementById('cntJ').textContent = String(h).padStart(2,'0');
-    document.getElementById('cntM').textContent = String(m).padStart(2,'0');
-    document.getElementById('cntS').textContent = String(s).padStart(2,'0');
+    const diff = target - new Date();
+    if (diff <= 0) { ['cntH','cntJ','cntM','cntS'].forEach(id => document.getElementById(id).textContent = '0'); return; }
+    document.getElementById('cntH').textContent = Math.floor(diff / 86400000);
+    document.getElementById('cntJ').textContent = String(Math.floor((diff%86400000)/3600000)).padStart(2,'0');
+    document.getElementById('cntM').textContent = String(Math.floor((diff%3600000)/60000)).padStart(2,'0');
+    document.getElementById('cntS').textContent = String(Math.floor((diff%60000)/1000)).padStart(2,'0');
   }
-  updateCountdown();
-  setInterval(updateCountdown, 1000);
+  updateCountdown(); setInterval(updateCountdown, 1000);
+
+  // Tips hari ini (7 tips, index by day of week)
+  const tips = [
+    'Minggu: Buat rencana belajar seminggu ke depan. Tentukan target harian yang realistis untuk TWK, TIU, TKP.',
+    'Senin: Mulai minggu dengan materi TWK. Baca 1 pasal UUD 1945 dan pahami maknanya hari ini.',
+    'Selasa: Latih soal numerik TIU selama 30 menit. Fokus pada deret angka dan silogisme.',
+    'Rabu: Review soal TKP dan ingat: jawaban terbaik selalu mencerminkan nilai ASN — orientasi pelayanan publik.',
+    'Kamis: Kerjakan 1 paket tryout penuh hari ini. Simulasi kondisi ujian nyata dengan timer aktif.',
+    'Jumat: Evaluasi hasil tryout minggu ini. Catat 3 topik terlemah dan pelajari kembali.',
+    'Sabtu: Istirahat aktif — baca berita tentang kebijakan pemerintah terbaru. Ini sering muncul di TWK!',
+  ];
+  document.getElementById('tipsText').textContent = tips[new Date().getDay()];
 
   const motivasi = [
     '"Setiap soal yang kamu kerjakan hari ini adalah selangkah lebih dekat menuju seragam ASN impianmu."',
     '"Konsistensi mengalahkan bakat. Terus berlatih setiap hari, sekecil apapun."',
     '"Gagal dalam tryout bukan kekalahan. Itu adalah pelajaran berharga menuju keberhasilan."',
     '"Ribuan orang bersaing, tapi hanya yang paling siap yang akan menang."',
-    '"Tidak ada waktu untuk menyerah. Masa depanmu dimulai dari persiapan yang kamu lakukan hari ini."',
+    '"Tidak ada jalan pintas menuju sukses. Yang ada adalah jalan yang tidak banyak orang mau tempuh."',
+    '"Fokus pada prosesnya, bukan hasilnya. Hasil adalah buah dari proses yang konsisten."',
+    '"Satu soal per hari lebih baik dari tidak ada sama sekali. Mulailah sekarang."',
   ];
-  document.getElementById('motivasiText').textContent = motivasi[new Date().getDay() % motivasi.length];
+  document.getElementById('motivasiText').textContent = motivasi[new Date().getDay()];
 
-  async function doLogout() {
-    await _sb.auth.signOut();
-    localStorage.removeItem('skorin_history');
-    window.location.href = 'index.html';
+  // Today date
+  document.getElementById('todayDate').textContent = new Date().toLocaleDateString('id-ID', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+
+  // Onboarding
+  function checkOnboarding() {
+    if (!localStorage.getItem('skorin_onboarded')) {
+      document.getElementById('onboardingModal').classList.remove('hidden');
+    }
   }
-
-  function openSidebar() { document.getElementById('sidebar').classList.remove('-translate-x-full'); document.getElementById('sbOverlay').classList.remove('hidden'); }
-  function closeSidebar() { document.getElementById('sidebar').classList.add('-translate-x-full'); document.getElementById('sbOverlay').classList.add('hidden'); }
+  function obNext(step) {
+    ['ob1','ob2','ob3'].forEach(id => document.getElementById(id).classList.add('hidden'));
+    document.getElementById('ob'+step).classList.remove('hidden');
+    ['d1','d2','d3'].forEach((id,i) => {
+      document.getElementById(id).className = `w-2 h-2 rounded-full ${i+1===step?'bg-primary-600':'bg-gray-300'}`;
+    });
+  }
+  function closeOnboarding() {
+    localStorage.setItem('skorin_onboarded', '1');
+    document.getElementById('onboardingModal').classList.add('hidden');
+  }
 </script>
 </body>
 </html>

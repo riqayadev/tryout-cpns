@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Kontak – SkorinCPNS</title>
+  <meta name="description" content="Hubungi tim SkorinCPNS. Kami siap membantu pertanyaan seputar tryout CPNS dan platform."/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{colors:{primary:{50:'#eff6ff',600:'#2563eb',700:'#1d4ed8'}},fontFamily:{sans:['Inter','sans-serif']}}}}</script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+</head>
+<body class="font-sans antialiased bg-gray-50 text-gray-900">
+  <!-- Nav -->
+  <nav class="border-b border-gray-100 bg-white sticky top-0 z-10">
+    <div class="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
+      <a href="index.html" class="font-extrabold text-xl text-primary-600">SkorinCPNS</a>
+      <div class="flex items-center gap-4">
+        <a href="tentang.html" class="text-sm font-medium text-gray-600 hover:text-primary-600 transition">Tentang</a>
+        <a href="login.html" class="bg-primary-600 hover:bg-primary-700 text-white font-semibold text-sm px-4 py-2 rounded-xl transition">Masuk</a>
+      </div>
+    </div>
+  </nav>
+
+  <section class="py-16 px-6">
+    <div class="max-w-4xl mx-auto">
+      <div class="text-center mb-12">
+        <h1 class="text-4xl font-black text-gray-900 mb-3">Hubungi Kami</h1>
+        <p class="text-gray-500 leading-relaxed">Ada pertanyaan, saran, atau laporan bug? Kami senang mendengar dari kamu!</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <!-- Info -->
+        <div class="space-y-6">
+          <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+            <div class="flex items-start gap-4">
+              <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center text-2xl flex-shrink-0">📧</div>
+              <div>
+                <h3 class="font-bold text-gray-900 mb-1">Email</h3>
+                <p class="text-gray-500 text-sm mb-1">Kirim pertanyaan ke:</p>
+                <a href="mailto:arsippbbp2@gmail.com" class="text-primary-600 hover:underline font-semibold text-sm">arsippbbp2@gmail.com</a>
+                <p class="text-gray-400 text-xs mt-1">Respon dalam 1-2 hari kerja</p>
+              </div>
+            </div>
+          </div>
+          <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+            <div class="flex items-start gap-4">
+              <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center text-2xl flex-shrink-0">💬</div>
+              <div>
+                <h3 class="font-bold text-gray-900 mb-1">WhatsApp</h3>
+                <p class="text-gray-500 text-sm mb-1">Chat langsung dengan tim kami:</p>
+                <p class="text-primary-600 font-semibold text-sm">+62 812-3456-7890</p>
+                <p class="text-gray-400 text-xs mt-1">Senin–Jumat, 08.00–17.00 WIB</p>
+              </div>
+            </div>
+          </div>
+          <div class="bg-amber-50 border border-amber-200 rounded-2xl p-5">
+            <p class="text-amber-800 font-semibold text-sm mb-2">⚠️ Bug atau Masalah Teknis?</p>
+            <p class="text-amber-700 text-xs leading-relaxed">Sertakan browser yang digunakan, screenshot error, dan langkah reproduksinya agar kami bisa menyelesaikan masalah lebih cepat.</p>
+          </div>
+        </div>
+
+        <!-- Form -->
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+          <h3 class="font-bold text-gray-900 mb-5">Kirim Pesan</h3>
+          <form id="contactForm" onsubmit="submitForm(event)" class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1.5">Nama</label>
+              <input type="text" id="cName" required placeholder="Nama lengkap kamu" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-primary-500 outline-none transition"/>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
+              <input type="email" id="cEmail" required placeholder="email@kamu.com" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-primary-500 outline-none transition"/>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1.5">Topik</label>
+              <select id="cTopic" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-primary-500 outline-none bg-white transition">
+                <option>Pertanyaan Umum</option>
+                <option>Laporan Bug</option>
+                <option>Saran Fitur</option>
+                <option>Masalah Akun</option>
+                <option>Kerjasama</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1.5">Pesan</label>
+              <textarea id="cMsg" required rows="4" placeholder="Tuliskan pesanmu di sini..." class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-primary-500 outline-none transition resize-none"></textarea>
+            </div>
+            <div id="formMsg" class="hidden text-sm p-3 rounded-xl"></div>
+            <button type="submit" class="w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-3.5 rounded-xl transition">📨 Kirim Pesan</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ Kontak -->
+  <section class="py-12 px-6 bg-white">
+    <div class="max-w-3xl mx-auto">
+      <h2 class="text-2xl font-black text-center mb-8">Pertanyaan Yang Sering Ditanyakan</h2>
+      <div class="space-y-4">
+        <div class="border border-gray-100 rounded-xl p-5"><h3 class="font-bold text-gray-900 mb-1 text-sm">Apakah SkorinCPNS benar-benar gratis?</h3><p class="text-gray-500 text-sm">Ya! 5 paket tryout SKD lengkap tersedia gratis tanpa biaya apapun. Paket premium opsional untuk soal tambahan.</p></div>
+        <div class="border border-gray-100 rounded-xl p-5"><h3 class="font-bold text-gray-900 mb-1 text-sm">Soal bersumber dari mana?</h3><p class="text-gray-500 text-sm">Soal disusun berdasarkan kisi-kisi resmi BKN dan referensi soal CPNS tahun-tahun sebelumnya.</p></div>
+        <div class="border border-gray-100 rounded-xl p-5"><h3 class="font-bold text-gray-900 mb-1 text-sm">Bagaimana jika saya lupa password?</h3><p class="text-gray-500 text-sm">Gunakan fitur "Lupa Password" di halaman login. Email reset akan dikirim ke alamat email Anda.</p></div>
+        <div class="border border-gray-100 rounded-xl p-5"><h3 class="font-bold text-gray-900 mb-1 text-sm">Apakah data saya aman?</h3><p class="text-gray-500 text-sm">Ya. Data disimpan secara aman menggunakan Supabase dengan enkripsi standar industri. Kami tidak menjual data kepada pihak ketiga.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="bg-gray-900 text-white py-8 px-6 text-center">
+    <p class="font-extrabold text-lg mb-2">SkorinCPNS</p>
+    <p class="text-gray-400 text-sm mb-4">Platform Tryout CPNS Terbaik Indonesia</p>
+    <div class="flex justify-center gap-6 text-sm text-gray-400">
+      <a href="index.html" class="hover:text-white transition">Beranda</a>
+      <a href="tentang.html" class="hover:text-white transition">Tentang</a>
+      <a href="kontak.html" class="hover:text-white transition text-white">Kontak</a>
+    </div>
+    <p class="text-gray-600 text-xs mt-6">© 2026 SkorinCPNS.</p>
+  </footer>
+
+  <script>
+    function submitForm(e) {
+      e.preventDefault();
+      const msg = document.getElementById('formMsg');
+      msg.className = 'text-sm p-3 rounded-xl bg-green-50 border border-green-200 text-green-700';
+      msg.textContent = '✅ Pesan berhasil dikirim! Kami akan membalas dalam 1-2 hari kerja. Terima kasih!';
+      msg.classList.remove('hidden');
+      document.getElementById('contactForm').reset();
+      setTimeout(() => msg.classList.add('hidden'), 6000);
+    }
+  </script>
+</body>
+</html>
