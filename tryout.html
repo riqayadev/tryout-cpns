@@ -121,6 +121,30 @@
   </div>
 </div>
 
+<!-- Anti-Cheat: Tab-switch / fullscreen warning -->
+<div id="cheatOverlay" class="fixed inset-0 z-[200] hidden items-center justify-center bg-black/95">
+  <div class="text-white text-center max-w-md mx-auto px-6">
+    <div class="text-7xl mb-6" id="cheatIcon">⚠️</div>
+    <h2 class="text-2xl font-black mb-3" id="cheatTitle">Peringatan!</h2>
+    <p class="text-gray-300 text-sm mb-8" id="cheatMsg">Anda meninggalkan halaman ujian!</p>
+    <button onclick="resumeExam()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-8 py-4 rounded-xl text-base transition w-full max-w-xs">
+      ↩ Kembali ke Ujian
+    </button>
+  </div>
+</div>
+
+<!-- Anti-Cheat: Fullscreen exit warning -->
+<div id="fsWarning" class="fixed inset-0 z-[190] hidden items-center justify-center bg-black/80">
+  <div class="bg-red-600 text-white rounded-2xl p-8 text-center max-w-sm mx-4 shadow-2xl">
+    <div class="text-5xl mb-4">🖥️</div>
+    <h3 class="text-xl font-black mb-2">Keluar dari Fullscreen!</h3>
+    <p class="text-sm text-red-100 mb-6">Mode ujian harus dalam fullscreen. Klik tombol untuk kembali.</p>
+    <button onclick="reenterFullscreen()" class="bg-white text-red-600 font-bold px-6 py-3 rounded-xl w-full transition hover:bg-red-50">
+      Kembali Fullscreen
+    </button>
+  </div>
+</div>
+
 <!-- Submit Modal -->
 <div id="submitModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4" style="background:rgba(0,0,0,.6)">
   <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 text-center">
@@ -278,17 +302,25 @@
 
   function closeSubmitModal() { document.getElementById('submitModal').classList.add('hidden'); }
 
+  let _submitted = false;
   function doSubmit() {
+    if (_submitted) return;
+    _submitted = true;
     clearInterval(timerInterval);
     closeSubmitModal();
+    // Snapshot sebelum soalDB dikosongkan (agar beforeunload tidak memblokir navigasi)
+    const soalSnap = soalDB.slice();
+    const jawSnap  = jawaban.slice();
+    soalDB = [];
+    if (document.exitFullscreen) document.exitFullscreen().catch(()=>{});
     let twk=0, tiu=0, tkp=0, twkBenar=0, tiuBenar=0;
-    soalDB.forEach((s,i)=>{
-      const ans=jawaban[i];
+    soalSnap.forEach((s,i)=>{
+      const ans=jawSnap[i];
       if(s.tipe==='TWK'){ if(ans===s.benar){twk+=5; twkBenar++;} }
       else if(s.tipe==='TIU'){ if(ans===s.benar){tiu+=5; tiuBenar++;} }
       else if(s.tipe==='TKP'){ tkp += (ans!==null && s.nilai) ? s.nilai[ans] : 1; }
     });
-    const result={paket:paketNama, tanggal:new Date().toISOString(), twk, tiu, tkp, total:twk+tiu+tkp, twkBenar, tiuBenar, soal:soalDB, jawaban};
+    const result={paket:paketNama, tanggal:new Date().toISOString(), twk, tiu, tkp, total:twk+tiu+tkp, twkBenar, tiuBenar, soal:soalSnap, jawaban:jawSnap};
     localStorage.setItem('skorin_last_result', JSON.stringify(result));
     const history=JSON.parse(localStorage.getItem('skorin_history')||'[]');
     history.push({paket:paketNama, tanggal:result.tanggal, twk, tiu, tkp, total:result.total});
@@ -299,6 +331,67 @@
 
   document.addEventListener('paste', e=>e.preventDefault());
   document.addEventListener('contextmenu', e=>e.preventDefault());
+
+  // ── ANTI-CHEAT (mode ujian) ────────────────────────────────────────
+  function enterFullscreen() {
+    const el = document.documentElement;
+    (el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen)?.call(el);
+  }
+
+  function reenterFullscreen() {
+    document.getElementById('fsWarning').classList.replace('flex','hidden');
+    enterFullscreen();
+  }
+
+  function showCheatOverlay(icon, title, msg) {
+    document.getElementById('cheatIcon').textContent = icon;
+    document.getElementById('cheatTitle').textContent = title;
+    document.getElementById('cheatMsg').textContent = msg;
+    const ov = document.getElementById('cheatOverlay');
+    ov.classList.remove('hidden');
+    ov.classList.add('flex');
+  }
+
+  function resumeExam() {
+    document.getElementById('cheatOverlay').classList.replace('flex','hidden');
+    if (!document.fullscreenElement) enterFullscreen();
+  }
+
+  if (!isLatihanMode) {
+    // Pindah tab → warning
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden && soalDB.length > 0) {
+        showCheatOverlay('⚠️', 'Anda Meninggalkan Halaman Ujian!', 'Kembali segera untuk melanjutkan ujian. Tindakan ini tercatat.');
+      }
+    });
+
+    // Keluar fullscreen → warning
+    const onFsChange = () => {
+      const inFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
+      if (!inFs && soalDB.length > 0) {
+        const fw = document.getElementById('fsWarning');
+        fw.classList.remove('hidden');
+        fw.classList.add('flex');
+      }
+    };
+    document.addEventListener('fullscreenchange', onFsChange);
+    document.addEventListener('webkitfullscreenchange', onFsChange);
+
+    // Back / refresh → konfirmasi
+    window.addEventListener('beforeunload', (e) => {
+      if (soalDB.length > 0) {
+        e.preventDefault();
+        e.returnValue = 'Ujian akan berakhir dan tidak bisa dilanjutkan. Yakin keluar?';
+      }
+    });
+
+    // Disable keyboard shortcuts developer
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'F12') { e.preventDefault(); return; }
+      if (e.ctrlKey && e.shiftKey && ['i','j','c'].includes(e.key.toLowerCase())) { e.preventDefault(); return; }
+      if (e.ctrlKey && ['u','s'].includes(e.key.toLowerCase())) { e.preventDefault(); return; }
+    });
+  }
 
   async function loadSoal() {
     const paketId = parseInt(params.get('id') || '0');
@@ -341,7 +434,10 @@
     flagged = new Array(soalDB.length).fill(false);
 
     renderQ(0);
-    if (!isLatihanMode) startTimer();
+    if (!isLatihanMode) {
+      startTimer();
+      enterFullscreen();
+    }
   }
 
   loadSoal();

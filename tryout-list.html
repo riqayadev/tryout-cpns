@@ -194,17 +194,13 @@
     renderPakets();
   })();
 
+  // latihanId = paket_id ganjil, ujianId = paket_id genap
   const pakets = [
-    {id:1, judul:'SKD Simulasi #1', desc:'Tryout SKD lengkap dengan soal-soal tingkat mudah. Cocok untuk latihan pertama kali.', soal:110, level:'Mudah', tipe:'gratis', icon:'📝'},
-    {id:2, judul:'SKD Simulasi #2', desc:'Kumpulan soal SKD tingkat menengah. Variasi soal lebih beragam dan menantang.', soal:110, level:'Menengah', tipe:'gratis', icon:'📋'},
-    {id:3, judul:'SKD Simulasi #3', desc:'Soal berdasarkan kisi-kisi CPNS 2024. Latihan intensif dengan waktu tertekan.', soal:110, level:'Menengah', tipe:'gratis', icon:'📄'},
-    {id:4, judul:'SKD Simulasi #4', desc:'Soal gabungan dari bank soal CPNS 3 tahun terakhir. Evaluasi kesiapan Anda.', soal:110, level:'Menengah', tipe:'gratis', icon:'🗒️'},
-    {id:5, judul:'SKD Simulasi #5', desc:'Tryout gratis final. Soal tingkat tinggi sebagai assessment sebelum ujian sesungguhnya.', soal:110, level:'Sulit', tipe:'gratis', icon:'📑'},
-    {id:6, judul:'SKD Premium #1', desc:'Bank soal premium eksklusif. Pembahasan super lengkap dengan referensi pasal dan sumber.', soal:110, level:'Sulit', tipe:'premium', icon:'💎'},
-    {id:7, judul:'SKD Premium #2', desc:'Soal prediksi CPNS 2026 berdasarkan tren soal terkini. Cocok untuk persiapan final.', soal:110, level:'Sulit', tipe:'premium', icon:'🏆'},
-    {id:8, judul:'SKD Premium #3', desc:'Paket intensif dengan passing rate tertinggi. Soal divalidasi oleh ASN aktif.', soal:110, level:'Sangat Sulit', tipe:'premium', icon:'🎯'},
-    {id:9, judul:'SKD Fokus TWK', desc:'Khusus latihan soal Tes Wawasan Kebangsaan. Pendalaman materi Pancasila, UUD, dan NKRI.', soal:110, level:'Menengah', tipe:'premium', icon:'🇮🇩'},
-    {id:10, judul:'SKD Fokus TIU', desc:'Khusus latihan soal Tes Intelegensi Umum. Tingkatkan kemampuan verbal dan numerik.', soal:110, level:'Sulit', tipe:'premium', icon:'🧠'},
+    {latihanId:1, ujianId:2, judul:'SKD Simulasi #1', desc:'Tryout SKD lengkap dengan soal tingkat mudah. Cocok untuk latihan pertama kali.', soal:110, level:'Mudah', tipe:'gratis', icon:'📝'},
+    {latihanId:3, ujianId:4, judul:'SKD Simulasi #2', desc:'Variasi soal lebih beragam dan menantang. Evaluasi pemahaman dasar SKD Anda.', soal:110, level:'Menengah', tipe:'gratis', icon:'📋'},
+    {latihanId:5, ujianId:6, judul:'SKD Simulasi #3', desc:'Soal berdasarkan kisi-kisi CPNS terbaru. Latihan intensif untuk persiapan maksimal.', soal:110, level:'Sulit', tipe:'gratis', icon:'📄'},
+    {latihanId:7, ujianId:8, judul:'SKD Premium #1', desc:'Bank soal premium eksklusif. Pembahasan super lengkap dengan referensi pasal dan sumber.', soal:110, level:'Sulit', tipe:'premium', icon:'💎'},
+    {latihanId:9, ujianId:10, judul:'SKD Premium #2', desc:'Soal prediksi CPNS terkini. Passing rate tertinggi, divalidasi oleh ASN aktif.', soal:110, level:'Sangat Sulit', tipe:'premium', icon:'🏆'},
   ];
 
   let filterAktif = 'semua';
@@ -264,9 +260,15 @@
         <div class="flex items-center gap-4 text-xs text-gray-400 dark:text-gray-500 mb-4">
           <span>📝 ${p.soal} soal</span><span>⏱️ 100 menit</span><span>📊 TWK·TIU·TKP</span>
         </div>
-        <div class="grid grid-cols-2 gap-2">
-          <a href="tryout.html?id=${p.id}&nama=${encodeURIComponent(p.judul)}&mode=latihan" class="text-center border border-gray-200 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-600 dark:text-gray-400 text-xs font-semibold py-2.5 rounded-xl transition">📖 Latihan</a>
-          <a href="tryout.html?id=${p.id}&nama=${encodeURIComponent(p.judul)}" class="text-center bg-primary-600 hover:bg-primary-700 text-white text-xs font-bold py-2.5 rounded-xl transition">⏱ Ujian</a>
+        <div class="space-y-2">
+          <a href="tryout.html?id=${p.latihanId}&nama=${encodeURIComponent(p.judul)}&mode=latihan"
+             class="flex items-center justify-center gap-2 border border-gray-200 dark:border-slate-600 hover:bg-amber-50 dark:hover:bg-slate-700 text-gray-700 dark:text-gray-300 text-xs font-semibold py-2.5 rounded-xl transition">
+            📖 Mode Latihan <span class="text-gray-400 font-normal">(langsung lihat jawaban)</span>
+          </a>
+          <a href="tryout.html?id=${p.ujianId}&nama=${encodeURIComponent(p.judul)}"
+             class="flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 text-white text-xs font-bold py-2.5 rounded-xl transition">
+            ⏱ Mode Ujian <span class="font-normal opacity-80">(timer · fullscreen)</span>
+          </a>
         </div>
       </div>`;
     }).join('');
