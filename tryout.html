@@ -74,7 +74,7 @@
       <span class="font-black text-gray-700 text-base tabular-nums" id="timerDisplay">100:00</span>
     </div>
     <div class="flex items-center gap-2">
-      <span class="text-xs text-gray-500 hidden sm:block"><span id="answeredCount">0</span>/110 dijawab</span>
+      <span class="text-xs text-gray-500 hidden sm:block"><span id="answeredCount">0</span>/<span id="totalSoalCount">110</span> dijawab</span>
       <button onclick="konfirmasiSubmit()" class="bg-primary-600 hover:bg-primary-700 text-white text-sm font-bold px-4 py-2.5 rounded-xl transition shadow-sm">Submit</button>
     </div>
   </div>
@@ -113,9 +113,9 @@
         <div class="flex items-center gap-1.5"><div class="w-4 h-4 rounded border-2 border-primary-600"></div><span class="text-gray-500">Aktif</span></div>
       </div>
       <div class="space-y-3">
-        <div><p class="text-xs font-semibold text-blue-600 mb-1.5">TWK (1–30)</p><div class="grid grid-cols-6 gap-1" id="navTwk"></div></div>
-        <div><p class="text-xs font-semibold text-green-600 mb-1.5">TIU (31–65)</p><div class="grid grid-cols-6 gap-1" id="navTiu"></div></div>
-        <div><p class="text-xs font-semibold text-amber-600 mb-1.5">TKP (66–110)</p><div class="grid grid-cols-6 gap-1" id="navTkp"></div></div>
+        <div><p class="text-xs font-semibold text-blue-600 mb-1.5" id="navLabelTwk">TWK</p><div class="grid grid-cols-6 gap-1" id="navTwk"></div></div>
+        <div><p class="text-xs font-semibold text-green-600 mb-1.5" id="navLabelTiu">TIU</p><div class="grid grid-cols-6 gap-1" id="navTiu"></div></div>
+        <div><p class="text-xs font-semibold text-amber-600 mb-1.5" id="navLabelTkp">TKP</p><div class="grid grid-cols-6 gap-1" id="navTkp"></div></div>
       </div>
     </div>
   </div>
@@ -223,15 +223,13 @@
     timerBox.className = '';
   }
 
-  // ── SOAL ───────────────────────────────────────────────────────────
   let soalDB = [];
-
-  // ── STATE ─────────────────────────────────────────────────────────
   let currentQ = 0;
   let jawaban = [];
-  let flagged = [];
+  let flagged  = [];
   let timeLeft = 100 * 60;
   let timerInterval = null;
+  let _submitted = false;
 
   const katColor = {TWK:'bg-blue-100 text-blue-700', TIU:'bg-green-100 text-green-700', TKP:'bg-amber-100 text-amber-700'};
 
@@ -243,20 +241,44 @@
     document.getElementById('progressText').textContent = `${idx+1} / ${soalDB.length}`;
     document.getElementById('qText').textContent = s.teks;
 
+    const answered = jawaban[idx] !== null;
+    const lockLatihan = isLatihanMode && answered;
     const opts = document.getElementById('optionsList');
-    opts.innerHTML = s.opsi.map((o, i) => `
-      <button onclick="selectAnswer(${i})" class="option-btn w-full text-left px-4 py-3 rounded-xl text-sm flex items-start gap-3 ${jawaban[idx]===i?'selected':''}">
+
+    // Render opsi — latihan mode yang sudah dijawab tampilkan highlight hijau/merah
+    opts.innerHTML = s.opsi.map((o, i) => {
+      let inlineStyle = '';
+      if (lockLatihan) {
+        if (s.tipe !== 'TKP') {
+          if (i === s.benar) inlineStyle = 'style="border-color:#22c55e;background:#dcfce7;"';
+          else if (i === jawaban[idx]) inlineStyle = 'style="border-color:#ef4444;background:#fee2e2;"';
+        } else {
+          if (i === jawaban[idx]) inlineStyle = 'style="border-color:#2563eb;background:#dbeafe;"';
+        }
+      }
+      return `<button onclick="selectAnswer(${i})" ${lockLatihan ? 'disabled' : ''}
+        class="option-btn w-full text-left px-4 py-3 rounded-xl text-sm flex items-start gap-3 ${jawaban[idx]===i?'selected':''}"
+        ${inlineStyle}>
         <span class="font-black text-gray-400 flex-shrink-0 w-5">${String.fromCharCode(65+i)}.</span>
         <span class="text-gray-800">${o}</span>
-      </button>`).join('');
+      </button>`;
+    }).join('');
+
+    // Pembahasan muncul otomatis setelah jawab di latihan mode
+    if (lockLatihan && s.pembahasan) {
+      const div = document.createElement('div');
+      div.className = 'mt-3 p-4 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-800 leading-relaxed';
+      div.innerHTML = '<strong>💡 Pembahasan:</strong> ' + s.pembahasan;
+      opts.appendChild(div);
+    }
 
     document.getElementById('flagTxt').textContent = flagged[idx] ? 'Hapus Tanda' : 'Tandai Ragu';
     document.getElementById('flagBtn').className = `ml-auto flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border transition ${flagged[idx]?'border-amber-400 bg-amber-50 text-amber-700':'border-amber-200 text-amber-600 hover:bg-amber-50'}`;
 
-    document.getElementById('btnPrev').disabled = idx===0;
+    document.getElementById('btnPrev').disabled = idx === 0;
     const btnNext = document.getElementById('btnNext');
-    if (idx===soalDB.length-1) {
-      btnNext.textContent = 'Submit ✓';
+    if (idx === soalDB.length - 1) {
+      btnNext.textContent = isLatihanMode ? 'Selesai ✓' : 'Submit ✓';
       btnNext.onclick = konfirmasiSubmit;
       btnNext.className = 'flex items-center gap-2 px-5 py-3 rounded-xl bg-green-600 text-white font-semibold text-sm hover:bg-green-700 transition shadow-sm';
     } else {
@@ -265,54 +287,42 @@
       btnNext.className = 'flex items-center gap-2 px-5 py-3 rounded-xl bg-primary-600 text-white font-semibold text-sm hover:bg-primary-700 transition shadow-sm';
     }
 
-    const answeredCount = jawaban.filter(j=>j!==null).length;
-    document.getElementById('progBar').style.width = (soalDB.length ? answeredCount/soalDB.length*100 : 0)+'%';
+    const answeredCount = jawaban.filter(j => j !== null).length;
+    document.getElementById('progBar').style.width = (soalDB.length ? answeredCount / soalDB.length * 100 : 0) + '%';
     document.getElementById('answeredCount').textContent = answeredCount;
     updateNavGrid();
   }
 
   function selectAnswer(optIdx) {
+    // Di latihan mode yang sudah dijawab, tidak bisa ubah jawaban
+    if (isLatihanMode && jawaban[currentQ] !== null) return;
     jawaban[currentQ] = optIdx;
-    if (isLatihanMode) {
-      const s = soalDB[currentQ];
-      const btns = document.querySelectorAll('.option-btn');
-      btns.forEach((btn, i) => {
-        btn.disabled = true;
-        if (s.tipe !== 'TKP') {
-          if (i === s.benar) btn.style.cssText = 'border-color:#22c55e;background:#dcfce7;';
-          else if (i === optIdx && i !== s.benar) btn.style.cssText = 'border-color:#ef4444;background:#fee2e2;';
-        } else {
-          if (i === optIdx) btn.style.cssText = 'border-color:#2563eb;background:#dbeafe;';
-        }
-      });
-      if (s.pembahasan) {
-        const area = document.getElementById('optionsList');
-        const div = document.createElement('div');
-        div.className = 'mt-3 p-3 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-800';
-        div.innerHTML = '<strong>💡 Pembahasan:</strong> ' + s.pembahasan;
-        area.appendChild(div);
-      }
-    }
     renderQ(currentQ);
   }
-  function toggleFlag() { flagged[currentQ]=!flagged[currentQ]; renderQ(currentQ); }
-  function goPrev() { if(currentQ>0){ currentQ--; renderQ(currentQ); } }
-  function goNext() { if(currentQ<soalDB.length-1){ currentQ++; renderQ(currentQ); } else konfirmasiSubmit(); }
-  function jumpTo(idx) { currentQ=idx; renderQ(currentQ); }
+
+  function toggleFlag() { flagged[currentQ] = !flagged[currentQ]; renderQ(currentQ); }
+  function goPrev() { if (currentQ > 0) { currentQ--; renderQ(currentQ); } }
+  function goNext() { if (currentQ < soalDB.length - 1) { currentQ++; renderQ(currentQ); } else konfirmasiSubmit(); }
+  function jumpTo(idx) { currentQ = idx; renderQ(currentQ); }
 
   function updateNavGrid() {
-    [['Twk',0,30],['Tiu',30,65],['Tkp',65,110]].forEach(([kat,s,e]) => {
-      const el = document.getElementById('nav'+kat);
-      if(!el) return;
-      let html='';
-      for(let i=s;i<e;i++){
-        let cls='nav-btn empty';
-        if(jawaban[i]!==null) cls='nav-btn answered';
-        if(flagged[i]) cls='nav-btn flagged';
-        if(i===currentQ) cls+=' current';
-        html+=`<button onclick="jumpTo(${i})" class="${cls}">${i+1}</button>`;
-      }
-      el.innerHTML=html;
+    // Kelompokkan soal berdasarkan tipe-nya, bukan hardcoded range
+    const groups = { Twk: [], Tiu: [], Tkp: [] };
+    soalDB.forEach((s, i) => {
+      if (s.tipe === 'TWK') groups.Twk.push(i);
+      else if (s.tipe === 'TIU') groups.Tiu.push(i);
+      else groups.Tkp.push(i);
+    });
+    Object.entries(groups).forEach(([kat, indices]) => {
+      const el = document.getElementById('nav' + kat);
+      if (!el) return;
+      el.innerHTML = indices.map(i => {
+        let cls = 'nav-btn empty';
+        if (jawaban[i] !== null) cls = 'nav-btn answered';
+        if (flagged[i]) cls = 'nav-btn flagged';
+        if (i === currentQ) cls += ' current';
+        return `<button onclick="jumpTo(${i})" class="${cls}">${i + 1}</button>`;
+      }).join('');
     });
   }
 
@@ -326,8 +336,8 @@
   function konfirmasiSubmit() {
     if (!soalDB.length || _submitted) return;
     closeAllModals();
-    const kosong = jawaban.filter(j => j === null).length;
-    const ragu   = flagged.filter(Boolean).length;
+    const kosong  = jawaban.filter(j => j === null).length;
+    const ragu    = flagged.filter(Boolean).length;
     const dijawab = soalDB.length - kosong;
     if (kosong > 0) {
       document.getElementById('mcKosong').textContent = kosong;
@@ -352,11 +362,7 @@
     el.className = `${bg} text-white px-5 py-3 rounded-xl shadow-xl flex items-center gap-3 font-bold text-sm pointer-events-auto`;
     el.innerHTML = `<span class="text-xl">${icon}</span><span>${msg}</span>`;
     document.getElementById('toastContainer').appendChild(el);
-    setTimeout(() => {
-      el.style.transition = 'opacity .3s';
-      el.style.opacity = '0';
-      setTimeout(() => el.remove(), 300);
-    }, 4700);
+    setTimeout(() => { el.style.transition='opacity .3s'; el.style.opacity='0'; setTimeout(()=>el.remove(),300); }, 4700);
   }
 
   let _audioCtx = null;
@@ -375,30 +381,30 @@
   }
 
   function startTimer() {
-    let warned10=false, warned5=false, warned1=false;
+    let warned10 = false, warned5 = false, warned1 = false;
     timerInterval = setInterval(() => {
       timeLeft--;
-      const m=Math.floor(timeLeft/60), s=timeLeft%60;
-      document.getElementById('timerDisplay').textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-      const box=document.getElementById('timerBox');
-      const disp=document.getElementById('timerDisplay');
+      const m = Math.floor(timeLeft / 60), s = timeLeft % 60;
+      document.getElementById('timerDisplay').textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+      const box = document.getElementById('timerBox');
+      const disp = document.getElementById('timerDisplay');
       if (!warned10 && timeLeft <= 600) {
-        warned10=true;
-        box.className='flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-50 border border-amber-200';
-        disp.className='font-black text-amber-600 text-base tabular-nums';
-        showToast('⚠️','Sisa waktu 10 menit!','warning');
+        warned10 = true;
+        box.className = 'flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-50 border border-amber-200';
+        disp.className = 'font-black text-amber-600 text-base tabular-nums';
+        showToast('⚠️', 'Sisa waktu 10 menit!', 'warning');
       }
       if (!warned5 && timeLeft <= 300) {
-        warned5=true;
-        box.className='flex items-center gap-2 px-4 py-2 rounded-xl bg-red-100 border border-red-300';
-        disp.className='font-black text-red-600 text-base tabular-nums';
-        showToast('⚠️','Sisa waktu 5 menit!','danger');
+        warned5 = true;
+        box.className = 'flex items-center gap-2 px-4 py-2 rounded-xl bg-red-100 border border-red-300';
+        disp.className = 'font-black text-red-600 text-base tabular-nums';
+        showToast('⚠️', 'Sisa waktu 5 menit!', 'danger');
       }
       if (!warned1 && timeLeft <= 60) {
-        warned1=true;
-        box.className='flex items-center gap-2 px-4 py-2 rounded-xl bg-red-100 border border-red-300 animate-pulse';
-        disp.className='font-black text-red-600 text-base tabular-nums';
-        showToast('🔴','Sisa waktu 1 menit!','danger');
+        warned1 = true;
+        box.className = 'flex items-center gap-2 px-4 py-2 rounded-xl bg-red-100 border border-red-300 animate-pulse';
+        disp.className = 'font-black text-red-600 text-base tabular-nums';
+        showToast('🔴', 'Sisa waktu 1 menit!', 'danger');
         try { _audioCtx = _audioCtx || new (window.AudioContext || window.webkitAudioContext)(); _audioCtx.resume(); } catch(e) {}
       }
       if (timeLeft > 0 && timeLeft <= 60) playTick();
@@ -413,104 +419,89 @@
     }, 1000);
   }
 
-  let _submitted = false;
   function doSubmit() {
     if (_submitted) return;
     _submitted = true;
     clearInterval(timerInterval);
     closeAllModals();
-    // Tampilkan loading kalau belum ditampilkan oleh timer
     const lo = document.getElementById('loadingOverlay');
     if (lo.classList.contains('hidden')) {
       document.getElementById('loadingIcon').textContent = '📋';
       document.getElementById('loadingMsg').textContent = 'Menyimpan jawaban...';
       lo.classList.remove('hidden'); lo.classList.add('flex');
     }
-    // Disable semua tombol agar tidak bisa double-submit
     document.querySelectorAll('button').forEach(b => { b.disabled = true; });
-    // Snapshot sebelum soalDB dikosongkan (agar beforeunload tidak memblokir navigasi)
     const soalSnap = soalDB.slice();
     const jawSnap  = jawaban.slice();
     soalDB = [];
-    if (document.exitFullscreen) document.exitFullscreen().catch(()=>{});
-    let twk=0, tiu=0, tkp=0, twkBenar=0, tiuBenar=0;
-    soalSnap.forEach((s,i)=>{
-      const ans=jawSnap[i];
-      if(s.tipe==='TWK'){ if(ans===s.benar){twk+=5; twkBenar++;} }
-      else if(s.tipe==='TIU'){ if(ans===s.benar){tiu+=5; tiuBenar++;} }
-      else if(s.tipe==='TKP'){ tkp += (ans!==null && s.nilai) ? s.nilai[ans] : 1; }
+    if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
+    let twk = 0, tiu = 0, tkp = 0, twkBenar = 0, tiuBenar = 0;
+    soalSnap.forEach((s, i) => {
+      const ans = jawSnap[i];
+      if (s.tipe === 'TWK')      { if (ans === s.benar) { twk += 5; twkBenar++; } }
+      else if (s.tipe === 'TIU') { if (ans === s.benar) { tiu += 5; tiuBenar++; } }
+      else if (s.tipe === 'TKP') { if (ans !== null) tkp += (s.nilai && s.nilai[ans] != null) ? s.nilai[ans] : 1; }
     });
-    const result={paket:paketNama, tanggal:new Date().toISOString(), twk, tiu, tkp, total:twk+tiu+tkp, twkBenar, tiuBenar, soal:soalSnap, jawaban:jawSnap};
+    const result = { paket: paketNama, tanggal: new Date().toISOString(), twk, tiu, tkp, total: twk+tiu+tkp, twkBenar, tiuBenar, soal: soalSnap, jawaban: jawSnap };
     localStorage.setItem('skorin_last_result', JSON.stringify(result));
-    const history=JSON.parse(localStorage.getItem('skorin_history')||'[]');
-    history.push({paket:paketNama, tanggal:result.tanggal, twk, tiu, tkp, total:result.total});
-    if(history.length>20) history.shift();
+    const history = JSON.parse(localStorage.getItem('skorin_history') || '[]');
+    history.push({ paket: paketNama, tanggal: result.tanggal, twk, tiu, tkp, total: result.total });
+    if (history.length > 20) history.shift();
     localStorage.setItem('skorin_history', JSON.stringify(history));
     setTimeout(() => { window.location.href = 'hasil.html'; }, 800);
   }
 
-  document.addEventListener('paste', e=>e.preventDefault());
-  document.addEventListener('contextmenu', e=>e.preventDefault());
+  document.addEventListener('paste', e => e.preventDefault());
+  document.addEventListener('contextmenu', e => e.preventDefault());
 
-  // ── ANTI-CHEAT (mode ujian) ────────────────────────────────────────
   function enterFullscreen() {
     const el = document.documentElement;
     (el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen)?.call(el);
   }
-
   function reenterFullscreen() {
-    document.getElementById('fsWarning').classList.replace('flex','hidden');
+    document.getElementById('fsWarning').classList.replace('flex', 'hidden');
     enterFullscreen();
   }
-
   function showCheatOverlay(icon, title, msg) {
     document.getElementById('cheatIcon').textContent = icon;
     document.getElementById('cheatTitle').textContent = title;
     document.getElementById('cheatMsg').textContent = msg;
     const ov = document.getElementById('cheatOverlay');
-    ov.classList.remove('hidden');
-    ov.classList.add('flex');
+    ov.classList.remove('hidden'); ov.classList.add('flex');
   }
-
   function resumeExam() {
-    document.getElementById('cheatOverlay').classList.replace('flex','hidden');
+    document.getElementById('cheatOverlay').classList.replace('flex', 'hidden');
     if (!document.fullscreenElement) enterFullscreen();
   }
 
   if (!isLatihanMode) {
-    // Pindah tab → warning
     document.addEventListener('visibilitychange', () => {
-      if (document.hidden && soalDB.length > 0) {
+      if (document.hidden && soalDB.length > 0)
         showCheatOverlay('⚠️', 'Anda Meninggalkan Halaman Ujian!', 'Kembali segera untuk melanjutkan ujian. Tindakan ini tercatat.');
-      }
     });
-
-    // Keluar fullscreen → warning
     const onFsChange = () => {
-      const inFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
-      if (!inFs && soalDB.length > 0) {
+      if (!(document.fullscreenElement || document.webkitFullscreenElement) && soalDB.length > 0) {
         const fw = document.getElementById('fsWarning');
-        fw.classList.remove('hidden');
-        fw.classList.add('flex');
+        fw.classList.remove('hidden'); fw.classList.add('flex');
       }
     };
     document.addEventListener('fullscreenchange', onFsChange);
     document.addEventListener('webkitfullscreenchange', onFsChange);
-
-    // Back / refresh → konfirmasi
-    window.addEventListener('beforeunload', (e) => {
-      if (soalDB.length > 0) {
-        e.preventDefault();
-        e.returnValue = 'Ujian akan berakhir dan tidak bisa dilanjutkan. Yakin keluar?';
-      }
+    window.addEventListener('beforeunload', e => {
+      if (soalDB.length > 0) { e.preventDefault(); e.returnValue = 'Ujian akan berakhir. Yakin keluar?'; }
     });
-
-    // Disable keyboard shortcuts developer
-    document.addEventListener('keydown', (e) => {
+    document.addEventListener('keydown', e => {
       if (e.key === 'F12') { e.preventDefault(); return; }
       if (e.ctrlKey && e.shiftKey && ['i','j','c'].includes(e.key.toLowerCase())) { e.preventDefault(); return; }
       if (e.ctrlKey && ['u','s'].includes(e.key.toLowerCase())) { e.preventDefault(); return; }
     });
+  }
+
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
   }
 
   async function loadSoal() {
@@ -519,12 +510,9 @@
       document.getElementById('qText').textContent = 'URL tidak valid: parameter id tidak ditemukan.';
       return;
     }
-
     document.getElementById('qText').textContent = 'Memuat soal...';
 
-    // Supabase max 1000 rows per request, fetch semua dengan pagination
-    let allSoal = [];
-    let from = 0;
+    let allSoal = [], from = 0;
     const pageSize = 1000;
     while (true) {
       const { data, error } = await _sb
@@ -533,11 +521,7 @@
         .eq('paket_id', paketId)
         .order('nomor', { ascending: true })
         .range(from, from + pageSize - 1);
-
-      if (error) {
-        document.getElementById('qText').textContent = 'Gagal memuat soal: ' + error.message;
-        return;
-      }
+      if (error) { document.getElementById('qText').textContent = 'Gagal memuat soal: ' + error.message; return; }
       if (!data || data.length === 0) break;
       allSoal = allSoal.concat(data);
       if (data.length < pageSize) break;
@@ -550,14 +534,24 @@
     }
 
     soalDB = allSoal;
+    if (!isLatihanMode) shuffle(soalDB); // ujian: acak urutan soal agar beda dari latihan
+
     jawaban = new Array(soalDB.length).fill(null);
-    flagged = new Array(soalDB.length).fill(false);
+    flagged  = new Array(soalDB.length).fill(false);
+
+    // Update counter header dengan jumlah soal nyata
+    document.getElementById('totalSoalCount').textContent = soalDB.length;
+
+    // Update label navigasi dengan hitungan per tipe
+    const twkC = soalDB.filter(s => s.tipe === 'TWK').length;
+    const tiuC = soalDB.filter(s => s.tipe === 'TIU').length;
+    const tkpC = soalDB.filter(s => s.tipe === 'TKP').length;
+    document.getElementById('navLabelTwk').textContent = `TWK (${twkC} soal)`;
+    document.getElementById('navLabelTiu').textContent = `TIU (${tiuC} soal)`;
+    document.getElementById('navLabelTkp').textContent = `TKP (${tkpC} soal)`;
 
     renderQ(0);
-    if (!isLatihanMode) {
-      startTimer();
-      enterFullscreen();
-    }
+    if (!isLatihanMode) { startTimer(); enterFullscreen(); }
   }
 
   loadSoal();
