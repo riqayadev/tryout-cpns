@@ -14,8 +14,8 @@
   <script>tailwind.config={darkMode:'class',theme:{extend:{colors:{primary:{50:'#eff6ff',100:'#dbeafe',600:'#2563eb',700:'#1d4ed8'}},fontFamily:{sans:['Inter','sans-serif']}}}}</script>
   <style>
     .prog-bar { transition: width 1s ease; }
-    .expand-body { max-height: 0; overflow: hidden; transition: max-height .3s ease; }
-    .expand-body.open { max-height: 400px; }
+    .expand-body { max-height: 0; overflow: hidden; transition: max-height .4s ease; }
+    .expand-body.open { max-height: 2000px; }
     #sidebar{transition:width .25s ease,transform .3s ease;width:16rem;}
     #sidebar.collapsed{width:4rem;}
     #sidebar.collapsed .sb-label{display:none!important;}
@@ -129,7 +129,7 @@
       </div>
       <div class="text-4xl font-black mb-2" id="tkpSkor">-</div>
       <div class="mb-2">
-        <div class="flex justify-between text-xs text-gray-400 mb-1"><span>45</span><span>Passing: 166</span><span>225</span></div>
+        <div class="flex justify-between text-xs text-gray-400 mb-1"><span>0</span><span>Passing: 166</span><span>225</span></div>
         <div class="h-3 bg-gray-100 rounded-full overflow-hidden">
           <div id="tkpBar" class="prog-bar h-full rounded-full bg-amber-500" style="width:0%"></div>
         </div>
@@ -180,6 +180,9 @@
   function closeSidebar(){document.getElementById('sidebar').classList.add('-translate-x-full');document.getElementById('sbOverlay').classList.add('hidden');}
   if(localStorage.getItem('sb_c')==='1'&&window.innerWidth>=1024){document.getElementById('sidebar')?.classList.add('collapsed');document.getElementById('mainWrapper').style.marginLeft='4rem';document.getElementById('sbColIcon').style.transform='rotate(180deg)';}
 
+  // Baca hasil dari localStorage sebelum IIFE async berjalan
+  const hasil = JSON.parse(localStorage.getItem('skorin_last_result') || 'null');
+
   (async () => {
     const { data: { session } } = await _sb.auth.getSession();
     if (!session) { window.location.replace('login.html'); return; }
@@ -190,20 +193,50 @@
     else document.getElementById('sbAvatar').textContent = initials;
     document.getElementById('sbName').textContent = name;
     document.getElementById('sbEmail').textContent = session.user.email;
+
+    // Simpan ke Supabase sekali saja — flag savedToDB mencegah duplikasi saat refresh
+    if (hasil && !hasil.savedToDB) {
+      await saveToSupabase(hasil, session);
+    }
   })();
+
   async function confirmLogout(){if(!confirm('Yakin ingin keluar?'))return;await _sb.auth.signOut();localStorage.removeItem('skorin_history');window.location.href='index.html';}
-  async function doLogout() { confirmLogout(); }
+
+  async function saveToSupabase(h, session) {
+    const lulus = h.twk >= 65 && h.tiu >= 80 && h.tkp >= 166;
+    try {
+      const { error } = await _sb.from('hasil_tryout').insert({
+        user_id:     session.user.id,
+        paket_id:    h.paketId || null,
+        paket_nama:  h.paket || '',
+        skor_twk:    h.twk   || 0,
+        skor_tiu:    h.tiu   || 0,
+        skor_tkp:    h.tkp   || 0,
+        skor_total:  (h.twk || 0) + (h.tiu || 0) + (h.tkp || 0),
+        status_lulus: lulus,
+        tanggal:     h.tanggal || new Date().toISOString()
+      });
+      if (!error) {
+        h.savedToDB = true;
+        localStorage.setItem('skorin_last_result', JSON.stringify(h));
+      } else {
+        console.warn('Gagal simpan hasil ke Supabase:', error.message);
+      }
+    } catch (e) {
+      console.warn('Error simpan hasil:', e);
+    }
+  }
 
   function shareWA() {
     const h = JSON.parse(localStorage.getItem('skorin_last_result') || 'null');
     if (!h) return;
     const lulus = h.twk >= 65 && h.tiu >= 80 && h.tkp >= 166;
     const total = h.twk + h.tiu + h.tkp;
-    const msg = `🎯 *Hasil Tryout SKD SkorinCPNS*\n\n📋 Paket: ${h.paket || 'SKD Simulasi'}\n\n🏛️ TWK: *${h.twk}* (PG: 65)\n🧠 TIU: *${h.tiu}* (PG: 80)\n🤝 TKP: *${h.tkp}* (PG: 166)\n\n📊 Total: *${total}/550*\n${lulus ? '✅ Status: LULUS Passing Grade!' : '❌ Status: Belum Memenuhi PG'}\n\n💪 Persiapkan CPNS-mu di SkorinCPNS!`;
+    const status = lulus ? 'LULUS ✅' : 'BELUM LULUS ❌';
+    const msg = `Saya baru selesai tryout SKD di SkorinCPNS! Skor: ${total}/550 | TWK: ${h.twk} TIU: ${h.tiu} TKP: ${h.tkp} | Status: ${status}`;
     window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
   }
 
-  const hasil = JSON.parse(localStorage.getItem('skorin_last_result') || 'null');
   if (!hasil) {
     document.querySelector('main').innerHTML = `<div class="text-center py-20">
       <div class="text-6xl mb-4">😕</div>
@@ -217,7 +250,7 @@
 
   function renderHasil(h) {
     const lulus = h.twk >= 65 && h.tiu >= 80 && h.tkp >= 166;
-    const total = h.twk + h.tiu + h.tkp;
+    const total  = h.twk + h.tiu + h.tkp;
 
     // Score card
     const card = document.getElementById('scoreCard');
@@ -227,49 +260,50 @@
     document.getElementById('statusBadge').textContent = lulus ? '✅ SELAMAT, ANDA LULUS!' : '❌ BELUM MEMENUHI PASSING GRADE';
     document.getElementById('tglTryout').textContent = new Date(h.tanggal).toLocaleString('id-ID', {dateStyle:'full', timeStyle:'short'});
 
-    // Category scores
+    // Progress bar per kategori (delay kecil untuk animasi CSS)
     setTimeout(() => {
-      // TWK
+      // TWK — max 150, passing 65
       document.getElementById('twkSkor').textContent = h.twk;
-      document.getElementById('twkBenar').textContent = Math.round(h.twk / 5);
+      document.getElementById('twkBenar').textContent = h.twkBenar ?? Math.round(h.twk / 5);
       document.getElementById('twkBar').style.width = Math.min(100, (h.twk / 150) * 100) + '%';
       const twkOk = h.twk >= 65;
       document.getElementById('twkStatus').textContent = twkOk ? '✓ LULUS' : '✗ TIDAK LULUS';
       document.getElementById('twkStatus').className = `text-xs font-bold px-2.5 py-1 rounded-full ${twkOk ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`;
 
-      // TIU
+      // TIU — max 175, passing 80
       document.getElementById('tiuSkor').textContent = h.tiu;
-      document.getElementById('tiuBenar').textContent = Math.round(h.tiu / 5);
+      document.getElementById('tiuBenar').textContent = h.tiuBenar ?? Math.round(h.tiu / 5);
       document.getElementById('tiuBar').style.width = Math.min(100, (h.tiu / 175) * 100) + '%';
       const tiuOk = h.tiu >= 80;
       document.getElementById('tiuStatus').textContent = tiuOk ? '✓ LULUS' : '✗ TIDAK LULUS';
       document.getElementById('tiuStatus').className = `text-xs font-bold px-2.5 py-1 rounded-full ${tiuOk ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`;
 
-      // TKP
+      // TKP — max 225, min 0 (tidak dijawab=0), passing 166
       document.getElementById('tkpSkor').textContent = h.tkp;
-      document.getElementById('tkpBar').style.width = Math.min(100, ((h.tkp - 45) / 180) * 100) + '%';
+      document.getElementById('tkpBar').style.width = Math.min(100, (h.tkp / 225) * 100) + '%';
       const tkpOk = h.tkp >= 166;
       document.getElementById('tkpStatus').textContent = tkpOk ? '✓ LULUS' : '✗ TIDAK LULUS';
       document.getElementById('tkpStatus').className = `text-xs font-bold px-2.5 py-1 rounded-full ${tkpOk ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`;
     }, 100);
 
-    // Passing grade info
+    // Detail passing grade per kategori
     const pgData = [
-      {label:'TWK', skor:h.twk, pg:65, max:150},
-      {label:'TIU', skor:h.tiu, pg:80, max:175},
+      {label:'TWK', skor:h.twk, pg:65,  max:150},
+      {label:'TIU', skor:h.tiu, pg:80,  max:175},
       {label:'TKP', skor:h.tkp, pg:166, max:225},
     ];
     document.getElementById('pgGrid').innerHTML = pgData.map(p => {
       const ok = p.skor >= p.pg;
+      const diff = p.skor - p.pg;
       return `<div class="rounded-xl p-3 ${ok ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}">
         <p class="font-bold text-gray-900 text-sm">${p.label}</p>
         <p class="text-2xl font-black ${ok ? 'text-green-600' : 'text-red-600'}">${p.skor}</p>
         <p class="text-xs text-gray-500 mt-1">PG: ${p.pg} | Max: ${p.max}</p>
-        <p class="text-xs font-semibold mt-1 ${ok ? 'text-green-600' : 'text-red-500'}">${ok ? `+${p.skor - p.pg} di atas PG` : `${p.skor - p.pg} di bawah PG`}</p>
+        <p class="text-xs font-semibold mt-1 ${ok ? 'text-green-600' : 'text-red-500'}">${ok ? `+${diff} di atas PG` : `${diff} di bawah PG`}</p>
       </div>`;
     }).join('');
 
-    // Pembahasan
+    // Review soal dengan pembahasan
     if (h.soal && h.soal.length > 0) {
       renderPembahasan(h.soal, h.jawaban);
     } else {
@@ -279,16 +313,18 @@
 
   function renderPembahasan(soal, jawaban) {
     const container = document.getElementById('pembahasanList');
-    const katColor = {TWK:'bg-blue-100 text-blue-700', TIU:'bg-green-100 text-green-700', TKP:'bg-amber-100 text-amber-700'};
+    const katColor  = {TWK:'bg-blue-100 text-blue-700', TIU:'bg-green-100 text-green-700', TKP:'bg-amber-100 text-amber-700'};
+
     container.innerHTML = soal.map((s, i) => {
-      const userAns = jawaban[i];
-      const isCorrect = s.tipe === 'TKP' ? true : userAns === s.benar;
+      const userAns   = jawaban[i];
       const notAnswered = userAns === undefined || userAns === null;
+      // TKP tidak ada benar/salah — selalu dianggap "benar" untuk badge warna
+      const isCorrect = s.tipe === 'TKP' ? true : userAns === s.benar;
 
       return `<div class="border-b border-gray-50 last:border-b-0">
         <button onclick="toggleExpand(${i})" class="w-full flex items-start gap-3 p-4 text-left hover:bg-gray-50 transition">
           <div class="flex-shrink-0 w-6 h-6 rounded-full ${notAnswered ? 'bg-gray-300' : isCorrect ? 'bg-green-500' : 'bg-red-500'} flex items-center justify-center text-white text-xs font-bold mt-0.5">
-            ${notAnswered ? '-' : isCorrect ? '✓' : '✗'}
+            ${notAnswered ? '–' : isCorrect ? '✓' : '✗'}
           </div>
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2 mb-1">
@@ -302,19 +338,19 @@
         <div id="expand${i}" class="expand-body">
           <div class="px-4 pb-4 space-y-2">
             ${s.opsi.map((o, j) => {
-              const huruf = String.fromCharCode(65 + j);
-              const isBenar = s.tipe === 'TKP' ? false : j === s.benar;
-              const isUser = j === userAns;
+              const huruf   = String.fromCharCode(65 + j);
+              const isBenar = s.tipe !== 'TKP' && j === s.benar;
+              const isUser  = j === userAns;
               let cls = 'bg-gray-50 border-gray-200 text-gray-700';
-              if (isBenar && s.tipe !== 'TKP') cls = 'bg-green-50 border-green-400 text-green-800';
-              else if (isUser && !isBenar && s.tipe !== 'TKP') cls = 'bg-red-50 border-red-400 text-red-800';
+              if (isBenar) cls = 'bg-green-50 border-green-400 text-green-800';
+              else if (isUser && s.tipe !== 'TKP') cls = 'bg-red-50 border-red-400 text-red-800';
               else if (isUser && s.tipe === 'TKP') cls = 'bg-blue-50 border-blue-400 text-blue-800';
               return `<div class="flex items-start gap-2 rounded-lg border px-3 py-2 text-sm ${cls}">
                 <span class="font-bold flex-shrink-0">${huruf}.</span>
                 <span class="flex-1">${o}</span>
                 ${s.tipe === 'TKP' && s.nilai ? `<span class="flex-shrink-0 text-xs font-bold">(${s.nilai[j]} poin)</span>` : ''}
-                ${isBenar && s.tipe !== 'TKP' ? '<span class="flex-shrink-0 text-xs font-bold text-green-600">✓ Benar</span>' : ''}
-                ${isUser && s.tipe !== 'TKP' && !isBenar ? '<span class="flex-shrink-0 text-xs font-bold text-red-600">← Pilihanmu</span>' : ''}
+                ${isBenar ? '<span class="flex-shrink-0 text-xs font-bold text-green-600">✓ Benar</span>' : ''}
+                ${isUser && !isBenar && s.tipe !== 'TKP' ? '<span class="flex-shrink-0 text-xs font-bold text-red-600">← Pilihanmu</span>' : ''}
                 ${isUser && s.tipe === 'TKP' ? '<span class="flex-shrink-0 text-xs font-bold text-blue-600">← Pilihanmu</span>' : ''}
               </div>`;
             }).join('')}

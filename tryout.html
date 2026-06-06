@@ -442,7 +442,7 @@
       else if (s.tipe === 'TIU') { if (ans === s.benar) { tiu += 5; tiuBenar++; } }
       else if (s.tipe === 'TKP') { if (ans !== null) tkp += (s.nilai && s.nilai[ans] != null) ? s.nilai[ans] : 1; }
     });
-    const result = { paket: paketNama, tanggal: new Date().toISOString(), twk, tiu, tkp, total: twk+tiu+tkp, twkBenar, tiuBenar, soal: soalSnap, jawaban: jawSnap };
+    const result = { paket: paketNama, paketId: parseInt(params.get('id') || '0'), tanggal: new Date().toISOString(), twk, tiu, tkp, total: twk+tiu+tkp, twkBenar, tiuBenar, soal: soalSnap, jawaban: jawSnap };
     localStorage.setItem('skorin_last_result', JSON.stringify(result));
     const history = JSON.parse(localStorage.getItem('skorin_history') || '[]');
     history.push({ paket: paketNama, tanggal: result.tanggal, twk, tiu, tkp, total: result.total });
