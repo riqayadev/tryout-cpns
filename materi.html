@@ -45,9 +45,20 @@
     .quiz-opt{transition:all .15s;}
     .quiz-opt.correct{background:#dcfce7;border-color:#22c55e;color:#15803d;}
     .quiz-opt.wrong{background:#fee2e2;border-color:#ef4444;color:#b91c1c;}
+    #offlineBanner{display:none;}
+    #scrollTopBtn{display:none;}
   </style>
 </head>
 <body class="font-sans antialiased bg-gray-50 dark:bg-slate-900">
+
+<!-- Offline Banner -->
+<div id="offlineBanner" class="fixed top-0 inset-x-0 z-[200] bg-red-600 text-white text-sm font-semibold text-center py-2 flex items-center justify-center gap-3">
+  <span>📡 Tidak ada koneksi internet.</span>
+  <button onclick="location.reload()" class="underline hover:no-underline">Coba lagi</button>
+</div>
+
+<!-- Scroll to Top -->
+<button id="scrollTopBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})" class="fixed bottom-6 right-6 z-50 w-10 h-10 bg-primary-600 hover:bg-primary-700 text-white rounded-full shadow-lg flex items-center justify-center transition text-lg font-bold">↑</button>
 
 <!-- MATERI MODAL -->
 <div id="materiModal" class="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm hidden flex items-start justify-center p-4 overflow-y-auto">
@@ -149,6 +160,16 @@
 </div>
 
 <script>
+// Offline detection
+window.addEventListener('offline', () => { document.getElementById('offlineBanner').style.display='flex'; });
+window.addEventListener('online', () => { document.getElementById('offlineBanner').style.display='none'; });
+if (!navigator.onLine) document.getElementById('offlineBanner').style.display='flex';
+
+// Scroll to top
+window.addEventListener('scroll', () => {
+  document.getElementById('scrollTopBtn').style.display = window.scrollY > 300 ? 'flex' : 'none';
+});
+
 const {createClient}=supabase;
 const _sb=createClient('https://ykvwwfsoqqhtijtnivmj.supabase.co','sb_publishable_p_RYUHTiKlARg_rDTe3Gaw_N3G8XPwl');
 
