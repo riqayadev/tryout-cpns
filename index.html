@@ -20,6 +20,7 @@
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
 <body class="font-sans bg-white text-gray-800 antialiased">
 
@@ -37,7 +38,7 @@
         <a href="#statistik" class="hover:text-primary transition">Statistik</a>
         <a href="#cara-kerja" class="hover:text-primary transition">Cara Kerja</a>
       </div>
-      <div class="flex items-center gap-3">
+      <div id="navAuth" class="flex items-center gap-3">
         <a href="login.html" class="text-sm font-semibold text-primary hover:underline">Masuk</a>
         <a href="login.html#register" class="text-sm font-semibold bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition">Daftar Gratis</a>
       </div>
@@ -259,5 +260,21 @@
     </div>
   </footer>
 
+  <script>
+    const { createClient } = supabase;
+    const _supabase = createClient(
+      'https://ykvwwfsoqqhtijtnivmj.supabase.co',
+      'sb_publishable_p_RYUHTiKlARg_rDTe3Gaw_N3G8XPwl'
+    );
+
+    (async () => {
+      const { data: { session } } = await _supabase.auth.getSession();
+      if (!session) return;
+      const navAuth = document.getElementById('navAuth');
+      navAuth.innerHTML = `
+        <a href="tryout.html" class="text-sm font-semibold bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition">Kerjakan Tryout</a>
+      `;
+    })();
+  </script>
 </body>
 </html>

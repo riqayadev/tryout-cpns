@@ -20,6 +20,7 @@
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
 <body class="font-sans bg-gray-50 antialiased min-h-screen">
 
@@ -43,12 +44,21 @@
         </svg>
         <span id="timerDisplay" class="text-red-600 font-extrabold text-base tabular-nums">100:00</span>
       </div>
-      <button
-        onclick="confirmFinish()"
-        class="text-sm font-semibold text-white bg-primary px-4 py-2 rounded-lg hover:bg-primary-dark transition hidden sm:block"
-      >
-        Selesaikan Ujian
-      </button>
+      <div class="hidden sm:flex items-center gap-3">
+        <span id="userDisplay" class="text-xs text-gray-500 max-w-[160px] truncate"></span>
+        <button
+          onclick="confirmFinish()"
+          class="text-sm font-semibold text-white bg-primary px-4 py-2 rounded-lg hover:bg-primary-dark transition"
+        >
+          Selesaikan Ujian
+        </button>
+        <button
+          onclick="handleLogout()"
+          class="text-sm font-semibold text-gray-600 border border-gray-200 px-3 py-2 rounded-lg hover:bg-gray-50 transition"
+        >
+          Keluar
+        </button>
+      </div>
     </div>
   </nav>
 
@@ -256,6 +266,29 @@
   </div>
 
   <script>
+    // ── Supabase auth guard ──────────────────────────────────────
+    const { createClient } = supabase;
+    const _supabase = createClient(
+      'https://ykvwwfsoqqhtijtnivmj.supabase.co',
+      'sb_publishable_p_RYUHTiKlARg_rDTe3Gaw_N3G8XPwl'
+    );
+
+    (async () => {
+      const { data: { session } } = await _supabase.auth.getSession();
+      if (!session) {
+        window.location.replace('login.html');
+        return;
+      }
+      const email = session.user.user_metadata?.full_name || session.user.email;
+      const el = document.getElementById('userDisplay');
+      if (el) el.textContent = email;
+    })();
+
+    async function handleLogout() {
+      await _supabase.auth.signOut();
+      window.location.href = 'login.html';
+    }
+
     // ============================================================
     // BANK SOAL (contoh 15 soal — extendable)
     // ============================================================
