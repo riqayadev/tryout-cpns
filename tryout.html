@@ -145,19 +145,61 @@
   </div>
 </div>
 
-<!-- Submit Modal -->
-<div id="submitModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4" style="background:rgba(0,0,0,.6)">
+<!-- Toast Container -->
+<div id="toastContainer" class="fixed bottom-6 right-6 z-[300] flex flex-col gap-2 items-end pointer-events-none"></div>
+
+<!-- Loading / Waktu Habis Overlay -->
+<div id="loadingOverlay" class="fixed inset-0 z-[250] hidden items-center justify-center bg-black/90">
+  <div class="text-white text-center px-6">
+    <div class="text-6xl mb-5" id="loadingIcon">📋</div>
+    <div class="w-12 h-12 border-4 border-white/30 border-t-white rounded-full animate-spin mx-auto mb-5"></div>
+    <p class="text-xl font-black" id="loadingMsg">Menyimpan jawaban...</p>
+    <p class="text-sm text-white/60 mt-2">Mohon tunggu sebentar</p>
+  </div>
+</div>
+
+<!-- Modal 1: Soal Belum Dijawab -->
+<div id="modalKosong" class="fixed inset-0 z-[100] hidden items-center justify-center p-4" style="background:rgba(0,0,0,.6)">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-7 text-center">
+    <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center text-3xl mx-auto mb-4">⚠️</div>
+    <h3 class="text-xl font-black text-gray-900 mb-2">Soal Belum Lengkap</h3>
+    <p class="text-gray-600 text-sm mb-1">Masih ada <strong class="text-red-600 text-base" id="mcKosong">0</strong> soal yang belum dijawab.</p>
+    <p class="text-gray-400 text-xs mb-6">Yakin ingin submit sekarang?</p>
+    <div class="flex gap-3">
+      <button onclick="closeAllModals()" class="flex-1 border border-gray-200 text-gray-700 font-semibold py-3 rounded-xl hover:bg-gray-50 transition text-sm">Lanjut Kerjakan</button>
+      <button onclick="doSubmit()" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl transition text-sm">Submit Tetap</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal 2: Ada Soal Ditandai -->
+<div id="modalRagu" class="fixed inset-0 z-[100] hidden items-center justify-center p-4" style="background:rgba(0,0,0,.6)">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-7 text-center">
+    <div class="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center text-3xl mx-auto mb-4">🚩</div>
+    <h3 class="text-xl font-black text-gray-900 mb-2">Ada Soal Ditandai</h3>
+    <p class="text-gray-600 text-sm mb-1">Ada <strong class="text-amber-600 text-base" id="mcRagu">0</strong> soal yang masih ditandai ragu-ragu.</p>
+    <p class="text-gray-400 text-xs mb-6">Yakin ingin submit sekarang?</p>
+    <div class="flex gap-3">
+      <button onclick="closeAllModals()" class="flex-1 border border-gray-200 text-gray-700 font-semibold py-3 rounded-xl hover:bg-gray-50 transition text-sm">Cek Soal Ditandai</button>
+      <button onclick="doSubmit()" class="flex-1 bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 rounded-xl transition text-sm">Submit Tetap</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal 3: Konfirmasi Final -->
+<div id="modalFinal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4" style="background:rgba(0,0,0,.6)">
   <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 text-center">
     <div class="text-5xl mb-4">📋</div>
     <h3 class="text-xl font-black text-gray-900 mb-2">Konfirmasi Submit</h3>
-    <p class="text-gray-500 text-sm mb-4">Periksa ringkasan jawaban Anda sebelum submit.</p>
-    <div class="grid grid-cols-3 gap-3 bg-gray-50 rounded-xl p-4 mb-6">
-      <div class="text-center"><div class="text-2xl font-black text-primary-600" id="cntDijawab">0</div><div class="text-xs text-gray-500">Dijawab</div></div>
-      <div class="text-center"><div class="text-2xl font-black text-amber-500" id="cntRagu">0</div><div class="text-xs text-gray-500">Ragu-ragu</div></div>
-      <div class="text-center"><div class="text-2xl font-black text-red-500" id="cntBelum">0</div><div class="text-xs text-gray-500">Belum</div></div>
+    <p class="text-gray-500 text-sm mb-4">Periksa ringkasan jawaban sebelum mengumpulkan.</p>
+    <div class="grid grid-cols-3 gap-3 bg-gray-50 rounded-xl p-4 mb-3">
+      <div class="text-center"><div class="text-2xl font-black text-primary-600" id="mfDijawab">0/110</div><div class="text-xs text-gray-500 mt-1">Dijawab</div></div>
+      <div class="text-center"><div class="text-2xl font-black text-amber-500" id="mfRagu">0</div><div class="text-xs text-gray-500 mt-1">Ragu-ragu</div></div>
+      <div class="text-center"><div class="text-2xl font-black text-red-500" id="mfKosong">0</div><div class="text-xs text-gray-500 mt-1">Kosong</div></div>
     </div>
+    <p class="text-xs text-gray-400 mb-6">Yakin mengumpulkan jawaban? Tidak bisa diubah setelah submit.</p>
     <div class="flex gap-3">
-      <button onclick="closeSubmitModal()" class="flex-1 border border-gray-200 text-gray-600 font-semibold py-3 rounded-xl hover:bg-gray-50 transition">Periksa Lagi</button>
+      <button onclick="closeAllModals()" class="flex-1 border border-gray-200 text-gray-600 font-semibold py-3 rounded-xl hover:bg-gray-50 transition">Batal</button>
       <button onclick="doSubmit()" class="flex-1 bg-primary-600 hover:bg-primary-700 text-white font-bold py-3 rounded-xl transition">Ya, Submit!</button>
     </div>
   </div>
@@ -274,40 +316,118 @@
     });
   }
 
+  function closeAllModals() {
+    ['modalKosong','modalRagu','modalFinal'].forEach(id => {
+      const el = document.getElementById(id);
+      el.classList.add('hidden'); el.classList.remove('flex');
+    });
+  }
+
+  function konfirmasiSubmit() {
+    if (!soalDB.length || _submitted) return;
+    closeAllModals();
+    const kosong = jawaban.filter(j => j === null).length;
+    const ragu   = flagged.filter(Boolean).length;
+    const dijawab = soalDB.length - kosong;
+    if (kosong > 0) {
+      document.getElementById('mcKosong').textContent = kosong;
+      const m = document.getElementById('modalKosong');
+      m.classList.remove('hidden'); m.classList.add('flex');
+    } else if (ragu > 0) {
+      document.getElementById('mcRagu').textContent = ragu;
+      const m = document.getElementById('modalRagu');
+      m.classList.remove('hidden'); m.classList.add('flex');
+    } else {
+      document.getElementById('mfDijawab').textContent = dijawab + '/' + soalDB.length;
+      document.getElementById('mfRagu').textContent = ragu;
+      document.getElementById('mfKosong').textContent = kosong;
+      const m = document.getElementById('modalFinal');
+      m.classList.remove('hidden'); m.classList.add('flex');
+    }
+  }
+
+  function showToast(icon, msg, type) {
+    const bg = type === 'danger' ? 'bg-red-600' : 'bg-amber-500';
+    const el = document.createElement('div');
+    el.className = `${bg} text-white px-5 py-3 rounded-xl shadow-xl flex items-center gap-3 font-bold text-sm pointer-events-auto`;
+    el.innerHTML = `<span class="text-xl">${icon}</span><span>${msg}</span>`;
+    document.getElementById('toastContainer').appendChild(el);
+    setTimeout(() => {
+      el.style.transition = 'opacity .3s';
+      el.style.opacity = '0';
+      setTimeout(() => el.remove(), 300);
+    }, 4700);
+  }
+
+  let _audioCtx = null;
+  function playTick() {
+    try {
+      if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (_audioCtx.state === 'suspended') _audioCtx.resume();
+      const osc = _audioCtx.createOscillator();
+      const gain = _audioCtx.createGain();
+      osc.connect(gain); gain.connect(_audioCtx.destination);
+      osc.frequency.value = 880;
+      gain.gain.setValueAtTime(0.25, _audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, _audioCtx.currentTime + 0.08);
+      osc.start(_audioCtx.currentTime); osc.stop(_audioCtx.currentTime + 0.08);
+    } catch(e) {}
+  }
+
   function startTimer() {
-    timerInterval=setInterval(()=>{
+    let warned10=false, warned5=false, warned1=false;
+    timerInterval = setInterval(() => {
       timeLeft--;
       const m=Math.floor(timeLeft/60), s=timeLeft%60;
       document.getElementById('timerDisplay').textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
       const box=document.getElementById('timerBox');
-      if(timeLeft<=300){
-        box.className='flex items-center gap-2 px-4 py-2 rounded-xl bg-red-100 border border-red-300 animate-pulse';
-        document.getElementById('timerDisplay').className='font-black text-red-600 text-base tabular-nums';
-      } else if(timeLeft<=600){
+      const disp=document.getElementById('timerDisplay');
+      if (!warned10 && timeLeft <= 600) {
+        warned10=true;
         box.className='flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-50 border border-amber-200';
-        document.getElementById('timerDisplay').className='font-black text-amber-600 text-base tabular-nums';
+        disp.className='font-black text-amber-600 text-base tabular-nums';
+        showToast('⚠️','Sisa waktu 10 menit!','warning');
       }
-      if(timeLeft<=0){ clearInterval(timerInterval); doSubmit(); }
-    },1000);
+      if (!warned5 && timeLeft <= 300) {
+        warned5=true;
+        box.className='flex items-center gap-2 px-4 py-2 rounded-xl bg-red-100 border border-red-300';
+        disp.className='font-black text-red-600 text-base tabular-nums';
+        showToast('⚠️','Sisa waktu 5 menit!','danger');
+      }
+      if (!warned1 && timeLeft <= 60) {
+        warned1=true;
+        box.className='flex items-center gap-2 px-4 py-2 rounded-xl bg-red-100 border border-red-300 animate-pulse';
+        disp.className='font-black text-red-600 text-base tabular-nums';
+        showToast('🔴','Sisa waktu 1 menit!','danger');
+        try { _audioCtx = _audioCtx || new (window.AudioContext || window.webkitAudioContext)(); _audioCtx.resume(); } catch(e) {}
+      }
+      if (timeLeft > 0 && timeLeft <= 60) playTick();
+      if (timeLeft <= 0) {
+        clearInterval(timerInterval);
+        const lo = document.getElementById('loadingOverlay');
+        document.getElementById('loadingIcon').textContent = '⏰';
+        document.getElementById('loadingMsg').textContent = 'Waktu habis! Sedang menyimpan jawaban...';
+        lo.classList.remove('hidden'); lo.classList.add('flex');
+        setTimeout(() => doSubmit(), 1200);
+      }
+    }, 1000);
   }
-
-  function konfirmasiSubmit() {
-    const answered=jawaban.filter(j=>j!==null).length;
-    const ragu=flagged.filter(Boolean).length;
-    document.getElementById('cntDijawab').textContent=answered;
-    document.getElementById('cntRagu').textContent=ragu;
-    document.getElementById('cntBelum').textContent=soalDB.length-answered;
-    document.getElementById('submitModal').classList.remove('hidden');
-  }
-
-  function closeSubmitModal() { document.getElementById('submitModal').classList.add('hidden'); }
 
   let _submitted = false;
   function doSubmit() {
     if (_submitted) return;
     _submitted = true;
     clearInterval(timerInterval);
-    closeSubmitModal();
+    closeAllModals();
+    // Tampilkan loading kalau belum ditampilkan oleh timer
+    const lo = document.getElementById('loadingOverlay');
+    if (lo.classList.contains('hidden')) {
+      document.getElementById('loadingIcon').textContent = '📋';
+      document.getElementById('loadingMsg').textContent = 'Menyimpan jawaban...';
+      lo.classList.remove('hidden'); lo.classList.add('flex');
+    }
+    // Disable semua tombol agar tidak bisa double-submit
+    document.querySelectorAll('button').forEach(b => { b.disabled = true; });
     // Snapshot sebelum soalDB dikosongkan (agar beforeunload tidak memblokir navigasi)
     const soalSnap = soalDB.slice();
     const jawSnap  = jawaban.slice();
@@ -326,7 +446,7 @@
     history.push({paket:paketNama, tanggal:result.tanggal, twk, tiu, tkp, total:result.total});
     if(history.length>20) history.shift();
     localStorage.setItem('skorin_history', JSON.stringify(history));
-    window.location.href='hasil.html';
+    setTimeout(() => { window.location.href = 'hasil.html'; }, 800);
   }
 
   document.addEventListener('paste', e=>e.preventDefault());
