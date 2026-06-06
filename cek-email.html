@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cek Email – SkorinCPNS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{colors:{primary:{50:'#eff6ff',100:'#dbeafe',600:'#2563eb',700:'#1d4ed8',900:'#1e3a8a'}},fontFamily:{sans:['Inter','sans-serif']}}}}</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <style>
+    .envelope-animation { animation: float 3s ease-in-out infinite; }
+    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+    .dot-pulse { animation: pulse 1.5s ease-in-out infinite; }
+  </style>
+</head>
+<body class="font-sans bg-gradient-to-br from-blue-50 via-white to-indigo-50 min-h-screen flex items-center justify-center p-4 antialiased">
+
+  <div class="w-full max-w-md text-center">
+    <!-- Logo -->
+    <a href="index.html" class="inline-flex items-center gap-2 font-extrabold text-xl text-primary-600 mb-8">
+      <div class="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
+        <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      </div>
+      SkorinCPNS
+    </a>
+
+    <div class="bg-white rounded-3xl shadow-xl border border-gray-100 p-10">
+      <!-- Envelope Icon -->
+      <div class="envelope-animation inline-flex items-center justify-center w-24 h-24 bg-primary-100 rounded-full mb-6">
+        <svg class="w-12 h-12 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"/>
+        </svg>
+      </div>
+
+      <h1 class="text-2xl font-black text-gray-900 mb-3">Cek Email Anda!</h1>
+      <p class="text-gray-500 leading-relaxed mb-2">
+        Email konfirmasi telah dikirim ke:
+      </p>
+      <p class="font-semibold text-primary-600 text-lg mb-6" id="emailDisplay">alamat email Anda</p>
+
+      <div class="bg-blue-50 rounded-2xl p-5 text-left mb-8 space-y-3">
+        <p class="text-sm font-semibold text-gray-700">Langkah selanjutnya:</p>
+        <div class="flex items-start gap-3">
+          <div class="w-6 h-6 rounded-full bg-primary-600 text-white text-xs flex items-center justify-center flex-shrink-0 mt-0.5 font-bold">1</div>
+          <p class="text-sm text-gray-600">Buka aplikasi email Anda (Gmail, Yahoo, Outlook, dll.)</p>
+        </div>
+        <div class="flex items-start gap-3">
+          <div class="w-6 h-6 rounded-full bg-primary-600 text-white text-xs flex items-center justify-center flex-shrink-0 mt-0.5 font-bold">2</div>
+          <p class="text-sm text-gray-600">Cari email dari <strong>SkorinCPNS</strong> dengan subjek "Konfirmasi Email"</p>
+        </div>
+        <div class="flex items-start gap-3">
+          <div class="w-6 h-6 rounded-full bg-primary-600 text-white text-xs flex items-center justify-center flex-shrink-0 mt-0.5 font-bold">3</div>
+          <p class="text-sm text-gray-600">Klik tombol <strong>"Konfirmasi Email"</strong> di dalam email tersebut</p>
+        </div>
+        <div class="flex items-start gap-3">
+          <div class="w-6 h-6 rounded-full bg-green-600 text-white text-xs flex items-center justify-center flex-shrink-0 mt-0.5 font-bold">✓</div>
+          <p class="text-sm text-gray-600">Akun Anda aktif dan siap digunakan!</p>
+        </div>
+      </div>
+
+      <p class="text-xs text-gray-400 mb-5">Tidak menemukan email? Cek folder <strong>Spam</strong> atau <strong>Promosi</strong>.</p>
+
+      <!-- Resend Button -->
+      <button id="resendBtn" onclick="resendEmail()" class="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 rounded-xl transition mb-4">
+        Kirim Ulang Email
+      </button>
+      <p id="countdown" class="text-sm text-gray-400 hidden"></p>
+
+      <a href="login.html" class="block text-sm text-gray-500 hover:text-primary-600 transition mt-4">
+        ← Kembali ke halaman masuk
+      </a>
+    </div>
+  </div>
+
+  <script>
+    const { createClient } = supabase;
+    const _supabase = createClient('https://ykvwwfsoqqhtijtnivmj.supabase.co', 'sb_publishable_p_RYUHTiKlARg_rDTe3Gaw_N3G8XPwl');
+
+    const email = localStorage.getItem('skorin_register_email') || 'alamat email Anda';
+    document.getElementById('emailDisplay').textContent = email;
+
+    let cooldown = 0;
+    let cooldownTimer = null;
+
+    function startCooldown(seconds) {
+      cooldown = seconds;
+      const btn = document.getElementById('resendBtn');
+      const cd = document.getElementById('countdown');
+      btn.disabled = true;
+      btn.classList.add('opacity-50', 'cursor-not-allowed');
+      cd.classList.remove('hidden');
+      cooldownTimer = setInterval(() => {
+        cooldown--;
+        cd.textContent = `Tunggu ${cooldown} detik sebelum kirim ulang`;
+        if (cooldown <= 0) {
+          clearInterval(cooldownTimer);
+          btn.disabled = false;
+          btn.classList.remove('opacity-50', 'cursor-not-allowed');
+          cd.classList.add('hidden');
+        }
+      }, 1000);
+    }
+
+    async function resendEmail() {
+      if (!email || email === 'alamat email Anda') {
+        alert('Email tidak ditemukan. Silakan daftar ulang.');
+        window.location.href = 'login.html';
+        return;
+      }
+      const { error } = await _supabase.auth.resend({ type: 'signup', email });
+      if (error) {
+        alert('Gagal mengirim ulang: ' + error.message);
+      } else {
+        alert('Email konfirmasi telah dikirim ulang! Silakan cek inbox Anda.');
+        startCooldown(60);
+      }
+    }
+
+    startCooldown(30);
+  </script>
+</body>
+</html>

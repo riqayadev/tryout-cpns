@@ -1,398 +1,297 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Masuk / Daftar — TryoutCPNS</title>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Masuk / Daftar – SkorinCPNS</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            primary: { DEFAULT: '#1d4ed8', light: '#3b82f6', dark: '#1e3a8a' },
-            accent:  { DEFAULT: '#f59e0b' },
-          },
-          fontFamily: { sans: ['Inter', 'sans-serif'] },
-        }
-      }
-    }
-  </script>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script>tailwind.config={theme:{extend:{colors:{primary:{50:'#eff6ff',100:'#dbeafe',600:'#2563eb',700:'#1d4ed8',900:'#1e3a8a'}},fontFamily:{sans:['Inter','sans-serif']}}}}</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <style>
+    .modal-bg { background: rgba(0,0,0,.5); }
+    .tab-active { border-bottom: 2px solid #2563eb; color: #2563eb; }
+    .tab-inactive { border-bottom: 2px solid transparent; color: #6b7280; }
+    input:focus { outline: none; }
+    .input-err { border-color: #ef4444 !important; }
+    .err-msg { color: #ef4444; font-size:.75rem; margin-top:.25rem; }
+  </style>
 </head>
-<body class="font-sans bg-gradient-to-br from-blue-50 via-white to-amber-50 min-h-screen flex items-center justify-center p-4 antialiased">
+<body class="font-sans bg-gradient-to-br from-blue-50 via-white to-indigo-50 min-h-screen flex items-center justify-center p-4 antialiased">
 
-  <div class="w-full max-w-md">
-    <!-- Logo -->
-    <div class="text-center mb-8">
-      <a href="index.html" class="inline-flex items-center gap-2 font-extrabold text-2xl text-primary">
-        <svg class="w-9 h-9" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-        </svg>
-        TryoutCPNS
-      </a>
-      <p class="text-gray-500 text-sm mt-2">Platform Persiapan SKD &amp; SKB Terpercaya</p>
-    </div>
-
-    <!-- Card -->
-    <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-      <!-- Tabs -->
-      <div class="flex border-b border-gray-100" id="authTabs">
-        <button
-          id="tabLogin"
-          onclick="switchTab('login')"
-          class="flex-1 py-4 text-sm font-semibold text-primary border-b-2 border-primary transition"
-        >
-          Masuk
-        </button>
-        <button
-          id="tabRegister"
-          onclick="switchTab('register')"
-          class="flex-1 py-4 text-sm font-semibold text-gray-400 border-b-2 border-transparent hover:text-gray-600 transition"
-        >
-          Daftar
-        </button>
+<div class="w-full max-w-md">
+  <!-- Logo -->
+  <div class="text-center mb-8">
+    <a href="index.html" class="inline-flex items-center gap-2 font-extrabold text-2xl text-primary-600">
+      <div class="w-9 h-9 bg-primary-600 rounded-xl flex items-center justify-center">
+        <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
       </div>
-
-      <!-- Login Form -->
-      <div id="formLogin" class="p-8">
-        <h2 class="text-xl font-extrabold text-gray-900 mb-1">Selamat Datang Kembali!</h2>
-        <p class="text-gray-500 text-sm mb-6">Masuk untuk melanjutkan latihan soalmu.</p>
-
-        <form onsubmit="handleLogin(event)" novalidate>
-          <div class="mb-4">
-            <label class="block text-sm font-semibold text-gray-700 mb-1.5" for="loginEmail">Email</label>
-            <input
-              id="loginEmail"
-              type="email"
-              placeholder="nama@email.com"
-              class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition placeholder-gray-400"
-              required
-            />
-            <p id="loginEmailErr" class="text-red-500 text-xs mt-1 hidden">Email tidak valid.</p>
-          </div>
-
-          <div class="mb-5">
-            <div class="flex items-center justify-between mb-1.5">
-              <label class="text-sm font-semibold text-gray-700" for="loginPassword">Kata Sandi</label>
-              <a href="#" class="text-xs text-primary hover:underline">Lupa kata sandi?</a>
-            </div>
-            <div class="relative">
-              <input
-                id="loginPassword"
-                type="password"
-                placeholder="Masukkan kata sandi"
-                class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition placeholder-gray-400 pr-11"
-                required
-              />
-              <button type="button" onclick="togglePassword('loginPassword', 'eyeLogin')" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-                <svg id="eyeLogin" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                </svg>
-              </button>
-            </div>
-            <p id="loginPasswordErr" class="text-red-500 text-xs mt-1 hidden">Kata sandi wajib diisi.</p>
-          </div>
-
-          <div class="flex items-center gap-2 mb-6">
-            <input id="rememberMe" type="checkbox" class="w-4 h-4 accent-primary rounded" />
-            <label for="rememberMe" class="text-sm text-gray-600">Ingat saya selama 30 hari</label>
-          </div>
-
-          <div id="loginAlert" class="hidden mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl"></div>
-
-          <button
-            type="submit"
-            id="loginBtn"
-            class="w-full bg-primary text-white font-bold py-3.5 rounded-xl hover:bg-primary-dark transition flex items-center justify-center gap-2 shadow-lg"
-          >
-            <span id="loginBtnText">Masuk Sekarang</span>
-            <svg id="loginSpinner" class="hidden w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
-            </svg>
-          </button>
-        </form>
-
-        <p class="text-center text-sm text-gray-500 mt-6">
-          Belum punya akun?
-          <button onclick="switchTab('register')" class="text-primary font-semibold hover:underline">Daftar gratis</button>
-        </p>
-      </div>
-
-      <!-- Register Form -->
-      <div id="formRegister" class="p-8 hidden">
-        <h2 class="text-xl font-extrabold text-gray-900 mb-1">Buat Akun Baru</h2>
-        <p class="text-gray-500 text-sm mb-6">Gratis selamanya. Mulai persiapanmu hari ini!</p>
-
-        <form onsubmit="handleRegister(event)" novalidate>
-          <div class="mb-4">
-            <label class="block text-sm font-semibold text-gray-700 mb-1.5" for="regName">Nama Lengkap</label>
-            <input
-              id="regName"
-              type="text"
-              placeholder="Budi Santoso"
-              class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition placeholder-gray-400"
-              required
-            />
-            <p id="regNameErr" class="text-red-500 text-xs mt-1 hidden">Nama wajib diisi.</p>
-          </div>
-
-          <div class="mb-4">
-            <label class="block text-sm font-semibold text-gray-700 mb-1.5" for="regEmail">Email</label>
-            <input
-              id="regEmail"
-              type="email"
-              placeholder="nama@email.com"
-              class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition placeholder-gray-400"
-              required
-            />
-            <p id="regEmailErr" class="text-red-500 text-xs mt-1 hidden">Masukkan email yang valid.</p>
-          </div>
-
-          <div class="mb-4">
-            <label class="block text-sm font-semibold text-gray-700 mb-1.5" for="regPassword">Kata Sandi</label>
-            <div class="relative">
-              <input
-                id="regPassword"
-                type="password"
-                placeholder="Min. 8 karakter"
-                class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition placeholder-gray-400 pr-11"
-                required
-              />
-              <button type="button" onclick="togglePassword('regPassword', 'eyeReg')" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-                <svg id="eyeReg" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                </svg>
-              </button>
-            </div>
-            <p id="regPasswordErr" class="text-red-500 text-xs mt-1 hidden">Kata sandi min. 8 karakter.</p>
-            <!-- Password strength -->
-            <div class="mt-2 flex gap-1" id="strengthBar">
-              <div class="h-1 flex-1 rounded-full bg-gray-100" id="s1"></div>
-              <div class="h-1 flex-1 rounded-full bg-gray-100" id="s2"></div>
-              <div class="h-1 flex-1 rounded-full bg-gray-100" id="s3"></div>
-              <div class="h-1 flex-1 rounded-full bg-gray-100" id="s4"></div>
-            </div>
-            <p id="strengthLabel" class="text-xs text-gray-400 mt-1"></p>
-          </div>
-
-          <div class="mb-5">
-            <label class="block text-sm font-semibold text-gray-700 mb-1.5" for="regConfirm">Konfirmasi Kata Sandi</label>
-            <input
-              id="regConfirm"
-              type="password"
-              placeholder="Ulangi kata sandi"
-              class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition placeholder-gray-400"
-              required
-            />
-            <p id="regConfirmErr" class="text-red-500 text-xs mt-1 hidden">Kata sandi tidak cocok.</p>
-          </div>
-
-          <div class="flex items-start gap-2 mb-6">
-            <input id="agreeTerms" type="checkbox" class="w-4 h-4 mt-0.5 accent-primary rounded" required />
-            <label for="agreeTerms" class="text-sm text-gray-600">
-              Saya menyetujui <a href="#" class="text-primary hover:underline">Syarat Penggunaan</a> dan <a href="#" class="text-primary hover:underline">Kebijakan Privasi</a>
-            </label>
-          </div>
-          <p id="agreeTermsErr" class="text-red-500 text-xs -mt-4 mb-4 hidden">Harap setujui syarat dan ketentuan.</p>
-
-          <div id="registerAlert" class="hidden mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl"></div>
-
-          <button
-            type="submit"
-            id="registerBtn"
-            class="w-full bg-primary text-white font-bold py-3.5 rounded-xl hover:bg-primary-dark transition flex items-center justify-center gap-2 shadow-lg"
-          >
-            <span id="registerBtnText">Buat Akun Gratis</span>
-            <svg id="registerSpinner" class="hidden w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
-            </svg>
-          </button>
-        </form>
-
-        <p class="text-center text-sm text-gray-500 mt-6">
-          Sudah punya akun?
-          <button onclick="switchTab('login')" class="text-primary font-semibold hover:underline">Masuk di sini</button>
-        </p>
-      </div>
-    </div>
-
-    <p class="text-center text-xs text-gray-400 mt-6">
-      &copy; 2025 TryoutCPNS · <a href="index.html" class="hover:underline">Kembali ke Beranda</a>
-    </p>
+      SkorinCPNS
+    </a>
+    <p class="text-gray-500 text-sm mt-2">Platform Persiapan SKD & SKB Terpercaya</p>
   </div>
 
-  <script>
-    // ── Supabase client ──────────────────────────────────────────
-    const { createClient } = supabase;
-    const _supabase = createClient(
-      'https://ykvwwfsoqqhtijtnivmj.supabase.co',
-      'sb_publishable_p_RYUHTiKlARg_rDTe3Gaw_N3G8XPwl'
-    );
+  <!-- Card -->
+  <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+    <!-- Tabs -->
+    <div class="flex">
+      <button id="tabMasuk" onclick="switchTab('masuk')" class="flex-1 py-4 text-sm font-semibold tab-active transition-all">Masuk</button>
+      <button id="tabDaftar" onclick="switchTab('daftar')" class="flex-1 py-4 text-sm font-semibold tab-inactive transition-all">Daftar</button>
+    </div>
 
-    // Redirect ke tryout jika sudah login
-    (async () => {
-      const { data: { session } } = await _supabase.auth.getSession();
-      if (session) window.location.replace('tryout.html');
-    })();
+    <!-- LOGIN FORM -->
+    <form id="formMasuk" onsubmit="doLogin(event)" class="p-6 space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
+        <input id="liEmail" type="email" placeholder="email@contoh.com" required
+          class="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:border-primary-600 focus:ring-2 focus:ring-primary-100 transition"/>
+        <p id="liEmailErr" class="err-msg hidden"></p>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
+        <div class="relative">
+          <input id="liPass" type="password" placeholder="Masukkan password" required
+            class="w-full border border-gray-300 rounded-xl px-4 py-3 pr-12 text-sm focus:border-primary-600 focus:ring-2 focus:ring-primary-100 transition"/>
+          <button type="button" onclick="togglePwd('liPass','eyeLogin')" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+            <svg id="eyeLogin" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+          </button>
+        </div>
+        <p id="liPassErr" class="err-msg hidden"></p>
+      </div>
+      <div class="flex justify-end">
+        <button type="button" onclick="openModal('modalLupa')" class="text-sm text-primary-600 hover:underline">Lupa password?</button>
+      </div>
+      <div id="loginAlert" class="hidden bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3"></div>
+      <button type="submit" id="btnLogin" class="w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-3 rounded-xl transition flex items-center justify-center gap-2">
+        <span id="btnLoginText">Masuk</span>
+        <svg id="btnLoginSpinner" class="hidden w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+      </button>
+      <p class="text-center text-sm text-gray-500">Belum punya akun? <button type="button" onclick="switchTab('daftar')" class="text-primary-600 font-semibold hover:underline">Daftar Gratis</button></p>
+    </form>
 
-    // ── Tab switching ────────────────────────────────────────────
-    function switchTab(tab) {
-      const isLogin = tab === 'login';
-      document.getElementById('formLogin').classList.toggle('hidden', !isLogin);
-      document.getElementById('formRegister').classList.toggle('hidden', isLogin);
+    <!-- REGISTER FORM -->
+    <form id="formDaftar" onsubmit="doRegister(event)" class="p-6 space-y-4 hidden">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1.5">Nama Lengkap</label>
+        <input id="rNama" type="text" placeholder="Nama lengkap Anda" required
+          class="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:border-primary-600 focus:ring-2 focus:ring-primary-100 transition"/>
+        <p id="rNamaErr" class="err-msg hidden"></p>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
+        <input id="rEmail" type="email" placeholder="email@contoh.com" required
+          class="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:border-primary-600 focus:ring-2 focus:ring-primary-100 transition"/>
+        <p id="rEmailErr" class="err-msg hidden"></p>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
+        <div class="relative">
+          <input id="rPass" type="password" placeholder="Minimal 8 karakter" required
+            class="w-full border border-gray-300 rounded-xl px-4 py-3 pr-12 text-sm focus:border-primary-600 focus:ring-2 focus:ring-primary-100 transition"/>
+          <button type="button" onclick="togglePwd('rPass','eyeReg')" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+            <svg id="eyeReg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+          </button>
+        </div>
+        <p id="rPassErr" class="err-msg hidden"></p>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1.5">Konfirmasi Password</label>
+        <div class="relative">
+          <input id="rPass2" type="password" placeholder="Ulangi password" required
+            class="w-full border border-gray-300 rounded-xl px-4 py-3 pr-12 text-sm focus:border-primary-600 focus:ring-2 focus:ring-primary-100 transition"/>
+          <button type="button" onclick="togglePwd('rPass2','eyeReg2')" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+            <svg id="eyeReg2" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+          </button>
+        </div>
+        <p id="rPass2Err" class="err-msg hidden"></p>
+      </div>
+      <div id="regAlert" class="hidden bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3"></div>
+      <p class="text-xs text-gray-500 leading-relaxed">
+        Dengan mendaftar, Anda menyetujui
+        <button type="button" onclick="openModal('modalSyarat')" class="text-primary-600 hover:underline">Syarat & Ketentuan</button>
+        dan
+        <button type="button" onclick="openModal('modalPrivasi')" class="text-primary-600 hover:underline">Kebijakan Privasi</button>
+        kami.
+      </p>
+      <button type="submit" id="btnDaftar" class="w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-3 rounded-xl transition flex items-center justify-center gap-2">
+        <span id="btnDaftarText">Daftar Sekarang</span>
+        <svg id="btnDaftarSpinner" class="hidden w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+      </button>
+      <p class="text-center text-sm text-gray-500">Sudah punya akun? <button type="button" onclick="switchTab('masuk')" class="text-primary-600 font-semibold hover:underline">Masuk</button></p>
+    </form>
+  </div>
+</div>
 
-      const tl = document.getElementById('tabLogin');
-      const tr = document.getElementById('tabRegister');
-      tl.className = `flex-1 py-4 text-sm font-semibold transition ${isLogin ? 'text-primary border-b-2 border-primary' : 'text-gray-400 border-b-2 border-transparent hover:text-gray-600'}`;
-      tr.className = `flex-1 py-4 text-sm font-semibold transition ${!isLogin ? 'text-primary border-b-2 border-primary' : 'text-gray-400 border-b-2 border-transparent hover:text-gray-600'}`;
+<!-- MODAL: Lupa Password -->
+<div id="modalLupa" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 modal-bg">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
+    <div class="flex items-center justify-between mb-6">
+      <h3 class="text-lg font-bold text-gray-900">Reset Password</h3>
+      <button onclick="closeModal('modalLupa')" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+    </div>
+    <p class="text-sm text-gray-500 mb-4">Masukkan email Anda. Kami akan mengirimkan link untuk mereset password.</p>
+    <input id="resetEmail" type="email" placeholder="email@contoh.com"
+      class="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:border-primary-600 focus:ring-2 focus:ring-primary-100 transition mb-4"/>
+    <div id="resetMsg" class="hidden text-sm rounded-xl px-4 py-3 mb-4"></div>
+    <button onclick="doReset()" class="w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-3 rounded-xl transition">Kirim Link Reset</button>
+  </div>
+</div>
+
+<!-- MODAL: Syarat -->
+<div id="modalSyarat" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 modal-bg">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[80vh] flex flex-col">
+    <div class="flex items-center justify-between p-6 border-b"><h3 class="text-lg font-bold">Syarat & Ketentuan</h3><button onclick="closeModal('modalSyarat')" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button></div>
+    <div class="overflow-y-auto p-6 text-sm text-gray-600 space-y-4 leading-relaxed">
+      <p><strong>1. Penggunaan Platform</strong><br/>SkorinCPNS disediakan untuk keperluan latihan ujian CPNS secara personal. Dilarang menyalin atau mendistribusikan konten tanpa izin.</p>
+      <p><strong>2. Akun Pengguna</strong><br/>Anda bertanggung jawab menjaga kerahasiaan akun dan seluruh aktivitas yang terjadi di bawah akun Anda.</p>
+      <p><strong>3. Konten Platform</strong><br/>Seluruh soal, pembahasan, dan materi adalah milik SkorinCPNS dan dilindungi hak cipta.</p>
+      <p><strong>4. Penafian</strong><br/>Platform ini tidak menjamin kelulusan. Skor tryout bersifat simulasi dan mungkin berbeda dari ujian resmi BKN.</p>
+      <p>Dokumen lengkap tersedia di <a href="syarat.html" target="_blank" class="text-primary-600 hover:underline">halaman Syarat & Ketentuan</a>.</p>
+    </div>
+    <div class="p-4 border-t"><button onclick="closeModal('modalSyarat')" class="w-full bg-primary-600 text-white font-semibold py-2.5 rounded-xl">Saya Mengerti</button></div>
+  </div>
+</div>
+
+<!-- MODAL: Privasi -->
+<div id="modalPrivasi" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 modal-bg">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[80vh] flex flex-col">
+    <div class="flex items-center justify-between p-6 border-b"><h3 class="text-lg font-bold">Kebijakan Privasi</h3><button onclick="closeModal('modalPrivasi')" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button></div>
+    <div class="overflow-y-auto p-6 text-sm text-gray-600 space-y-4 leading-relaxed">
+      <p><strong>Data yang Kami Kumpulkan</strong><br/>Kami mengumpulkan nama, email, dan data aktivitas belajar Anda di platform.</p>
+      <p><strong>Penggunaan Data</strong><br/>Data digunakan untuk menyediakan layanan, menampilkan hasil tryout, dan meningkatkan pengalaman belajar Anda.</p>
+      <p><strong>Keamanan Data</strong><br/>Data Anda diamankan dengan enkripsi dan disimpan di infrastruktur Supabase yang aman.</p>
+      <p><strong>Berbagi Data</strong><br/>Kami tidak menjual data Anda. Data hanya dibagikan kepada penyedia layanan teknis kami.</p>
+      <p>Dokumen lengkap di <a href="privasi.html" target="_blank" class="text-primary-600 hover:underline">halaman Kebijakan Privasi</a>.</p>
+    </div>
+    <div class="p-4 border-t"><button onclick="closeModal('modalPrivasi')" class="w-full bg-primary-600 text-white font-semibold py-2.5 rounded-xl">Saya Mengerti</button></div>
+  </div>
+</div>
+
+<script>
+  const { createClient } = supabase;
+  const _sb = createClient('https://ykvwwfsoqqhtijtnivmj.supabase.co', 'sb_publishable_p_RYUHTiKlARg_rDTe3Gaw_N3G8XPwl');
+
+  // Redirect if already logged in
+  (async () => {
+    const { data: { session } } = await _sb.auth.getSession();
+    if (session) window.location.replace('dashboard.html');
+  })();
+
+  // Handle #daftar hash from landing page
+  if (location.hash === '#daftar') switchTab('daftar');
+
+  function switchTab(t) {
+    const isMasuk = t === 'masuk';
+    document.getElementById('formMasuk').classList.toggle('hidden', !isMasuk);
+    document.getElementById('formDaftar').classList.toggle('hidden', isMasuk);
+    document.getElementById('tabMasuk').className = 'flex-1 py-4 text-sm font-semibold transition-all ' + (isMasuk ? 'tab-active' : 'tab-inactive');
+    document.getElementById('tabDaftar').className = 'flex-1 py-4 text-sm font-semibold transition-all ' + (!isMasuk ? 'tab-active' : 'tab-inactive');
+  }
+
+  function togglePwd(inputId, eyeId) {
+    const inp = document.getElementById(inputId);
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+  }
+
+  function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+  function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+  function showErr(id, msg) {
+    const el = document.getElementById(id);
+    el.textContent = msg; el.classList.remove('hidden');
+    document.getElementById(id.replace('Err','')).classList.add('input-err');
+  }
+  function clearErr(id) {
+    const el = document.getElementById(id);
+    el.classList.add('hidden');
+    document.getElementById(id.replace('Err','')).classList.remove('input-err');
+  }
+
+  function setLoading(btnId, spinnerId, loading) {
+    const btn = document.getElementById(btnId);
+    document.getElementById(spinnerId).classList.toggle('hidden', !loading);
+    btn.disabled = loading;
+    btn.classList.toggle('opacity-70', loading);
+  }
+
+  async function doLogin(e) {
+    e.preventDefault();
+    const email = document.getElementById('liEmail').value.trim();
+    const pass = document.getElementById('liPass').value;
+    let ok = true;
+    clearErr('liEmailErr'); clearErr('liPassErr');
+    document.getElementById('loginAlert').classList.add('hidden');
+    if (!email) { showErr('liEmailErr', 'Email wajib diisi'); ok = false; }
+    if (!pass) { showErr('liPassErr', 'Password wajib diisi'); ok = false; }
+    if (!ok) return;
+
+    setLoading('btnLogin', 'btnLoginSpinner', true);
+    const { error } = await _sb.auth.signInWithPassword({ email, password: pass });
+    setLoading('btnLogin', 'btnLoginSpinner', false);
+
+    if (error) {
+      const msg = error.message.includes('Invalid') ? 'Email atau password salah. Silakan coba lagi.' : error.message;
+      const al = document.getElementById('loginAlert');
+      al.textContent = msg; al.classList.remove('hidden');
+    } else {
+      window.location.href = 'dashboard.html';
     }
+  }
 
-    // ── Toggle password visibility ───────────────────────────────
-    function togglePassword(inputId, iconId) {
-      const input = document.getElementById(inputId);
-      const icon  = document.getElementById(iconId);
-      const isHidden = input.type === 'password';
-      input.type = isHidden ? 'text' : 'password';
-      icon.innerHTML = isHidden
-        ? `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>`
-        : `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>`;
-    }
+  async function doRegister(e) {
+    e.preventDefault();
+    const nama = document.getElementById('rNama').value.trim();
+    const email = document.getElementById('rEmail').value.trim();
+    const pass = document.getElementById('rPass').value;
+    const pass2 = document.getElementById('rPass2').value;
+    let ok = true;
+    ['rNamaErr','rEmailErr','rPassErr','rPass2Err'].forEach(clearErr);
+    document.getElementById('regAlert').classList.add('hidden');
 
-    // ── Password strength ────────────────────────────────────────
-    document.getElementById('regPassword').addEventListener('input', function () {
-      const val = this.value;
-      const bars   = ['s1','s2','s3','s4'];
-      const colors = ['bg-red-400','bg-orange-400','bg-yellow-400','bg-green-500'];
-      const labels = ['','Lemah','Sedang','Kuat','Sangat Kuat'];
-      let score = 0;
-      if (val.length >= 8) score++;
-      if (/[A-Z]/.test(val)) score++;
-      if (/[0-9]/.test(val)) score++;
-      if (/[^A-Za-z0-9]/.test(val)) score++;
-      bars.forEach((id, i) => {
-        const el = document.getElementById(id);
-        el.className = `h-1 flex-1 rounded-full ${i < score ? colors[score - 1] : 'bg-gray-100'}`;
-      });
-      document.getElementById('strengthLabel').textContent = val.length ? labels[score] : '';
+    if (!nama || nama.length < 2) { showErr('rNamaErr', 'Nama minimal 2 karakter'); ok = false; }
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showErr('rEmailErr', 'Format email tidak valid'); ok = false; }
+    if (!pass || pass.length < 8) { showErr('rPassErr', 'Password minimal 8 karakter'); ok = false; }
+    if (pass !== pass2) { showErr('rPass2Err', 'Password tidak cocok'); ok = false; }
+    if (!ok) return;
+
+    setLoading('btnDaftar', 'btnDaftarSpinner', true);
+    const { data, error } = await _sb.auth.signUp({
+      email, password: pass,
+      options: { data: { full_name: nama }, emailRedirectTo: location.origin + '/dashboard.html' }
     });
+    setLoading('btnDaftar', 'btnDaftarSpinner', false);
 
-    // ── Helpers ──────────────────────────────────────────────────
-    function setLoading(btnId, spinnerId, textId, state, originalText) {
-      document.getElementById(btnId).disabled = state;
-      document.getElementById(spinnerId).classList.toggle('hidden', !state);
-      document.getElementById(textId).textContent = state ? 'Memproses...' : originalText;
+    if (error) {
+      const al = document.getElementById('regAlert');
+      al.textContent = error.message; al.classList.remove('hidden');
+    } else {
+      localStorage.setItem('skorin_register_email', email);
+      window.location.href = 'cek-email.html';
     }
+  }
 
-    function showAlert(alertId, message, isSuccess = false) {
-      const el = document.getElementById(alertId);
-      el.textContent = message;
-      el.className = isSuccess
-        ? 'mb-4 p-3 bg-green-50 border border-green-200 text-green-700 text-sm rounded-xl'
-        : 'mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl';
-      el.classList.remove('hidden');
+  async function doReset() {
+    const email = document.getElementById('resetEmail').value.trim();
+    const msg = document.getElementById('resetMsg');
+    if (!email) { msg.className='bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3'; msg.textContent='Masukkan email Anda'; msg.classList.remove('hidden'); return; }
+    const { error } = await _sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + '/login.html' });
+    if (error) {
+      msg.className='bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3';
+      msg.textContent = error.message;
+    } else {
+      msg.className='bg-green-50 border border-green-200 text-green-700 text-sm rounded-xl px-4 py-3';
+      msg.textContent = 'Link reset password telah dikirim ke email Anda!';
     }
+    msg.classList.remove('hidden');
+  }
 
-    function hideAlert(alertId) {
-      document.getElementById(alertId).classList.add('hidden');
-    }
-
-    function localizeError(msg) {
-      if (!msg) return 'Terjadi kesalahan. Coba lagi.';
-      if (msg.includes('Invalid login credentials')) return 'Email atau kata sandi salah.';
-      if (msg.includes('Email not confirmed')) return 'Email belum dikonfirmasi. Silakan cek kotak masuk emailmu.';
-      if (msg.includes('User already registered')) return 'Email ini sudah terdaftar. Silakan masuk.';
-      if (msg.includes('Password should be at least')) return 'Kata sandi minimal 6 karakter.';
-      if (msg.includes('Unable to validate email')) return 'Format email tidak valid.';
-      return msg;
-    }
-
-    // ── Handle Login ─────────────────────────────────────────────
-    async function handleLogin(e) {
-      e.preventDefault();
-      const email    = document.getElementById('loginEmail').value.trim();
-      const password = document.getElementById('loginPassword').value;
-      let valid = true;
-
-      document.getElementById('loginEmailErr').classList.add('hidden');
-      document.getElementById('loginPasswordErr').classList.add('hidden');
-      hideAlert('loginAlert');
-
-      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        document.getElementById('loginEmailErr').classList.remove('hidden');
-        valid = false;
-      }
-      if (!password) {
-        document.getElementById('loginPasswordErr').classList.remove('hidden');
-        valid = false;
-      }
-      if (!valid) return;
-
-      setLoading('loginBtn', 'loginSpinner', 'loginBtnText', true, 'Masuk Sekarang');
-
-      const { error } = await _supabase.auth.signInWithPassword({ email, password });
-
-      setLoading('loginBtn', 'loginSpinner', 'loginBtnText', false, 'Masuk Sekarang');
-
-      if (error) {
-        showAlert('loginAlert', localizeError(error.message));
-      } else {
-        window.location.href = 'tryout.html';
-      }
-    }
-
-    // ── Handle Register ──────────────────────────────────────────
-    async function handleRegister(e) {
-      e.preventDefault();
-      const name     = document.getElementById('regName').value.trim();
-      const email    = document.getElementById('regEmail').value.trim();
-      const password = document.getElementById('regPassword').value;
-      const confirm  = document.getElementById('regConfirm').value;
-      const agreed   = document.getElementById('agreeTerms').checked;
-      let valid = true;
-
-      ['regNameErr','regEmailErr','regPasswordErr','regConfirmErr','agreeTermsErr'].forEach(id => {
-        document.getElementById(id).classList.add('hidden');
-      });
-      hideAlert('registerAlert');
-
-      if (!name)    { document.getElementById('regNameErr').classList.remove('hidden'); valid = false; }
-      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { document.getElementById('regEmailErr').classList.remove('hidden'); valid = false; }
-      if (password.length < 8) { document.getElementById('regPasswordErr').classList.remove('hidden'); valid = false; }
-      if (password !== confirm) { document.getElementById('regConfirmErr').classList.remove('hidden'); valid = false; }
-      if (!agreed)  { document.getElementById('agreeTermsErr').classList.remove('hidden'); valid = false; }
-      if (!valid) return;
-
-      setLoading('registerBtn', 'registerSpinner', 'registerBtnText', true, 'Buat Akun Gratis');
-
-      const { data, error } = await _supabase.auth.signUp({
-        email,
-        password,
-        options: { data: { full_name: name } }
-      });
-
-      setLoading('registerBtn', 'registerSpinner', 'registerBtnText', false, 'Buat Akun Gratis');
-
-      if (error) {
-        showAlert('registerAlert', localizeError(error.message));
-      } else if (data.session) {
-        // Konfirmasi email dinonaktifkan — langsung redirect
-        window.location.href = 'tryout.html';
-      } else {
-        // Konfirmasi email diaktifkan — tampilkan pesan sukses
-        showAlert('registerAlert', 'Registrasi berhasil! Silakan cek email kamu untuk mengkonfirmasi akun, lalu masuk.', true);
-      }
-    }
-
-    // Auto switch to register tab if URL has #register
-    if (window.location.hash === '#register') switchTab('register');
-  </script>
-
+  // Close modals on backdrop click
+  ['modalLupa','modalSyarat','modalPrivasi'].forEach(id => {
+    document.getElementById(id).addEventListener('click', function(e) {
+      if(e.target === this) closeModal(id);
+    });
+  });
+</script>
 </body>
 </html>

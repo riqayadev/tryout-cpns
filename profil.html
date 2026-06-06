@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Profil – SkorinCPNS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{colors:{primary:{50:'#eff6ff',100:'#dbeafe',600:'#2563eb',700:'#1d4ed8'}},fontFamily:{sans:['Inter','sans-serif']}}}}</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head>
+<body class="font-sans antialiased bg-gray-50">
+
+<nav class="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-16">
+      <a href="dashboard.html" class="flex items-center gap-2 font-extrabold text-lg text-primary-600">
+        <div class="w-7 h-7 bg-primary-600 rounded-lg flex items-center justify-center"><svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+        SkorinCPNS
+      </a>
+      <div class="hidden md:flex items-center gap-1">
+        <a href="dashboard.html" class="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 transition">Dashboard</a>
+        <a href="tryout-list.html" class="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 transition">Tryout</a>
+        <a href="materi.html" class="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 transition">Materi</a>
+        <a href="profil.html" class="px-4 py-2 rounded-lg text-sm font-semibold bg-primary-50 text-primary-600">Profil</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 pb-24 md:pb-8">
+
+  <!-- Profile Card -->
+  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+    <div class="bg-gradient-to-r from-primary-600 to-primary-700 h-24"></div>
+    <div class="px-6 pb-6">
+      <div class="-mt-10 flex items-end justify-between mb-4">
+        <div id="avatarLarge" class="w-20 h-20 bg-primary-100 border-4 border-white rounded-full flex items-center justify-center text-3xl font-black text-primary-600 shadow-lg">?</div>
+        <button onclick="openEditModal()" class="mt-2 px-4 py-2 text-sm font-semibold text-primary-600 border border-primary-200 rounded-xl hover:bg-primary-50 transition">✏️ Edit Profil</button>
+      </div>
+      <h1 class="text-xl font-black text-gray-900" id="profileName">...</h1>
+      <p class="text-gray-500 text-sm" id="profileEmail">...</p>
+      <p class="text-gray-400 text-xs mt-1" id="profileJoin">Bergabung: ...</p>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="grid grid-cols-3 gap-4">
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 text-center">
+      <div class="text-2xl font-black text-primary-600" id="statTotal">0</div>
+      <div class="text-xs text-gray-500 mt-1">Total Tryout</div>
+    </div>
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 text-center">
+      <div class="text-2xl font-black text-green-600" id="statBest">0</div>
+      <div class="text-xs text-gray-500 mt-1">Skor Tertinggi</div>
+    </div>
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 text-center">
+      <div class="text-2xl font-black text-amber-600" id="statAvg">0</div>
+      <div class="text-xs text-gray-500 mt-1">Rata-rata Skor</div>
+    </div>
+  </div>
+
+  <!-- History Table -->
+  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm">
+    <div class="p-5 border-b border-gray-100">
+      <h2 class="text-lg font-bold text-gray-900">Riwayat Tryout</h2>
+    </div>
+    <div id="historyTable">
+      <div class="text-center py-12">
+        <div class="text-5xl mb-3">📊</div>
+        <p class="text-gray-500 text-sm">Belum ada riwayat tryout</p>
+        <a href="tryout-list.html" class="mt-4 inline-block bg-primary-600 text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-primary-700 transition">Mulai Tryout</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <button onclick="openEditModal()" class="flex items-center justify-center gap-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold py-3 px-5 rounded-xl transition shadow-sm">
+      ✏️ Edit Profil
+    </button>
+    <button onclick="doLogout()" class="flex items-center justify-center gap-2 bg-red-50 border border-red-200 hover:bg-red-100 text-red-600 font-semibold py-3 px-5 rounded-xl transition">
+      🚪 Keluar dari Akun
+    </button>
+  </div>
+</main>
+
+<!-- Edit Profile Modal -->
+<div id="editModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4" style="background:rgba(0,0,0,.5)">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+    <div class="flex items-center justify-between mb-5">
+      <h3 class="text-lg font-bold">Edit Profil</h3>
+      <button onclick="closeEditModal()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+    </div>
+    <div class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1.5">Nama Lengkap</label>
+        <input id="editName" type="text" class="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:border-primary-600 focus:ring-2 focus:ring-primary-100 outline-none transition"/>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
+        <input id="editEmail" type="email" disabled class="w-full border border-gray-200 bg-gray-50 rounded-xl px-4 py-3 text-sm text-gray-400 cursor-not-allowed"/>
+        <p class="text-xs text-gray-400 mt-1">Email tidak dapat diubah</p>
+      </div>
+    </div>
+    <div id="editMsg" class="hidden text-sm rounded-xl px-4 py-3 mt-4"></div>
+    <div class="flex gap-3 mt-5">
+      <button onclick="closeEditModal()" class="flex-1 border border-gray-200 text-gray-600 font-semibold py-3 rounded-xl hover:bg-gray-50 transition">Batal</button>
+      <button onclick="saveProfile()" class="flex-1 bg-primary-600 hover:bg-primary-700 text-white font-bold py-3 rounded-xl transition">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom Nav Mobile -->
+<nav class="md:hidden fixed bottom-0 inset-x-0 bg-white border-t border-gray-200 z-40">
+  <div class="grid grid-cols-4">
+    <a href="dashboard.html" class="flex flex-col items-center py-3 text-gray-400"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg><span class="text-xs mt-0.5">Dashboard</span></a>
+    <a href="tryout-list.html" class="flex flex-col items-center py-3 text-gray-400"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg><span class="text-xs mt-0.5">Tryout</span></a>
+    <a href="materi.html" class="flex flex-col items-center py-3 text-gray-400"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg><span class="text-xs mt-0.5">Materi</span></a>
+    <a href="profil.html" class="flex flex-col items-center py-3 text-primary-600"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg><span class="text-xs mt-0.5 font-semibold">Profil</span></a>
+  </div>
+</nav>
+
+<script>
+  const { createClient } = supabase;
+  const _sb = createClient('https://ykvwwfsoqqhtijtnivmj.supabase.co', 'sb_publishable_p_RYUHTiKlARg_rDTe3Gaw_N3G8XPwl');
+  let currentUser = null;
+
+  (async () => {
+    const { data: { session } } = await _sb.auth.getSession();
+    if (!session) { window.location.replace('login.html'); return; }
+    currentUser = session.user;
+    const name = currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
+    const initials = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+    const joinDate = new Date(currentUser.created_at).toLocaleDateString('id-ID', {day:'numeric',month:'long',year:'numeric'});
+    document.getElementById('avatarLarge').textContent = initials;
+    document.getElementById('profileName').textContent = name;
+    document.getElementById('profileEmail').textContent = currentUser.email;
+    document.getElementById('profileJoin').textContent = 'Bergabung: ' + joinDate;
+    document.getElementById('editName').value = name;
+    document.getElementById('editEmail').value = currentUser.email;
+    loadStats();
+    loadHistory();
+  })();
+
+  function loadStats() {
+    const history = JSON.parse(localStorage.getItem('skorin_history') || '[]');
+    document.getElementById('statTotal').textContent = history.length;
+    if (history.length > 0) {
+      const scores = history.map(h => h.total || 0);
+      document.getElementById('statBest').textContent = Math.max(...scores);
+      document.getElementById('statAvg').textContent = Math.round(scores.reduce((a,b)=>a+b,0)/scores.length);
+    }
+  }
+
+  function loadHistory() {
+    const history = JSON.parse(localStorage.getItem('skorin_history') || '[]');
+    if (history.length === 0) return;
+    const table = document.getElementById('historyTable');
+    table.innerHTML = `
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
+            <tr>
+              <th class="px-5 py-3 text-left">Paket Tryout</th>
+              <th class="px-5 py-3 text-center">TWK</th>
+              <th class="px-5 py-3 text-center">TIU</th>
+              <th class="px-5 py-3 text-center">TKP</th>
+              <th class="px-5 py-3 text-center">Total</th>
+              <th class="px-5 py-3 text-center">Status</th>
+              <th class="px-5 py-3 text-left">Tanggal</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            ${history.slice().reverse().map(h => {
+              const lulus = h.twk >= 65 && h.tiu >= 80 && h.tkp >= 166;
+              return `<tr class="hover:bg-gray-50 transition">
+                <td class="px-5 py-3.5 font-medium text-gray-900">${h.paket || 'SKD Simulasi'}</td>
+                <td class="px-5 py-3.5 text-center"><span class="${h.twk >= 65 ? 'text-green-600' : 'text-red-500'} font-semibold">${h.twk}</span></td>
+                <td class="px-5 py-3.5 text-center"><span class="${h.tiu >= 80 ? 'text-green-600' : 'text-red-500'} font-semibold">${h.tiu}</span></td>
+                <td class="px-5 py-3.5 text-center"><span class="${h.tkp >= 166 ? 'text-green-600' : 'text-red-500'} font-semibold">${h.tkp}</span></td>
+                <td class="px-5 py-3.5 text-center font-black text-gray-900">${h.total || h.twk+h.tiu+h.tkp}</td>
+                <td class="px-5 py-3.5 text-center"><span class="px-2.5 py-1 rounded-full text-xs font-bold ${lulus ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">${lulus ? 'LULUS' : 'BELUM'}</span></td>
+                <td class="px-5 py-3.5 text-gray-400 text-xs">${new Date(h.tanggal).toLocaleDateString('id-ID')}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>`;
+  }
+
+  function openEditModal() { document.getElementById('editModal').classList.remove('hidden'); }
+  function closeEditModal() { document.getElementById('editModal').classList.add('hidden'); document.getElementById('editMsg').classList.add('hidden'); }
+
+  async function saveProfile() {
+    const name = document.getElementById('editName').value.trim();
+    if (!name || name.length < 2) { showEditMsg('Nama minimal 2 karakter', false); return; }
+    const { error } = await _sb.auth.updateUser({ data: { full_name: name } });
+    if (error) {
+      showEditMsg(error.message, false);
+    } else {
+      document.getElementById('profileName').textContent = name;
+      document.getElementById('avatarLarge').textContent = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+      showEditMsg('Profil berhasil diperbarui!', true);
+      setTimeout(closeEditModal, 1500);
+    }
+  }
+
+  function showEditMsg(msg, ok) {
+    const el = document.getElementById('editMsg');
+    el.textContent = msg;
+    el.className = `text-sm rounded-xl px-4 py-3 mt-4 ${ok ? 'bg-green-50 border border-green-200 text-green-700' : 'bg-red-50 border border-red-200 text-red-700'}`;
+    el.classList.remove('hidden');
+  }
+
+  async function doLogout() {
+    if (!confirm('Anda yakin ingin keluar?')) return;
+    await _sb.auth.signOut();
+    localStorage.removeItem('skorin_history');
+    window.location.href = 'index.html';
+  }
+
+  document.getElementById('editModal').addEventListener('click', function(e) { if(e.target===this) closeEditModal(); });
+</script>
+</body>
+</html>

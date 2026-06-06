@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Hasil Tryout – SkorinCPNS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{colors:{primary:{50:'#eff6ff',100:'#dbeafe',600:'#2563eb',700:'#1d4ed8'}},fontFamily:{sans:['Inter','sans-serif']}}}}</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <style>
+    .prog-bar { transition: width 1s ease; }
+    .expand-body { max-height: 0; overflow: hidden; transition: max-height .3s ease; }
+    .expand-body.open { max-height: 400px; }
+  </style>
+</head>
+<body class="font-sans antialiased bg-gray-50 pb-12">
+
+<nav class="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
+  <div class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
+    <a href="dashboard.html" class="flex items-center gap-2 font-extrabold text-lg text-primary-600">
+      <div class="w-7 h-7 bg-primary-600 rounded-lg flex items-center justify-center"><svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+      SkorinCPNS
+    </a>
+    <a href="dashboard.html" class="text-sm text-gray-500 hover:text-primary-600 font-medium transition">← Dashboard</a>
+  </div>
+</nav>
+
+<main class="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+
+  <!-- Skor Utama -->
+  <div id="scoreCard" class="rounded-3xl p-8 text-center text-white bg-gray-400">
+    <p class="text-sm font-medium opacity-80 mb-2" id="paketNama">...</p>
+    <div class="text-7xl font-black mb-3" id="totalSkor">0</div>
+    <p class="text-sm opacity-80 mb-4">dari 550 poin maksimal</p>
+    <div id="statusBadge" class="inline-flex items-center gap-2 bg-white/20 backdrop-blur rounded-full px-6 py-2 text-lg font-black">...</div>
+    <p class="text-xs mt-4 opacity-70" id="tglTryout"></p>
+  </div>
+
+  <!-- Skor Per Kategori -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+      <div class="flex items-center justify-between mb-4">
+        <div><p class="text-xs text-gray-400 font-medium">TWK</p><p class="text-sm font-semibold text-gray-700">Wawasan Kebangsaan</p></div>
+        <div id="twkStatus" class="text-xs font-bold px-2.5 py-1 rounded-full">-</div>
+      </div>
+      <div class="text-4xl font-black mb-2" id="twkSkor">-</div>
+      <div class="mb-2">
+        <div class="flex justify-between text-xs text-gray-400 mb-1"><span>0</span><span>Passing: 65</span><span>150</span></div>
+        <div class="h-3 bg-gray-100 rounded-full overflow-hidden">
+          <div id="twkBar" class="prog-bar h-full rounded-full bg-primary-600" style="width:0%"></div>
+        </div>
+      </div>
+      <p class="text-xs text-gray-400"><span id="twkBenar">-</span> benar dari 30 soal (×5 = poin)</p>
+    </div>
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+      <div class="flex items-center justify-between mb-4">
+        <div><p class="text-xs text-gray-400 font-medium">TIU</p><p class="text-sm font-semibold text-gray-700">Intelegensi Umum</p></div>
+        <div id="tiuStatus" class="text-xs font-bold px-2.5 py-1 rounded-full">-</div>
+      </div>
+      <div class="text-4xl font-black mb-2" id="tiuSkor">-</div>
+      <div class="mb-2">
+        <div class="flex justify-between text-xs text-gray-400 mb-1"><span>0</span><span>Passing: 80</span><span>175</span></div>
+        <div class="h-3 bg-gray-100 rounded-full overflow-hidden">
+          <div id="tiuBar" class="prog-bar h-full rounded-full bg-green-500" style="width:0%"></div>
+        </div>
+      </div>
+      <p class="text-xs text-gray-400"><span id="tiuBenar">-</span> benar dari 35 soal (×5 = poin)</p>
+    </div>
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+      <div class="flex items-center justify-between mb-4">
+        <div><p class="text-xs text-gray-400 font-medium">TKP</p><p class="text-sm font-semibold text-gray-700">Karakteristik Pribadi</p></div>
+        <div id="tkpStatus" class="text-xs font-bold px-2.5 py-1 rounded-full">-</div>
+      </div>
+      <div class="text-4xl font-black mb-2" id="tkpSkor">-</div>
+      <div class="mb-2">
+        <div class="flex justify-between text-xs text-gray-400 mb-1"><span>45</span><span>Passing: 166</span><span>225</span></div>
+        <div class="h-3 bg-gray-100 rounded-full overflow-hidden">
+          <div id="tkpBar" class="prog-bar h-full rounded-full bg-amber-500" style="width:0%"></div>
+        </div>
+      </div>
+      <p class="text-xs text-gray-400">Nilai kumulatif dari 45 soal (1–5 poin/soal)</p>
+    </div>
+  </div>
+
+  <!-- Passing Grade Info -->
+  <div id="pgInfo" class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+    <h3 class="font-bold text-gray-900 mb-3">Detail Passing Grade SKD 2024</h3>
+    <div class="grid grid-cols-3 gap-3 text-sm" id="pgGrid"></div>
+  </div>
+
+  <!-- Pembahasan Soal -->
+  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm">
+    <div class="p-5 border-b border-gray-100 flex items-center justify-between">
+      <h3 class="font-bold text-gray-900">Pembahasan Soal</h3>
+      <button onclick="toggleAll()" id="toggleAllBtn" class="text-sm text-primary-600 hover:underline font-medium">Buka Semua</button>
+    </div>
+    <div id="pembahasanList" class="divide-y divide-gray-100"></div>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <a href="tryout-list.html" class="flex items-center justify-center gap-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 font-bold py-4 rounded-xl transition shadow-sm text-sm">
+      🔄 Coba Tryout Lain
+    </a>
+    <a href="dashboard.html" class="flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 text-white font-bold py-4 rounded-xl transition shadow-sm text-sm">
+      🏠 Kembali ke Dashboard
+    </a>
+  </div>
+</main>
+
+<script>
+  const { createClient } = supabase;
+  const _sb = createClient('https://ykvwwfsoqqhtijtnivmj.supabase.co', 'sb_publishable_p_RYUHTiKlARg_rDTe3Gaw_N3G8XPwl');
+
+  (async () => {
+    const { data: { session } } = await _sb.auth.getSession();
+    if (!session) { window.location.replace('login.html'); return; }
+  })();
+
+  const hasil = JSON.parse(localStorage.getItem('skorin_last_result') || 'null');
+  if (!hasil) {
+    document.querySelector('main').innerHTML = `<div class="text-center py-20">
+      <div class="text-6xl mb-4">😕</div>
+      <h2 class="text-xl font-bold text-gray-900 mb-2">Tidak ada hasil tryout</h2>
+      <p class="text-gray-500 mb-6">Selesaikan sebuah tryout terlebih dahulu.</p>
+      <a href="tryout-list.html" class="bg-primary-600 text-white font-bold px-6 py-3 rounded-xl hover:bg-primary-700 transition">Mulai Tryout</a>
+    </div>`;
+  } else {
+    renderHasil(hasil);
+  }
+
+  function renderHasil(h) {
+    const lulus = h.twk >= 65 && h.tiu >= 80 && h.tkp >= 166;
+    const total = h.twk + h.tiu + h.tkp;
+
+    // Score card
+    const card = document.getElementById('scoreCard');
+    card.className = `rounded-3xl p-8 text-center text-white ${lulus ? 'bg-gradient-to-br from-green-500 to-green-700' : 'bg-gradient-to-br from-red-500 to-red-700'}`;
+    document.getElementById('paketNama').textContent = h.paket || 'SKD Simulasi';
+    document.getElementById('totalSkor').textContent = total;
+    document.getElementById('statusBadge').textContent = lulus ? '✅ SELAMAT, ANDA LULUS!' : '❌ BELUM MEMENUHI PASSING GRADE';
+    document.getElementById('tglTryout').textContent = new Date(h.tanggal).toLocaleString('id-ID', {dateStyle:'full', timeStyle:'short'});
+
+    // Category scores
+    setTimeout(() => {
+      // TWK
+      document.getElementById('twkSkor').textContent = h.twk;
+      document.getElementById('twkBenar').textContent = Math.round(h.twk / 5);
+      document.getElementById('twkBar').style.width = Math.min(100, (h.twk / 150) * 100) + '%';
+      const twkOk = h.twk >= 65;
+      document.getElementById('twkStatus').textContent = twkOk ? '✓ LULUS' : '✗ TIDAK LULUS';
+      document.getElementById('twkStatus').className = `text-xs font-bold px-2.5 py-1 rounded-full ${twkOk ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`;
+
+      // TIU
+      document.getElementById('tiuSkor').textContent = h.tiu;
+      document.getElementById('tiuBenar').textContent = Math.round(h.tiu / 5);
+      document.getElementById('tiuBar').style.width = Math.min(100, (h.tiu / 175) * 100) + '%';
+      const tiuOk = h.tiu >= 80;
+      document.getElementById('tiuStatus').textContent = tiuOk ? '✓ LULUS' : '✗ TIDAK LULUS';
+      document.getElementById('tiuStatus').className = `text-xs font-bold px-2.5 py-1 rounded-full ${tiuOk ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`;
+
+      // TKP
+      document.getElementById('tkpSkor').textContent = h.tkp;
+      document.getElementById('tkpBar').style.width = Math.min(100, ((h.tkp - 45) / 180) * 100) + '%';
+      const tkpOk = h.tkp >= 166;
+      document.getElementById('tkpStatus').textContent = tkpOk ? '✓ LULUS' : '✗ TIDAK LULUS';
+      document.getElementById('tkpStatus').className = `text-xs font-bold px-2.5 py-1 rounded-full ${tkpOk ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`;
+    }, 100);
+
+    // Passing grade info
+    const pgData = [
+      {label:'TWK', skor:h.twk, pg:65, max:150},
+      {label:'TIU', skor:h.tiu, pg:80, max:175},
+      {label:'TKP', skor:h.tkp, pg:166, max:225},
+    ];
+    document.getElementById('pgGrid').innerHTML = pgData.map(p => {
+      const ok = p.skor >= p.pg;
+      return `<div class="rounded-xl p-3 ${ok ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}">
+        <p class="font-bold text-gray-900 text-sm">${p.label}</p>
+        <p class="text-2xl font-black ${ok ? 'text-green-600' : 'text-red-600'}">${p.skor}</p>
+        <p class="text-xs text-gray-500 mt-1">PG: ${p.pg} | Max: ${p.max}</p>
+        <p class="text-xs font-semibold mt-1 ${ok ? 'text-green-600' : 'text-red-500'}">${ok ? `+${p.skor - p.pg} di atas PG` : `${p.skor - p.pg} di bawah PG`}</p>
+      </div>`;
+    }).join('');
+
+    // Pembahasan
+    if (h.soal && h.soal.length > 0) {
+      renderPembahasan(h.soal, h.jawaban);
+    } else {
+      document.getElementById('pembahasanList').innerHTML = '<p class="text-center text-gray-400 py-8 text-sm">Pembahasan tidak tersedia.</p>';
+    }
+  }
+
+  function renderPembahasan(soal, jawaban) {
+    const container = document.getElementById('pembahasanList');
+    const katColor = {TWK:'bg-blue-100 text-blue-700', TIU:'bg-green-100 text-green-700', TKP:'bg-amber-100 text-amber-700'};
+    container.innerHTML = soal.map((s, i) => {
+      const userAns = jawaban[i];
+      const isCorrect = s.tipe === 'TKP' ? true : userAns === s.benar;
+      const notAnswered = userAns === undefined || userAns === null;
+
+      return `<div class="border-b border-gray-50 last:border-b-0">
+        <button onclick="toggleExpand(${i})" class="w-full flex items-start gap-3 p-4 text-left hover:bg-gray-50 transition">
+          <div class="flex-shrink-0 w-6 h-6 rounded-full ${notAnswered ? 'bg-gray-300' : isCorrect ? 'bg-green-500' : 'bg-red-500'} flex items-center justify-center text-white text-xs font-bold mt-0.5">
+            ${notAnswered ? '-' : isCorrect ? '✓' : '✗'}
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-xs font-bold px-2 py-0.5 rounded-full ${katColor[s.tipe]}">${s.tipe}</span>
+              <span class="text-xs text-gray-400">No. ${i + 1}</span>
+            </div>
+            <p class="text-sm text-gray-800 line-clamp-2">${s.teks}</p>
+          </div>
+          <svg id="icon${i}" class="w-4 h-4 text-gray-400 flex-shrink-0 transition-transform mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div id="expand${i}" class="expand-body">
+          <div class="px-4 pb-4 space-y-2">
+            ${s.opsi.map((o, j) => {
+              const huruf = String.fromCharCode(65 + j);
+              const isBenar = s.tipe === 'TKP' ? false : j === s.benar;
+              const isUser = j === userAns;
+              let cls = 'bg-gray-50 border-gray-200 text-gray-700';
+              if (isBenar && s.tipe !== 'TKP') cls = 'bg-green-50 border-green-400 text-green-800';
+              else if (isUser && !isBenar && s.tipe !== 'TKP') cls = 'bg-red-50 border-red-400 text-red-800';
+              else if (isUser && s.tipe === 'TKP') cls = 'bg-blue-50 border-blue-400 text-blue-800';
+              return `<div class="flex items-start gap-2 rounded-lg border px-3 py-2 text-sm ${cls}">
+                <span class="font-bold flex-shrink-0">${huruf}.</span>
+                <span class="flex-1">${o}</span>
+                ${s.tipe === 'TKP' && s.nilai ? `<span class="flex-shrink-0 text-xs font-bold">(${s.nilai[j]} poin)</span>` : ''}
+                ${isBenar && s.tipe !== 'TKP' ? '<span class="flex-shrink-0 text-xs font-bold text-green-600">✓ Benar</span>' : ''}
+                ${isUser && s.tipe !== 'TKP' && !isBenar ? '<span class="flex-shrink-0 text-xs font-bold text-red-600">← Pilihanmu</span>' : ''}
+                ${isUser && s.tipe === 'TKP' ? '<span class="flex-shrink-0 text-xs font-bold text-blue-600">← Pilihanmu</span>' : ''}
+              </div>`;
+            }).join('')}
+            ${s.pembahasan ? `<div class="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 mt-1">
+              <p class="text-xs font-semibold text-blue-700 mb-1">💡 Pembahasan:</p>
+              <p class="text-xs text-blue-800 leading-relaxed">${s.pembahasan}</p>
+            </div>` : ''}
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  let allOpen = false;
+  function toggleAll() {
+    allOpen = !allOpen;
+    document.querySelectorAll('.expand-body').forEach((el, i) => {
+      el.classList.toggle('open', allOpen);
+      const ic = document.getElementById('icon' + i);
+      if (ic) ic.style.transform = allOpen ? 'rotate(180deg)' : '';
+    });
+    document.getElementById('toggleAllBtn').textContent = allOpen ? 'Tutup Semua' : 'Buka Semua';
+  }
+
+  function toggleExpand(i) {
+    const el = document.getElementById('expand' + i);
+    const ic = document.getElementById('icon' + i);
+    el.classList.toggle('open');
+    if (ic) ic.style.transform = el.classList.contains('open') ? 'rotate(180deg)' : '';
+  }
+</script>
+</body>
+</html>

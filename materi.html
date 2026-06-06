@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Materi Belajar – SkorinCPNS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{colors:{primary:{50:'#eff6ff',100:'#dbeafe',600:'#2563eb',700:'#1d4ed8'}},fontFamily:{sans:['Inter','sans-serif']}}}}</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head>
+<body class="font-sans antialiased bg-gray-50">
+
+<nav class="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-16">
+      <a href="dashboard.html" class="flex items-center gap-2 font-extrabold text-lg text-primary-600">
+        <div class="w-7 h-7 bg-primary-600 rounded-lg flex items-center justify-center"><svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+        SkorinCPNS
+      </a>
+      <div class="hidden md:flex items-center gap-1">
+        <a href="dashboard.html" class="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 transition">Dashboard</a>
+        <a href="tryout-list.html" class="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 transition">Tryout</a>
+        <a href="materi.html" class="px-4 py-2 rounded-lg text-sm font-semibold bg-primary-50 text-primary-600">Materi</a>
+        <a href="profil.html" class="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 transition">Profil</a>
+      </div>
+      <a href="profil.html" class="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-primary-600 transition">
+        <div id="avatarNav" class="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center text-white text-xs font-bold">?</div>
+      </a>
+    </div>
+  </div>
+</nav>
+
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="mb-8">
+    <h1 class="text-2xl font-black text-gray-900 mb-2">Materi Belajar SKD</h1>
+    <p class="text-gray-500">Pelajari materi TWK, TIU, dan TKP secara terstruktur untuk memaksimalkan skor Anda.</p>
+  </div>
+
+  <!-- Category Tabs -->
+  <div class="flex gap-2 mb-8 overflow-x-auto pb-1">
+    <button onclick="filterKat('semua')" id="btn-semua" class="px-5 py-2.5 rounded-xl text-sm font-semibold bg-primary-600 text-white flex-shrink-0">Semua</button>
+    <button onclick="filterKat('twk')" id="btn-twk" class="px-5 py-2.5 rounded-xl text-sm font-semibold bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 flex-shrink-0 transition">TWK</button>
+    <button onclick="filterKat('tiu')" id="btn-tiu" class="px-5 py-2.5 rounded-xl text-sm font-semibold bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 flex-shrink-0 transition">TIU</button>
+    <button onclick="filterKat('tkp')" id="btn-tkp" class="px-5 py-2.5 rounded-xl text-sm font-semibold bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 flex-shrink-0 transition">TKP</button>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5" id="materiGrid"></div>
+</main>
+
+<!-- Bottom Nav Mobile -->
+<nav class="md:hidden fixed bottom-0 inset-x-0 bg-white border-t border-gray-200 z-40">
+  <div class="grid grid-cols-4">
+    <a href="dashboard.html" class="flex flex-col items-center py-3 text-gray-400"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg><span class="text-xs mt-0.5">Dashboard</span></a>
+    <a href="tryout-list.html" class="flex flex-col items-center py-3 text-gray-400"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg><span class="text-xs mt-0.5">Tryout</span></a>
+    <a href="materi.html" class="flex flex-col items-center py-3 text-primary-600"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg><span class="text-xs mt-0.5 font-semibold">Materi</span></a>
+    <a href="profil.html" class="flex flex-col items-center py-3 text-gray-400"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg><span class="text-xs mt-0.5">Profil</span></a>
+  </div>
+</nav>
+
+<script>
+  const { createClient } = supabase;
+  const _sb = createClient('https://ykvwwfsoqqhtijtnivmj.supabase.co', 'sb_publishable_p_RYUHTiKlARg_rDTe3Gaw_N3G8XPwl');
+  (async () => {
+    const { data: { session } } = await _sb.auth.getSession();
+    if (!session) { window.location.replace('login.html'); return; }
+    const name = session.user.user_metadata?.full_name || session.user.email.split('@')[0];
+    document.getElementById('avatarNav').textContent = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+  })();
+
+  const materiList = [
+    // TWK
+    {kat:'twk', icon:'🏛️', judul:'Pancasila & Ideologi Negara', desc:'Sejarah perumusan Pancasila, nilai-nilai setiap sila, dan penerapannya dalam kehidupan bernegara.', tersedia:true, level:'Dasar'},
+    {kat:'twk', icon:'📜', judul:'UUD 1945 & Amandemen', desc:'Isi UUD 1945 beserta amandemen 1-4, hak dan kewajiban warga negara, serta kelembagaan negara.', tersedia:true, level:'Menengah'},
+    {kat:'twk', icon:'🇮🇩', judul:'Sejarah Indonesia', desc:'Perjuangan kemerdekaan, orde lama, orde baru, reformasi, dan peristiwa penting bangsa Indonesia.', tersedia:true, level:'Dasar'},
+    {kat:'twk', icon:'🤝', judul:'Bhinneka Tunggal Ika', desc:'Keberagaman SARA, toleransi, integrasi nasional, dan nilai-nilai persatuan bangsa.', tersedia:false, level:'Dasar'},
+    {kat:'twk', icon:'🗺️', judul:'Wawasan Nusantara & NKRI', desc:'Konsep geopolitik Indonesia, wawasan nusantara, ketahanan nasional, dan otonomi daerah.', tersedia:false, level:'Menengah'},
+    {kat:'twk', icon:'⚖️', judul:'Sistem Pemerintahan & Politik', desc:'Sistem pemerintahan Indonesia, pemilu, partai politik, dan lembaga-lembaga negara.', tersedia:false, level:'Lanjut'},
+    // TIU
+    {kat:'tiu', icon:'📖', judul:'Kemampuan Verbal', desc:'Sinonim, antonim, analogi kata, pemahaman wacana, dan logika verbal untuk soal TIU.', tersedia:true, level:'Dasar'},
+    {kat:'tiu', icon:'🔢', judul:'Kemampuan Numerik', desc:'Aritmatika dasar, aljabar, statistika, deret angka, dan soal cerita matematika.', tersedia:true, level:'Menengah'},
+    {kat:'tiu', icon:'🔷', judul:'Kemampuan Figural', desc:'Analogi gambar, seri gambar, pengelompokan gambar, dan kemampuan spasial.', tersedia:false, level:'Menengah'},
+    {kat:'tiu', icon:'🧩', judul:'Logika & Penalaran', desc:'Silogisme, deduksi, induksi, dan berbagai jenis soal penalaran logis.', tersedia:false, level:'Lanjut'},
+    {kat:'tiu', icon:'📐', judul:'Geometri & Pengukuran', desc:'Luas, keliling, volume bangun datar dan ruang, serta soal pengukuran terapan.', tersedia:false, level:'Dasar'},
+    // TKP
+    {kat:'tkp', icon:'🤲', judul:'Pelayanan Publik', desc:'Etika pelayanan publik, orientasi pelayanan prima, dan penanganan keluhan warga.', tersedia:true, level:'Dasar'},
+    {kat:'tkp', icon:'🌐', judul:'Jejaring Kerja', desc:'Kerja sama tim, membangun hubungan profesional, komunikasi efektif di lingkungan kerja.', tersedia:true, level:'Dasar'},
+    {kat:'tkp', icon:'🏡', judul:'Sosial Budaya', desc:'Kepekaan sosial, empati, kemampuan adaptasi dengan lingkungan sosial yang beragam.', tersedia:false, level:'Menengah'},
+    {kat:'tkp', icon:'💻', judul:'Teknologi Informasi', desc:'Literasi digital, pemanfaatan TIK dalam pekerjaan, dan keamanan informasi dasar.', tersedia:false, level:'Dasar'},
+    {kat:'tkp', icon:'🎯', judul:'Profesionalisme', desc:'Integritas, komitmen kerja, pengembangan diri, dan orientasi pada prestasi kerja.', tersedia:false, level:'Lanjut'},
+    {kat:'tkp', icon:'🧠', judul:'Pengendalian Diri', desc:'Manajemen emosi, ketahanan menghadapi tekanan kerja, dan pengelolaan konflik.', tersedia:false, level:'Menengah'},
+  ];
+
+  let katAktif = 'semua';
+
+  function filterKat(kat) {
+    katAktif = kat;
+    ['semua','twk','tiu','tkp'].forEach(k => {
+      const el = document.getElementById('btn-'+k);
+      el.className = `px-5 py-2.5 rounded-xl text-sm font-semibold flex-shrink-0 transition ${k===kat ? 'bg-primary-600 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}`;
+    });
+    renderMateri();
+  }
+
+  function renderMateri() {
+    const grid = document.getElementById('materiGrid');
+    const filtered = katAktif === 'semua' ? materiList : materiList.filter(m => m.kat === katAktif);
+    const katLabel = {twk:'TWK', tiu:'TIU', tkp:'TKP'};
+    const katColor = {twk:'bg-blue-100 text-blue-700', tiu:'bg-green-100 text-green-700', tkp:'bg-amber-100 text-amber-700'};
+    grid.innerHTML = filtered.map(m => `
+      <div class="bg-white rounded-2xl border ${m.tersedia ? 'border-gray-100' : 'border-gray-100 opacity-80'} shadow-sm p-5 ${m.tersedia ? 'hover:border-primary-300 hover:shadow-md transition' : ''}">
+        <div class="flex items-start justify-between mb-3">
+          <div class="text-3xl">${m.icon}</div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold px-2.5 py-1 rounded-full ${katColor[m.kat]}">${katLabel[m.kat]}</span>
+            ${m.tersedia ? '' : '<span class="bg-gray-100 text-gray-500 text-xs font-semibold px-2.5 py-1 rounded-full">Coming Soon</span>'}
+          </div>
+        </div>
+        <h3 class="font-bold text-gray-900 mb-2">${m.judul}</h3>
+        <p class="text-gray-500 text-sm leading-relaxed mb-4">${m.desc}</p>
+        <div class="flex items-center justify-between">
+          <span class="text-xs text-gray-400">Level: ${m.level}</span>
+          ${m.tersedia
+            ? `<button class="bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition">Pelajari →</button>`
+            : `<button disabled class="bg-gray-100 text-gray-400 text-xs font-semibold px-4 py-2 rounded-lg cursor-not-allowed">Segera Hadir</button>`}
+        </div>
+      </div>
+    `).join('');
+  }
+
+  renderMateri();
+</script>
+</body>
+</html>
