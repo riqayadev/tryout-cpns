@@ -229,6 +229,12 @@
 
   // Baca hasil dari localStorage sebelum IIFE async berjalan
   const hasil = JSON.parse(localStorage.getItem('skorin_last_result') || 'null');
+  console.log('[SkorinCPNS] hasil.html — baca skorin_last_result:', hasil ? {
+    paket: hasil.paket, paketId: hasil.paketId, attemptNumber: hasil.attemptNumber,
+    soalLength: Array.isArray(hasil.soal) ? hasil.soal.length : 'N/A',
+    jawabanLength: Array.isArray(hasil.jawaban) ? hasil.jawaban.length : 'N/A',
+    total: hasil.total
+  } : 'null (tidak ada data hasil tersimpan)');
 
   (async () => {
     const { data: { session } } = await _sb.auth.getSession();
@@ -462,6 +468,7 @@
   }
 
   function renderHasil(h) {
+    console.log('[SkorinCPNS] renderHasil() →', 'paket:', h.paket, '| soal.length:', (h.soal || []).length, '| jawaban.length:', (h.jawaban || []).length, '| skor TWK/TIU/TKP:', h.twk, h.tiu, h.tkp);
     const lulus = h.twk >= 65 && h.tiu >= 80 && h.tkp >= 166;
     const total  = h.twk + h.tiu + h.tkp;
 
@@ -541,8 +548,10 @@
   function renderPembahasan(soal, jawaban) {
     const container = document.getElementById('pembahasanList');
     const katColor  = {TWK:'bg-blue-100 text-blue-700', TIU:'bg-green-100 text-green-700', TKP:'bg-amber-100 text-amber-700'};
+    console.log('[SkorinCPNS] renderPembahasan() → jumlah soal:', soal.length, '| jumlah jawaban:', jawaban.length);
 
     container.innerHTML = soal.map((s, i) => {
+      const opsi = s.opsi || [];
       const userAns   = jawaban[i];
       const notAnswered = userAns === undefined || userAns === null;
       // TKP tidak ada benar/salah — selalu dianggap "benar" untuk badge warna
@@ -564,7 +573,7 @@
         </button>
         <div id="expand${i}" class="expand-body">
           <div class="px-4 pb-4 space-y-2">
-            ${s.opsi.map((o, j) => {
+            ${opsi.map((o, j) => {
               const huruf   = String.fromCharCode(65 + j);
               const isBenar = s.tipe !== 'TKP' && j === s.benar;
               const isUser  = j === userAns;
@@ -611,6 +620,7 @@
         const ans = jawaban[i];
         if (s.tipe !== 'TKP' && (ans === null || ans !== s.benar)) { salahSoal.push({...s, _origIdx: i}); salahJawaban.push(ans); }
       });
+      console.log('[SkorinCPNS] toggleSalahOnly() → menampilkan soal salah:', salahSoal.length, 'dari total', soal.length);
       renderPembahasan(salahSoal, salahJawaban);
     } else {
       renderPembahasan(soal, jawaban);

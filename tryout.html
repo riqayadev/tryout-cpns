@@ -10,12 +10,12 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <style>
-    .nav-btn{min-width:2rem;height:2rem;font-size:.7rem;font-weight:700;border-radius:.5rem;transition:all .15s;}
+    .nav-btn{min-width:1.5rem;width:1.5rem;height:1.5rem;font-size:.6rem;font-weight:700;border-radius:.375rem;transition:background-color .15s,color .15s;padding:0;display:flex;align-items:center;justify-content:center;}
     .nav-btn.answered{background:#2563eb;color:#fff;}
     .nav-btn.flagged{background:#f59e0b;color:#fff;}
     .nav-btn.current{outline:2px solid #2563eb;outline-offset:1px;}
     .nav-btn.empty{background:#f3f4f6;color:#9ca3af;}
-    .option-btn{border:2px solid #e5e7eb;transition:all .15s;}
+    .option-btn{border:2px solid #e5e7eb;transition:border-color .15s ease,background-color .15s ease;}
     .option-btn:hover{border-color:#2563eb;background:#eff6ff;}
     .option-btn.selected{border-color:#2563eb;background:#dbeafe;}
     body{-webkit-user-select:none;user-select:none;}
@@ -128,10 +128,10 @@
         <div class="flex items-center gap-1.5"><div class="w-4 h-4 rounded bg-gray-200"></div><span class="text-gray-500">Belum</span></div>
         <div class="flex items-center gap-1.5"><div class="w-4 h-4 rounded border-2 border-primary-600"></div><span class="text-gray-500">Aktif</span></div>
       </div>
-      <div class="space-y-3 max-h-80 overflow-y-auto pr-0.5">
-        <div><p class="text-xs font-semibold text-blue-600 mb-1.5" id="navLabelTwk">TWK</p><div class="grid grid-cols-6 gap-1" id="navTwk"></div></div>
-        <div><p class="text-xs font-semibold text-green-600 mb-1.5" id="navLabelTiu">TIU</p><div class="grid grid-cols-6 gap-1" id="navTiu"></div></div>
-        <div><p class="text-xs font-semibold text-amber-600 mb-1.5" id="navLabelTkp">TKP</p><div class="grid grid-cols-6 gap-1" id="navTkp"></div></div>
+      <div class="space-y-2">
+        <div><p class="text-xs font-semibold text-blue-600 mb-1" id="navLabelTwk">TWK</p><div class="grid grid-cols-9 gap-1" id="navTwk"></div></div>
+        <div><p class="text-xs font-semibold text-green-600 mb-1" id="navLabelTiu">TIU</p><div class="grid grid-cols-9 gap-1" id="navTiu"></div></div>
+        <div><p class="text-xs font-semibold text-amber-600 mb-1" id="navLabelTkp">TKP</p><div class="grid grid-cols-9 gap-1" id="navTkp"></div></div>
       </div>
     </div>
   </div>
@@ -214,6 +214,17 @@
     timerBox.className = '';
     // In latihan mode, hide submit button
     document.querySelector('button[onclick="konfirmasiSubmit()"]').style.display = 'none';
+  } else {
+    // Mode ujian: sembunyikan sidebar sepenuhnya — fokus penuh, tanpa jalan keluar
+    const sb = document.getElementById('sidebar');
+    const ov = document.getElementById('sbOverlay');
+    const wrap = document.querySelector('.lg\\:ml-64');
+    const hamburger = document.querySelector('button[onclick="openSidebar()"]');
+    if (sb) sb.style.display = 'none';
+    if (ov) ov.style.display = 'none';
+    if (wrap) wrap.classList.remove('lg:ml-64');
+    if (hamburger) hamburger.style.display = 'none';
+    console.log('[SkorinCPNS] Mode ujian aktif — sidebar disembunyikan');
   }
 
   let soalDB = [];
@@ -240,9 +251,9 @@
     } catch(e) { return 0; }
   }
 
-  function renderQ(idx) {
+  function renderQ(idx, animate = true) {
     const card = document.getElementById('questionCard');
-    if (card) { card.classList.remove('q-enter'); void card.offsetWidth; card.classList.add('q-enter'); }
+    if (card && animate) { card.classList.remove('q-enter'); void card.offsetWidth; card.classList.add('q-enter'); }
     const s = soalDB[idx];
     document.getElementById('katBadge').textContent = s.tipe;
     document.getElementById('katBadge').className = 'text-xs font-bold px-3 py-1.5 rounded-full ' + (katColor[s.tipe] || 'bg-gray-100 text-gray-700');
@@ -304,14 +315,16 @@
   function selectAnswer(optIdx) {
     if (isLatihanMode && jawaban[currentQ] !== null) return;
     jawaban[currentQ] = optIdx;
-    renderQ(currentQ);
+    renderQ(currentQ, false);
+    if (!isLatihanMode) saveProgress();
   }
 
   function toggleFlag() {
     flagged[currentQ] = !flagged[currentQ];
     const btn = document.getElementById('flagBtn');
     if (btn) { btn.classList.remove('flag-pop'); void btn.offsetWidth; btn.classList.add('flag-pop'); btn.addEventListener('animationend', () => btn.classList.remove('flag-pop'), {once:true}); }
-    renderQ(currentQ);
+    renderQ(currentQ, false);
+    if (!isLatihanMode) saveProgress();
   }
   function goPrev() { if (currentQ > 0) { currentQ--; renderQ(currentQ); } }
   function goNext() { if (currentQ < soalDB.length - 1) { currentQ++; renderQ(currentQ); } else konfirmasiSubmit(); }
@@ -441,6 +454,7 @@
       else if (s.tipe === 'TIU') { if (ans === s.benar) { tiu += 5; tiuBenar++; } }
       else if (s.tipe === 'TKP') { if (ans !== null) tkp += (s.nilai && s.nilai[ans] != null) ? s.nilai[ans] : 1; }
     });
+    console.log('[SkorinCPNS] computeResult →', 'soal:', soalSnap.length, '| jawaban terisi:', jawSnap.filter(j => j !== null).length, '| skor TWK/TIU/TKP:', twk, tiu, tkp);
     return { soalSnap, jawSnap, twk, tiu, tkp, twkBenar, tiuBenar };
   }
 
@@ -455,30 +469,36 @@
       soal: r.soalSnap, jawaban: r.jawSnap,
       attemptNumber: isLatihanMode ? 0 : _attemptNumber
     };
-    localStorage.setItem('skorin_last_result', JSON.stringify(result));
+    console.log('[SkorinCPNS] saveResultToLS → paket:', result.paket, '| paketId:', result.paketId, '| attempt:', result.attemptNumber, '| soal.length:', result.soal.length, '| jawaban.length:', result.jawaban.length, '| total:', result.total);
+    const json = JSON.stringify(result);
+    safeSetItem('skorin_last_result', json);
     // Per-paket key so tryout-list can load the specific result for "Lihat Pembahasan"
     if (result.paketId) {
-      localStorage.setItem('skorin_last_result_' + result.paketId, JSON.stringify(result));
+      safeSetItem('skorin_last_result_' + result.paketId, json);
       if (result.attemptNumber > 0) {
-        localStorage.setItem('skorin_result_' + result.paketId + '_' + result.attemptNumber, JSON.stringify(result));
+        safeSetItem('skorin_result_' + result.paketId + '_' + result.attemptNumber, json);
       }
     }
     const history = JSON.parse(localStorage.getItem('skorin_history') || '[]');
     history.push({ paket: paketNama, tanggal: result.tanggal, twk: r.twk, tiu: r.tiu, tkp: r.tkp, total: result.total });
     if (history.length > 20) history.shift();
-    localStorage.setItem('skorin_history', JSON.stringify(history));
+    safeSetItem('skorin_history', JSON.stringify(history));
+    console.log('[SkorinCPNS] saveResultToLS selesai — verifikasi skorin_last_result tersimpan:', !!localStorage.getItem('skorin_last_result'));
   }
 
   function doSubmit() {
     if (_submitted) return;
     _submitted = true;
+    console.log('[SkorinCPNS] doSubmit() dipanggil — mode:', isLatihanMode ? 'latihan' : 'ujian', '| attempt:', _attemptNumber, '| soal terjawab:', jawaban.filter(j => j !== null).length + '/' + jawaban.length);
     clearInterval(timerInterval);
     closeAllModals();
 
     // Compute and save to localStorage IMMEDIATELY (sync, before any async)
     const r = computeResult();
+    const _paketId = parseInt(params.get('id') || '0');
     soalDB = []; // prevent re-use
     saveResultToLS(r);
+    if (!isLatihanMode) clearProgress(_paketId, _attemptNumber);
 
     // Show loading overlay
     const lo = document.getElementById('loadingOverlay');
@@ -548,6 +568,48 @@
     return ns;
   }
 
+  // Simpan ke localStorage dengan aman — kalau penuh (QuotaExceededError), bersihkan cache hasil lama lalu coba lagi
+  function safeSetItem(key, value) {
+    try {
+      localStorage.setItem(key, value);
+      return true;
+    } catch (e) {
+      console.warn('[SkorinCPNS] localStorage penuh saat menyimpan "' + key + '", membersihkan cache lama...', e);
+      try {
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (k && k !== key && (k.startsWith('skorin_result_') || k.startsWith('skorin_last_result_') || k.startsWith('skorin_progress_'))) {
+            keysToRemove.push(k);
+          }
+        }
+        keysToRemove.forEach(k => localStorage.removeItem(k));
+        localStorage.setItem(key, value);
+        console.log('[SkorinCPNS] Berhasil simpan "' + key + '" setelah membersihkan ' + keysToRemove.length + ' entri lama');
+        return true;
+      } catch (e2) {
+        console.error('[SkorinCPNS] GAGAL simpan "' + key + '" meskipun sudah dibersihkan:', e2);
+        return false;
+      }
+    }
+  }
+
+  // ===== Auto-save progress jawaban (mode ujian) =====
+  function getProgressKey(paketId, attemptNum) {
+    return 'skorin_progress_' + paketId + '_' + attemptNum;
+  }
+  function saveProgress() {
+    if (isLatihanMode || !soalDB.length || _submitted) return;
+    const paketId = parseInt(params.get('id') || '0');
+    const key = getProgressKey(paketId, _attemptNumber);
+    const progress = { soalDB, jawaban, flagged, currentQ, savedAt: new Date().toISOString() };
+    const ok = safeSetItem(key, JSON.stringify(progress));
+    console.log('[SkorinCPNS] saveProgress →', key, '| terjawab:', jawaban.filter(j => j !== null).length + '/' + jawaban.length, '| sukses:', ok);
+  }
+  function clearProgress(paketId, attemptNum) {
+    try { localStorage.removeItem(getProgressKey(paketId, attemptNum)); console.log('[SkorinCPNS] clearProgress →', getProgressKey(paketId, attemptNum)); } catch (e) {}
+  }
+
   async function loadSoal() {
     const paketId = parseInt(params.get('id') || '0');
     if (!paketId) {
@@ -609,14 +671,38 @@
         return;
       }
       _attemptNumber = attemptCount + 1;
-      // Ujian: acak soal di dalam setiap tipe (TWK tetap di blok pertama, TIU kedua, TKP ketiga)
-      shuffle(soalTwk); shuffle(soalTiu); shuffle(soalTkp);
-      soalDB = [...soalTwk, ...soalTiu, ...soalTkp];
-      if (_attemptNumber === 2) soalDB = soalDB.map(s => shuffleOptions(s));
+
+      // Coba pulihkan progress tersimpan untuk paket+attempt yang sama
+      let restored = false;
+      const progressKey = getProgressKey(paketId, _attemptNumber);
+      try {
+        const saved = JSON.parse(localStorage.getItem(progressKey) || 'null');
+        if (saved && Array.isArray(saved.soalDB) && saved.soalDB.length === allSoal.length &&
+            Array.isArray(saved.jawaban) && saved.jawaban.length === saved.soalDB.length) {
+          soalDB = saved.soalDB;
+          jawaban = saved.jawaban;
+          flagged = (Array.isArray(saved.flagged) && saved.flagged.length === soalDB.length) ? saved.flagged : new Array(soalDB.length).fill(false);
+          currentQ = (Number.isInteger(saved.currentQ) && saved.currentQ >= 0 && saved.currentQ < soalDB.length) ? saved.currentQ : 0;
+          restored = true;
+          console.log('[SkorinCPNS] Progress dipulihkan dari', progressKey, '— terjawab:', jawaban.filter(j => j !== null).length + '/' + jawaban.length, '| disimpan pada:', saved.savedAt);
+          showToast('✅', 'Progress sebelumnya berhasil dipulihkan', 'success');
+        }
+      } catch (e) { console.warn('[SkorinCPNS] Gagal memulihkan progress:', e); }
+
+      if (!restored) {
+        // Ujian: acak soal di dalam setiap tipe (TWK tetap di blok pertama, TIU kedua, TKP ketiga)
+        shuffle(soalTwk); shuffle(soalTiu); shuffle(soalTkp);
+        soalDB = [...soalTwk, ...soalTiu, ...soalTkp];
+        if (_attemptNumber === 2) soalDB = soalDB.map(s => shuffleOptions(s));
+        jawaban = new Array(soalDB.length).fill(null);
+        flagged  = new Array(soalDB.length).fill(false);
+      }
     }
 
-    jawaban = new Array(soalDB.length).fill(null);
-    flagged  = new Array(soalDB.length).fill(false);
+    if (isLatihanMode) {
+      jawaban = new Array(soalDB.length).fill(null);
+      flagged  = new Array(soalDB.length).fill(false);
+    }
 
     document.getElementById('totalSoalCount').textContent = soalDB.length;
 
@@ -635,7 +721,7 @@
       document.getElementById('paketNamaHeader').appendChild(badge);
     }
 
-    renderQ(0);
+    renderQ(currentQ);
     if (!isLatihanMode) { startTimer(); enterFullscreen(); }
   }
 
