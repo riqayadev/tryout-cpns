@@ -99,7 +99,7 @@
   <div class="flex items-start justify-between gap-4">
     <div>
       <h1 class="text-2xl font-black text-gray-900 dark:text-white">🏆 Leaderboard</h1>
-      <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Ranking peserta berdasarkan skor SKD tertinggi</p>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Ranking skor percobaan pertama ujian SKD</p>
     </div>
     <a href="tryout-list.html" class="hidden sm:inline-flex items-center gap-2 text-xs font-semibold bg-primary-600 text-white px-4 py-2.5 rounded-xl hover:bg-primary-700 transition flex-shrink-0">
       ✍️ Ikut Tryout
@@ -217,7 +217,7 @@ async function loadLeaderboard() {
 
   let query = _sb
     .from('hasil_tryout')
-    .select('user_id, display_name, skor_twk, skor_tiu, skor_tkp, skor_total, status_lulus, paket_nama, tanggal')
+    .select('*')
     .order('skor_total', { ascending: false })
     .limit(2000);
 
@@ -255,9 +255,12 @@ async function loadLeaderboard() {
     return;
   }
 
+  // Only show attempt 1 scores (or legacy rows without attempt_number) in the leaderboard
+  const filtered = (data || []).filter(row => !row.attempt_number || row.attempt_number === 1);
+
   // Group by user_id → keep best score per user
   const bestByUser = new Map();
-  for (const row of data) {
+  for (const row of filtered) {
     const prev = bestByUser.get(row.user_id);
     if (!prev || row.skor_total > prev.skor_total) bestByUser.set(row.user_id, row);
   }
@@ -337,7 +340,7 @@ async function loadLeaderboard() {
         <tbody>${rows}</tbody>
       </table>
       <p class="text-center text-xs text-gray-400 dark:text-gray-500 py-4">
-        ${ranked.length} peserta terdaftar · Ranking berdasarkan skor terbaik per peserta
+        ${ranked.length} peserta terdaftar · Ranking berdasarkan skor percobaan pertama
       </p>
     </div>`;
 }

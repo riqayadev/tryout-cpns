@@ -338,15 +338,69 @@
   }
 
   function viewPembahasan(paketId) {
-    const key = 'skorin_last_result_' + paketId;
-    const saved = localStorage.getItem(key);
-    if (saved) localStorage.setItem('skorin_last_result', saved);
+    const r1 = localStorage.getItem('skorin_result_' + paketId + '_1');
+    const r2 = localStorage.getItem('skorin_result_' + paketId + '_2');
+
+    if (r1 && r2) {
+      // Both attempts exist — show modal to choose
+      const list = document.getElementById('pembahasanChoiceList');
+      const d1 = JSON.parse(r1), d2 = JSON.parse(r2);
+      list.innerHTML = `
+        <button onclick="goToPembahasan(1, ${paketId})" class="w-full bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl p-4 text-left transition">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="font-bold text-gray-900 text-sm">Percobaan 1 <span class="ml-1 text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full font-bold">Skor Ranking</span></p>
+              <p class="text-xs text-gray-500 mt-0.5">${d1.twk}+${d1.tiu}+${d1.tkp}</p>
+            </div>
+            <span class="text-2xl font-black text-blue-600">${d1.total}</span>
+          </div>
+        </button>
+        <button onclick="goToPembahasan(2, ${paketId})" class="w-full bg-orange-50 hover:bg-orange-100 border border-orange-200 rounded-xl p-4 text-left transition">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="font-bold text-gray-900 text-sm">Percobaan 2 <span class="ml-1 text-xs bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded-full font-bold">Remidi</span></p>
+              <p class="text-xs text-gray-500 mt-0.5">${d2.twk}+${d2.tiu}+${d2.tkp}</p>
+            </div>
+            <span class="text-2xl font-black text-orange-600">${d2.total}</span>
+          </div>
+        </button>`;
+      const modal = document.getElementById('pembahasanModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      return;
+    }
+
+    // Single attempt available — go directly
+    const data = r1 || r2 || localStorage.getItem('skorin_last_result_' + paketId);
+    if (data) localStorage.setItem('skorin_last_result', data);
     window.location.href = 'hasil.html';
+  }
+
+  function goToPembahasan(attemptKey, paketId) {
+    const data = localStorage.getItem('skorin_result_' + paketId + '_' + attemptKey);
+    if (data) localStorage.setItem('skorin_last_result', data);
+    window.location.href = 'hasil.html';
+  }
+
+  function closePembahasanModal() {
+    const modal = document.getElementById('pembahasanModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
   }
 
   function alertPremium() {
     alert('✨ Paket Premium akan segera tersedia!\n\nDaftarkan email Anda untuk mendapat notifikasi pertama saat Premium diluncurkan.');
   }
 </script>
+
+<!-- Pembahasan Choice Modal -->
+<div id="pembahasanModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4" style="background:rgba(0,0,0,.6)" onclick="if(event.target===this)closePembahasanModal()">
+  <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-sm p-6">
+    <h3 class="font-black text-gray-900 dark:text-white text-lg mb-1">Pilih Percobaan</h3>
+    <p class="text-gray-500 dark:text-gray-400 text-sm mb-4">Pilih percobaan mana yang ingin kamu lihat pembahasannya.</p>
+    <div class="space-y-3" id="pembahasanChoiceList"></div>
+    <button onclick="closePembahasanModal()" class="mt-4 w-full text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 py-2 transition">Batal</button>
+  </div>
+</div>
 </body>
 </html>

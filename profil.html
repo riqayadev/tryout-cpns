@@ -305,7 +305,7 @@ async function loadProfileData() {
 
   const { data: dbData, error } = await _sb
     .from('hasil_tryout')
-    .select('skor_twk, skor_tiu, skor_tkp, skor_total, status_lulus, paket_nama, tanggal')
+    .select('*')
     .eq('user_id', currentUser.id)
     .order('tanggal', { ascending: false })
     .limit(200);
@@ -319,7 +319,9 @@ async function loadProfileData() {
       tiu: r.skor_tiu || 0,
       tkp: r.skor_tkp || 0,
       total: r.skor_total || 0,
-      lulus: r.status_lulus
+      lulus: r.status_lulus,
+      attemptNumber: r.attempt_number || null,
+      paketId: r.paket_id || null
     }));
   } else {
     const ls = JSON.parse(localStorage.getItem('skorin_history') || '[]');
@@ -401,24 +403,26 @@ function loadHistory(records) {
         <thead class="bg-gray-50 dark:bg-slate-900 text-xs text-gray-500 uppercase">
           <tr>
             <th class="px-5 py-3 text-left">Paket</th>
+            <th class="px-4 py-3 text-center hidden sm:table-cell">Percobaan</th>
             <th class="px-4 py-3 text-center">TWK</th>
             <th class="px-4 py-3 text-center">TIU</th>
             <th class="px-4 py-3 text-center">TKP</th>
             <th class="px-4 py-3 text-center">Total</th>
             <th class="px-4 py-3 text-center">Status</th>
-            <th class="px-5 py-3 text-left">Tanggal</th>
+            <th class="px-5 py-3 text-left hidden md:table-cell">Tanggal</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-100">
           ${records.map(h => `
           <tr class="hover:bg-gray-50 dark:hover:bg-slate-700 transition">
             <td class="px-5 py-3.5 font-medium text-gray-900 dark:text-white">${h.paket || 'SKD Simulasi'}</td>
+            <td class="px-4 py-3.5 text-center hidden sm:table-cell">${h.attemptNumber === 1 ? '<span class="text-xs font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">P-1</span>' : h.attemptNumber === 2 ? '<span class="text-xs font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-700">P-2</span>' : '<span class="text-xs text-gray-400">-</span>'}</td>
             <td class="px-4 py-3.5 text-center"><span class="${h.twk >= 65 ? 'text-green-600' : 'text-red-500'} font-semibold">${h.twk}</span></td>
             <td class="px-4 py-3.5 text-center"><span class="${h.tiu >= 80 ? 'text-green-600' : 'text-red-500'} font-semibold">${h.tiu}</span></td>
             <td class="px-4 py-3.5 text-center"><span class="${h.tkp >= 166 ? 'text-green-600' : 'text-red-500'} font-semibold">${h.tkp}</span></td>
             <td class="px-4 py-3.5 text-center font-black text-gray-900 dark:text-white">${h.total}</td>
             <td class="px-4 py-3.5 text-center"><span class="px-2 py-0.5 rounded-full text-xs font-bold ${h.lulus ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">${h.lulus ? 'LULUS' : 'BELUM'}</span></td>
-            <td class="px-5 py-3.5 text-gray-400 text-xs">${new Date(h.tanggal).toLocaleDateString('id-ID')}</td>
+            <td class="px-5 py-3.5 text-gray-400 text-xs hidden md:table-cell">${new Date(h.tanggal).toLocaleDateString('id-ID')}</td>
           </tr>`).join('')}
         </tbody>
       </table>

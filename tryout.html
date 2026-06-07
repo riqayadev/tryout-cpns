@@ -459,6 +459,9 @@
     // Per-paket key so tryout-list can load the specific result for "Lihat Pembahasan"
     if (result.paketId) {
       localStorage.setItem('skorin_last_result_' + result.paketId, JSON.stringify(result));
+      if (result.attemptNumber > 0) {
+        localStorage.setItem('skorin_result_' + result.paketId + '_' + result.attemptNumber, JSON.stringify(result));
+      }
     }
     const history = JSON.parse(localStorage.getItem('skorin_history') || '[]');
     history.push({ paket: paketNama, tanggal: result.tanggal, twk: r.twk, tiu: r.tiu, tkp: r.tkp, total: result.total });
@@ -535,6 +538,16 @@
     }
   }
 
+  function shuffleOptions(s) {
+    if (!s.opsi || s.opsi.length === 0) return s;
+    const perm = Array.from({length: s.opsi.length}, (_, i) => i);
+    shuffle(perm);
+    const ns = { ...s, opsi: perm.map(i => s.opsi[i]) };
+    if (s.tipe !== 'TKP') { ns.benar = perm.indexOf(s.benar); }
+    else if (s.nilai) { ns.nilai = perm.map(i => s.nilai[i]); }
+    return ns;
+  }
+
   async function loadSoal() {
     const paketId = parseInt(params.get('id') || '0');
     if (!paketId) {
@@ -599,6 +612,7 @@
       // Ujian: acak soal di dalam setiap tipe (TWK tetap di blok pertama, TIU kedua, TKP ketiga)
       shuffle(soalTwk); shuffle(soalTiu); shuffle(soalTkp);
       soalDB = [...soalTwk, ...soalTiu, ...soalTkp];
+      if (_attemptNumber === 2) soalDB = soalDB.map(s => shuffleOptions(s));
     }
 
     jawaban = new Array(soalDB.length).fill(null);
