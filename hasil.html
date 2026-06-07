@@ -222,9 +222,36 @@
   function closeSidebar(){document.getElementById('sidebar').classList.add('-translate-x-full');document.getElementById('sbOverlay').classList.add('hidden');}
   if(localStorage.getItem('sb_c')==='1'&&window.innerWidth>=1024){document.getElementById('sidebar')?.classList.add('collapsed');document.getElementById('mainWrapper').style.marginLeft='4rem';document.getElementById('sbColIcon').style.transform='rotate(180deg)';}
 
+  // Baca parameter URL — dipakai saat membuka hasil percobaan/paket TERTENTU
+  // (misalnya dari tombol "Lihat Pembahasan" di tryout-list.html → hasil.html?paket_id=X&attempt=Y).
+  // Tanpa parameter, tampilkan hasil tryout yang BARU SAJA diselesaikan (skorin_last_result).
+  const _urlParams   = new URLSearchParams(location.search);
+  const _paketIdParam = parseInt(_urlParams.get('paket_id') || '0');
+  const _attemptParam = parseInt(_urlParams.get('attempt') || '0');
+
+  function loadHasilData() {
+    let raw = null, sourceKey = null;
+    if (_paketIdParam) {
+      if (_attemptParam > 0) {
+        sourceKey = 'skorin_result_' + _paketIdParam + '_' + _attemptParam;
+        raw = localStorage.getItem(sourceKey);
+      }
+      if (!raw) {
+        sourceKey = 'skorin_last_result_' + _paketIdParam;
+        raw = localStorage.getItem(sourceKey);
+      }
+    }
+    if (!raw) {
+      sourceKey = 'skorin_last_result';
+      raw = localStorage.getItem(sourceKey);
+    }
+    console.log('[SkorinCPNS] hasil.html — paket_id:', _paketIdParam, '| attempt:', _attemptParam, '| key dipakai:', sourceKey, '| ditemukan:', !!raw);
+    return raw ? JSON.parse(raw) : null;
+  }
+
   // Baca hasil dari localStorage sebelum IIFE async berjalan
-  const hasil = JSON.parse(localStorage.getItem('skorin_last_result') || 'null');
-  console.log('[SkorinCPNS] hasil.html — baca skorin_last_result:', hasil ? {
+  const hasil = loadHasilData();
+  console.log('[SkorinCPNS] hasil.html — data hasil:', hasil ? {
     paket: hasil.paket, paketId: hasil.paketId, attemptNumber: hasil.attemptNumber,
     soalLength: Array.isArray(hasil.soal) ? hasil.soal.length : 'N/A',
     jawabanLength: Array.isArray(hasil.jawaban) ? hasil.jawaban.length : 'N/A',
@@ -242,15 +269,27 @@
     document.getElementById('sbName').textContent = name;
     document.getElementById('sbEmail').textContent = session.user.email;
 
-    // Simpan ke Supabase sekali saja — flag savedToDB mencegah duplikasi saat refresh
-    if (hasil && !hasil.savedToDB) {
-      await saveToSupabase(hasil, session);
+    // PENTING: Pencatatan ke Supabase HANYA terjadi saat submit di tryout.html (sekali per attempt).
+    // Di sini hanya FALLBACK kalau penyimpanan saat submit gagal (mis. koneksi putus) —
+    // dicek lewat flag localStorage skorin_saved_{paketId}_{attempt}, BUKAN savedToDB,
+    // supaya tidak tercatat ulang setiap kali halaman ini dibuka (refresh, kembali, dsb).
+    // Kalau halaman dibuka lewat ?paket_id=... (mis. dari "Lihat Pembahasan" untuk melihat
+    // riwayat lama), JANGAN coba simpan sama sekali — itu pasti hasil lama yang sudah tercatat.
+    const isFreshSubmission = !_paketIdParam;
+    if (isFreshSubmission && hasil && hasil.paketId && (hasil.attemptNumber === 1 || hasil.attemptNumber === 2)) {
+      const flagKey = 'skorin_saved_' + hasil.paketId + '_' + hasil.attemptNumber;
+      if (localStorage.getItem(flagKey) === 'true') {
+        console.log('[SkorinCPNS] hasil.html — sudah tercatat di Supabase sebelumnya (' + flagKey + '), tidak disimpan ulang.');
+      } else {
+        await saveToSupabase(hasil, session, flagKey);
+      }
     }
   })();
 
   async function confirmLogout(){if(!confirm('Yakin ingin keluar?'))return;await _sb.auth.signOut();localStorage.removeItem('skorin_history');window.location.href='index.html';}
 
-  async function saveToSupabase(h, session) {
+  // Fallback save — hanya terpanggil jika tryout.html gagal mencatat hasil saat submit.
+  async function saveToSupabase(h, session, flagKey) {
     const lulus = h.twk >= 65 && h.tiu >= 80 && h.tkp >= 166;
     try {
       const displayName = session.user.user_metadata?.full_name || session.user.email.split('@')[0];
@@ -265,17 +304,16 @@
         skor_total:     (h.twk || 0) + (h.tiu || 0) + (h.tkp || 0),
         status_lulus:   lulus,
         tanggal:        h.tanggal || new Date().toISOString(),
-        attempt_number: h.attemptNumber || 1
+        attempt_number: h.attemptNumber
       };
       let { error } = await _sb.from('hasil_tryout').insert(payload);
-      if (!error) {
-        h.savedToDB = true;
-        localStorage.setItem('skorin_last_result', JSON.stringify(h));
-      } else if (error.code === '42703' || (error.message || '').includes('attempt_number')) {
+      if (error && (error.code === '42703' || (error.message || '').includes('attempt_number'))) {
         delete payload.attempt_number;
-        const { error: e2 } = await _sb.from('hasil_tryout').insert(payload);
-        if (!e2) { h.savedToDB = true; localStorage.setItem('skorin_last_result', JSON.stringify(h)); }
-        else console.warn('Gagal simpan hasil ke Supabase:', e2.message);
+        ({ error } = await _sb.from('hasil_tryout').insert(payload));
+      }
+      if (!error) {
+        localStorage.setItem(flagKey, 'true');
+        console.log('[SkorinCPNS] hasil.html — fallback save berhasil, flag diset:', flagKey);
       } else {
         console.warn('Gagal simpan hasil ke Supabase:', error.message);
       }

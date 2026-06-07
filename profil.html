@@ -303,17 +303,21 @@ function updateStreak() {
 async function loadProfileData() {
   if (!currentUser) return;
 
-  const { data: dbData, error } = await _sb
-    .from('hasil_tryout')
-    .select('*')
-    .eq('user_id', currentUser.id)
-    .order('tanggal', { ascending: false })
-    .limit(200);
+  const [{ data: dbData, error }, { data: paketRows }] = await Promise.all([
+    _sb.from('hasil_tryout').select('*').eq('user_id', currentUser.id).order('tanggal', { ascending: false }),
+    _sb.from('pakets').select('id, nama')
+  ]);
+
+  // Nama paket resmi (dari tabel pakets) jadi sumber kebenaran tampilan —
+  // beberapa baris lama di hasil_tryout bisa punya paket_nama yang beda
+  // (mis. tersimpan dari tautan lama yang penamaannya tidak konsisten).
+  const paketNameById = {};
+  (paketRows || []).forEach(p => { paketNameById[p.id] = p.nama; });
 
   let records = [];
   if (!error && dbData && dbData.length > 0) {
     records = dbData.map(r => ({
-      paket: r.paket_nama,
+      paket: (r.paket_id && paketNameById[r.paket_id]) || r.paket_nama,
       tanggal: r.tanggal,
       twk: r.skor_twk || 0,
       tiu: r.skor_tiu || 0,
@@ -376,9 +380,16 @@ function renderChart(records) {
 function renderAchievements(records, streak) {
   const scores = records.map(h => h.total || 0);
   const maxScore = scores.length ? Math.max(...scores) : 0;
+  // Hitung tryout SELESAI dari kombinasi unik paket_id + attempt_number —
+  // supaya duplikat atau baris tanpa attempt_number (data lama/latihan) tidak menggelembungkan hitungan.
+  // Fallback ke jumlah baris kalau datanya (mis. dari localStorage lama) tidak punya info itu sama sekali.
+  const withAttemptInfo = records.filter(h => h.paketId && h.attemptNumber);
+  const uniqueAttempts = withAttemptInfo.length
+    ? new Set(withAttemptInfo.map(h => h.paketId + '_' + h.attemptNumber)).size
+    : records.length;
   const achievements = [
-    { icon: '🎯', label: 'Tryout Pertama', desc: 'Selesaikan 1 tryout',       unlocked: records.length >= 1 },
-    { icon: '🔥', label: '5 Tryout',       desc: 'Selesaikan 5 tryout',       unlocked: records.length >= 5 },
+    { icon: '🎯', label: 'Tryout Pertama', desc: 'Selesaikan 1 tryout',       unlocked: uniqueAttempts >= 1 },
+    { icon: '🔥', label: '5 Tryout',       desc: 'Selesaikan 5 tryout',       unlocked: uniqueAttempts >= 5 },
     { icon: '💯', label: 'Skor 300+',      desc: 'Total skor ≥ 300',          unlocked: maxScore >= 300 },
     { icon: '🏆', label: 'Skor 400+',      desc: 'Total skor ≥ 400',          unlocked: maxScore >= 400 },
     { icon: '⭐', label: 'Pertama Lulus',  desc: 'Lolos passing grade',       unlocked: records.some(h => h.lulus) },

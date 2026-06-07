@@ -484,9 +484,63 @@
     if (history.length > 20) history.shift();
     safeSetItem('skorin_history', JSON.stringify(history));
     console.log('[SkorinCPNS] saveResultToLS selesai — verifikasi skorin_last_result tersimpan:', !!localStorage.getItem('skorin_last_result'));
+    return result;
   }
 
-  function doSubmit() {
+  // Kunci flag localStorage penanda hasil sudah tercatat di Supabase — mencegah duplikat
+  // saat hasil.html dibuka berkali-kali (refresh, navigasi balik, dll).
+  function getSavedFlagKey(paketId, attemptNum) {
+    return 'skorin_saved_' + paketId + '_' + attemptNum;
+  }
+
+  // Simpan hasil ke Supabase HANYA SEKALI — dipanggil saat user submit di sini, bukan di hasil.html.
+  // Mode latihan (attemptNumber 0) TIDAK dicatat sebagai tryout resmi (tidak masuk ranking/riwayat).
+  async function saveToSupabase(result) {
+    const paketId = result.paketId;
+    const attemptNum = result.attemptNumber;
+    if (!paketId || !(attemptNum === 1 || attemptNum === 2)) return;
+
+    const flagKey = getSavedFlagKey(paketId, attemptNum);
+    if (localStorage.getItem(flagKey) === 'true') {
+      console.log('[SkorinCPNS] saveToSupabase → sudah pernah disimpan (' + flagKey + '), lewati.');
+      return;
+    }
+
+    try {
+      const { data: { session } } = await _sb.auth.getSession();
+      if (!session) return;
+      const lulus = result.twk >= 65 && result.tiu >= 80 && result.tkp >= 166;
+      const displayName = session.user.user_metadata?.full_name || session.user.email.split('@')[0];
+      const payload = {
+        user_id:        session.user.id,
+        paket_id:       paketId,
+        paket_nama:     result.paket || '',
+        display_name:   displayName,
+        skor_twk:       result.twk || 0,
+        skor_tiu:       result.tiu || 0,
+        skor_tkp:       result.tkp || 0,
+        skor_total:     result.total || 0,
+        status_lulus:   lulus,
+        tanggal:        result.tanggal,
+        attempt_number: attemptNum
+      };
+      let { error } = await _sb.from('hasil_tryout').insert(payload);
+      if (error && (error.code === '42703' || (error.message || '').includes('attempt_number'))) {
+        delete payload.attempt_number;
+        ({ error } = await _sb.from('hasil_tryout').insert(payload));
+      }
+      if (!error) {
+        localStorage.setItem(flagKey, 'true');
+        console.log('[SkorinCPNS] saveToSupabase → tersimpan, flag diset:', flagKey);
+      } else {
+        console.warn('[SkorinCPNS] Gagal simpan hasil ke Supabase:', error.message);
+      }
+    } catch (e) {
+      console.warn('[SkorinCPNS] Error simpan hasil ke Supabase:', e);
+    }
+  }
+
+  async function doSubmit() {
     if (_submitted) return;
     _submitted = true;
     console.log('[SkorinCPNS] doSubmit() dipanggil — mode:', isLatihanMode ? 'latihan' : 'ujian', '| attempt:', _attemptNumber, '| soal terjawab:', jawaban.filter(j => j !== null).length + '/' + jawaban.length);
@@ -497,7 +551,7 @@
     const r = computeResult();
     const _paketId = parseInt(params.get('id') || '0');
     soalDB = []; // prevent re-use
-    saveResultToLS(r);
+    const result = saveResultToLS(r);
     if (!isLatihanMode) clearProgress(_paketId, _attemptNumber);
 
     // Show loading overlay
@@ -509,7 +563,13 @@
     }
     document.querySelectorAll('button').forEach(b => { b.disabled = true; });
     if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
-    setTimeout(() => { window.location.href = 'hasil.html'; }, 800);
+
+    // Catat ke Supabase HANYA SEKALI di sini (saat submit) — bukan di hasil.html.
+    // Tunggu selesai (atau gagal) supaya flag skorin_saved_ sudah pasti ter-set sebelum redirect.
+    const savePromise = saveToSupabase(result);
+    const minDelay = new Promise(res => setTimeout(res, 800));
+    await Promise.all([savePromise, minDelay]);
+    window.location.href = 'hasil.html';
   }
 
   document.addEventListener('paste', e => e.preventDefault());

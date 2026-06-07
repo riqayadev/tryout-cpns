@@ -370,13 +370,15 @@
       return;
     }
 
-    // Single attempt available — go directly ke pembahasan dengan attempt yang sesuai
+    // Hanya satu percobaan tersedia — langsung ke halaman hasil (statistik) percobaan tsb.
+    // Dari sana user bisa klik "Review Soal" untuk membuka pembahasan.html.
     const attemptKey = r1 ? 1 : (r2 ? 2 : 0);
-    window.location.href = `pembahasan.html?paket_id=${paketId}&attempt=${attemptKey}`;
+    window.location.href = `hasil.html?paket_id=${paketId}&attempt=${attemptKey}`;
   }
 
   function goToPembahasan(attemptKey, paketId) {
-    window.location.href = `pembahasan.html?paket_id=${paketId}&attempt=${attemptKey}`;
+    // Alur: tryout-list → modal pilih percobaan → hasil.html (statistik) → tombol "Review Soal" → pembahasan.html
+    window.location.href = `hasil.html?paket_id=${paketId}&attempt=${attemptKey}`;
   }
 
   function closePembahasanModal() {
@@ -394,7 +396,7 @@
 <div id="pembahasanModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4" style="background:rgba(0,0,0,.6)" onclick="if(event.target===this)closePembahasanModal()">
   <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-sm p-6">
     <h3 class="font-black text-gray-900 dark:text-white text-lg mb-1">Pilih Percobaan</h3>
-    <p class="text-gray-500 dark:text-gray-400 text-sm mb-4">Pilih percobaan mana yang ingin kamu lihat pembahasannya.</p>
+    <p class="text-gray-500 dark:text-gray-400 text-sm mb-4">Pilih percobaan mana yang ingin kamu lihat hasil & pembahasannya.</p>
     <div class="space-y-3" id="pembahasanChoiceList"></div>
     <button onclick="closePembahasanModal()" class="mt-4 w-full text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 py-2 transition">Batal</button>
   </div>
