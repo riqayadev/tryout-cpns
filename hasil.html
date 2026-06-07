@@ -219,6 +219,12 @@
   const { createClient } = supabase;
   const _sb = createClient('https://ykvwwfsoqqhtijtnivmj.supabase.co', 'sb_publishable_p_RYUHTiKlARg_rDTe3Gaw_N3G8XPwl');
 
+  // State pembahasan — dideklarasikan di awal agar tidak kena temporal dead zone
+  // saat renderHasil() dipanggil sebelum baris deklarasi lama tercapai
+  let _currentHasil = null;
+  let salahOnly = false;
+  let allOpen = false;
+
   function toggleDark(){const d=document.documentElement.classList.toggle('dark');localStorage.setItem('dark_mode',d?'1':'0');updateDarkIcon();}
   function updateDarkIcon(){const d=document.documentElement.classList.contains('dark');document.getElementById('sbDarkIcon').innerHTML=d?'<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>':'<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>';}
   updateDarkIcon();
@@ -601,8 +607,6 @@
     }).join('');
   }
 
-  let salahOnly = false;
-  let _currentHasil = null;
   function toggleSalahOnly() {
     if (!_currentHasil) return;
     salahOnly = !salahOnly;
@@ -627,7 +631,6 @@
     }
   }
 
-  let allOpen = false;
   function toggleAll() {
     allOpen = !allOpen;
     document.querySelectorAll('.expand-body').forEach((el, i) => {
