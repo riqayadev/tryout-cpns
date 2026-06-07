@@ -303,7 +303,7 @@
       let ujianBtn = '';
 
       if (attempts >= 2) {
-        statusBadge = `<span class="text-xs font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-700">Selesai 2/2</span>`;
+        statusBadge = `<span class="text-xs font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-gray-300">Selesai · 2/2</span>`;
         kesempatanBar = `<div class="flex items-center gap-2 mb-3"><span class="text-xs text-red-500 font-semibold">🔒 Kesempatan ujian sudah habis</span></div>`;
         ujianBtn = `<button onclick="viewPembahasan(${p.id})" class="flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-bold py-3 rounded-xl transition w-full">📋 Lihat Pembahasan</button>`;
       } else if (attempts === 1) {
@@ -370,16 +370,13 @@
       return;
     }
 
-    // Single attempt available — go directly
-    const data = r1 || r2 || localStorage.getItem('skorin_last_result_' + paketId);
-    if (data) localStorage.setItem('skorin_last_result', data);
-    window.location.href = 'hasil.html';
+    // Single attempt available — go directly ke pembahasan dengan attempt yang sesuai
+    const attemptKey = r1 ? 1 : (r2 ? 2 : 0);
+    window.location.href = `pembahasan.html?paket_id=${paketId}&attempt=${attemptKey}`;
   }
 
   function goToPembahasan(attemptKey, paketId) {
-    const data = localStorage.getItem('skorin_result_' + paketId + '_' + attemptKey);
-    if (data) localStorage.setItem('skorin_last_result', data);
-    window.location.href = 'hasil.html';
+    window.location.href = `pembahasan.html?paket_id=${paketId}&attempt=${attemptKey}`;
   }
 
   function closePembahasanModal() {
