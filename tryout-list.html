@@ -180,6 +180,7 @@
   let allPakets = [];
   let filterAktif = 'semua';
   let attemptsByPaket = {};
+  let attemptDataByPaket = {};
 
   (async () => {
     const { data: { session } } = await _sb.auth.getSession();
@@ -203,7 +204,7 @@
 
     const [pRes, hRes] = await Promise.all([
       _sb.from('pakets').select('id, kode, nama, tipe, level, deskripsi, icon, total_soal').eq('aktif', true).order('id', { ascending: true }),
-      session ? _sb.from('hasil_tryout').select('paket_id').eq('user_id', session.user.id) : Promise.resolve({ data: [] })
+      session ? _sb.from('hasil_tryout').select('paket_id, attempt_number, skor_twk, skor_tiu, skor_tkp, skor_total').eq('user_id', session.user.id) : Promise.resolve({ data: [] })
     ]);
 
     if (pRes.error) {
@@ -215,10 +216,26 @@
       return;
     }
 
-    // Build attempts map: { paketId: count }
-    attemptsByPaket = {};
+    // Supabase adalah sumber kebenaran untuk attempt yang sudah dikerjakan —
+    // bangun peta { paketId: { 1: {twk,tiu,tkp,total}, 2: {...} } } dari SEMUA baris hasil_tryout
+    // milik user (bukan dari localStorage, yang bisa kosong/beda perangkat/ke-clear).
+    attemptDataByPaket = {};
     (hRes.data || []).forEach(row => {
-      if (row.paket_id) attemptsByPaket[row.paket_id] = (attemptsByPaket[row.paket_id] || 0) + 1;
+      if (!row.paket_id) return;
+      const an = row.attempt_number === 1 || row.attempt_number === 2 ? row.attempt_number : 1;
+      if (!attemptDataByPaket[row.paket_id]) attemptDataByPaket[row.paket_id] = {};
+      attemptDataByPaket[row.paket_id][an] = {
+        twk: row.skor_twk || 0,
+        tiu: row.skor_tiu || 0,
+        tkp: row.skor_tkp || 0,
+        total: row.skor_total || ((row.skor_twk || 0) + (row.skor_tiu || 0) + (row.skor_tkp || 0))
+      };
+    });
+
+    // Build attempts map: { paketId: jumlah attempt unik (1 dan/atau 2) }
+    attemptsByPaket = {};
+    Object.keys(attemptDataByPaket).forEach(pid => {
+      attemptsByPaket[pid] = Object.keys(attemptDataByPaket[pid]).length;
     });
 
     allPakets = pRes.data || [];
@@ -337,14 +354,34 @@
     }).join('');
   }
 
-  function viewPembahasan(paketId) {
-    const r1 = localStorage.getItem('skorin_result_' + paketId + '_1');
-    const r2 = localStorage.getItem('skorin_result_' + paketId + '_2');
+  // Ambil data skor percobaan untuk modal "Pilih Percobaan".
+  // Supabase (attemptDataByPaket) adalah sumber kebenaran soal "apakah attempt ini ada";
+  // localStorage hanya dipakai sebagai pelengkap tampilan kalau datanya kebetulan ada di sana juga.
+  function getAttemptDisplayData(paketId, attemptNum) {
+    const fromDb = (attemptDataByPaket[paketId] || {})[attemptNum];
+    if (fromDb) return fromDb;
+    const raw = localStorage.getItem('skorin_result_' + paketId + '_' + attemptNum);
+    if (raw) {
+      try {
+        const d = JSON.parse(raw);
+        return { twk: d.twk, tiu: d.tiu, tkp: d.tkp, total: d.total };
+      } catch (e) { /* abaikan, fallback di bawah */ }
+    }
+    return null;
+  }
 
-    if (r1 && r2) {
-      // Both attempts exist — show modal to choose
+  function viewPembahasan(paketId) {
+    // Sumber kebenaran "attempt mana saja yang sudah dikerjakan" adalah Supabase (attemptDataByPaket),
+    // bukan localStorage — localStorage bisa kosong/ke-clear/beda perangkat.
+    const dbAttempts = attemptDataByPaket[paketId] || {};
+    const has1 = !!dbAttempts[1];
+    const has2 = !!dbAttempts[2];
+
+    if (has1 && has2) {
+      // Kedua percobaan ada — tampilkan modal pilih percobaan
+      const d1 = getAttemptDisplayData(paketId, 1);
+      const d2 = getAttemptDisplayData(paketId, 2);
       const list = document.getElementById('pembahasanChoiceList');
-      const d1 = JSON.parse(r1), d2 = JSON.parse(r2);
       list.innerHTML = `
         <button onclick="goToPembahasan(1, ${paketId})" class="w-full bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl p-4 text-left transition">
           <div class="flex items-center justify-between">
@@ -372,7 +409,7 @@
 
     // Hanya satu percobaan tersedia — langsung ke halaman hasil (statistik) percobaan tsb.
     // Dari sana user bisa klik "Review Soal" untuk membuka pembahasan.html.
-    const attemptKey = r1 ? 1 : (r2 ? 2 : 0);
+    const attemptKey = has1 ? 1 : (has2 ? 2 : 0);
     window.location.href = `hasil.html?paket_id=${paketId}&attempt=${attemptKey}`;
   }
 
