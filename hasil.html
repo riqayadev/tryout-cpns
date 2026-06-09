@@ -430,6 +430,26 @@
     }).join('');
   }
 
+  // Breakdown dari skor saja (saat soal tidak tersimpan di localStorage)
+  function renderBreakdownFromScores(h) {
+    const twkBenar = h.twkBenar != null ? h.twkBenar : Math.round((h.twk||0)/5);
+    const tiuBenar = h.tiuBenar != null ? h.tiuBenar : Math.round((h.tiu||0)/5);
+    document.getElementById('breakdownGrid').innerHTML = [
+      {label:'TWK', color:'blue',  benar:twkBenar, skor:h.twk||0, max:150},
+      {label:'TIU', color:'green', benar:tiuBenar, skor:h.tiu||0, max:175},
+      {label:'TKP', color:'amber', skor:h.tkp||0,  max:225, isTKP:true}
+    ].map(c=>`<div class="bg-gray-50 dark:bg-slate-900 rounded-xl p-4">
+        <p class="text-xs font-bold text-${c.color}-600 mb-3">${c.label}</p>
+        <div class="space-y-2">
+        ${!c.isTKP?`
+          <div class="flex justify-between text-xs"><span class="text-gray-500">✓ Benar</span><span class="font-black text-green-600">~${c.benar}</span></div>
+          <div class="flex justify-between text-xs"><span class="text-gray-500">Skor</span><span class="font-black text-${c.color}-600">${c.skor}</span></div>`:`
+          <div class="flex justify-between text-xs"><span class="text-gray-500">Skor TKP</span><span class="font-black text-${c.color}-600">${c.skor}</span></div>`}
+          <div class="h-2 bg-gray-200 rounded-full mt-2 overflow-hidden"><div class="h-full bg-${c.color}-500 rounded-full" style="width:${Math.min(100,Math.round(c.skor/c.max*100))}%"></div></div>
+          <p class="text-xs text-gray-400 text-center">${c.skor} / ${c.max} poin</p>
+        </div></div>`).join('');
+  }
+
   function initRadarChart(twk, tiu, tkp) {
     const ctx = document.getElementById('radarChart');
     if (!ctx || !window.Chart) return;
@@ -598,6 +618,7 @@
 
     // Breakdown per kategori
     if (h.soal && h.soal.length > 0) renderBreakdown(h.soal, h.jawaban);
+    else renderBreakdownFromScores(h);
 
     // Progress bar per kategori (delay kecil untuk animasi CSS)
     setTimeout(() => {

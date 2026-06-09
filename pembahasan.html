@@ -19,6 +19,8 @@
     #sidebar.collapsed .sb-label{display:none!important;}
     #sidebar.collapsed nav a,#sidebar.collapsed .sb-icon-btn{justify-content:center;padding-left:.625rem;padding-right:.625rem;}
     #sidebar.collapsed .sb-user{display:none;}
+    #sidebar.collapsed>div:first-child{justify-content:center;padding-left:0;padding-right:0;}
+    #sidebar.collapsed>div:first-child>*:not(button){display:none;}
     .filter-tab{transition:background-color .15s,color .15s;}
     .cat-nav-btn{transition:background-color .15s,color .15s,border-color .15s;}
     html.dark body{background-color:#0f172a;color:#e2e8f0;}
@@ -94,6 +96,11 @@
 
 <div id="mainWrapper" class="lg:ml-64 min-h-screen bg-gray-50 dark:bg-slate-900 pt-14 lg:pt-0 transition-[margin] duration-300">
 <main class="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-5">
+
+  <!-- Mode Baca notice (tampil ketika jawaban tidak ada di localStorage) -->
+  <div id="fallbackNotice" class="hidden bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl px-4 py-3 text-sm text-amber-800 dark:text-amber-200">
+    ⚠️ <strong>Mode Baca:</strong> Jawaban percobaan ini tidak tersimpan di perangkat ini. Ditampilkan semua soal beserta kunci jawaban — tanpa penanda jawaban yang kamu pilih.
+  </div>
 
   <!-- Kembali -->
   <a href="hasil.html" class="inline-flex items-center gap-2 text-sm font-semibold text-primary-600 hover:underline">
@@ -210,20 +217,54 @@
     return raw ? JSON.parse(raw) : null;
   }
 
-  const _data = loadPembahasanData();
+  let _data = loadPembahasanData();
   let currentFilter = 'semua';
 
-  if (!_data || !Array.isArray(_data.soal) || _data.soal.length === 0) {
-    document.querySelector('main').innerHTML = `<div class="text-center py-20">
-      <div class="text-6xl mb-4">😕</div>
-      <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Pembahasan tidak ditemukan</h2>
-      <p class="text-gray-500 dark:text-gray-400 mb-6">Data pembahasan tidak tersedia. Silakan kerjakan tryout terlebih dahulu agar soal dan jawaban tersimpan.</p>
-      <a href="tryout-list.html" class="bg-primary-600 text-white font-bold px-6 py-3 rounded-xl hover:bg-primary-700 transition inline-block">← Ke Halaman Tryout</a>
-    </div>`;
-  } else {
-    renderHeader(_data);
-    renderSoalList();
-  }
+  const _errHTML = `<div class="text-center py-20"><div class="text-6xl mb-4">😕</div><h2 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Pembahasan tidak ditemukan</h2><p class="text-gray-500 dark:text-gray-400 mb-6">Data pembahasan tidak tersedia. Silakan kerjakan tryout terlebih dahulu agar soal dan jawaban tersimpan.</p><a href="tryout-list.html" class="bg-primary-600 text-white font-bold px-6 py-3 rounded-xl hover:bg-primary-700 transition inline-block">← Ke Halaman Tryout</a></div>`;
+
+  (async function initPembahasan() {
+    // Kasus 1: data soal lengkap ada di localStorage
+    if (_data && Array.isArray(_data.soal) && _data.soal.length > 0) {
+      renderHeader(_data);
+      renderSoalList();
+      return;
+    }
+    // Kasus 2: tidak ada paket_id — tidak bisa fetch dari Supabase
+    if (!_paketIdParam) {
+      document.querySelector('main').innerHTML = _errHTML;
+      return;
+    }
+    // Kasus 3: paket_id ada tapi soal tidak tersimpan (dibuka dari riwayat/perangkat lain)
+    // → fetch seluruh soal paket dari Supabase, tampilkan mode baca
+    ['TWK','TIU','TKP'].forEach(t => {
+      const el = document.getElementById('list' + t);
+      if (el) el.innerHTML = '<p class="text-center text-gray-400 dark:text-gray-500 text-sm py-6">Memuat soal dari server...</p>';
+    });
+    try {
+      const [{ data: soalRows, error: soalErr }, { data: paketData }] = await Promise.all([
+        _sb.from('soal').select('nomor, tipe, teks, opsi, benar, nilai, pembahasan').eq('paket_id', _paketIdParam).order('nomor', { ascending: true }),
+        _sb.from('pakets').select('nama').eq('id', _paketIdParam).single()
+      ]);
+      if (soalErr || !soalRows || soalRows.length === 0) throw new Error('soal kosong');
+      const base = _data || {};
+      _data = {
+        paket: base.paket || (paketData && paketData.nama) || '',
+        paketId: _paketIdParam,
+        tanggal: base.tanggal || null,
+        twk: base.twk || 0, tiu: base.tiu || 0, tkp: base.tkp || 0,
+        total: base.total || 0,
+        attemptNumber: base.attemptNumber || _attemptParam || 0,
+        soal: soalRows,
+        jawaban: new Array(soalRows.length).fill(null)
+      };
+      renderHeader(_data);
+      document.getElementById('fallbackNotice').classList.remove('hidden');
+      renderSoalList();
+    } catch (e) {
+      console.error('[SkorinCPNS] Gagal memuat soal dari Supabase:', e);
+      document.querySelector('main').innerHTML = _errHTML;
+    }
+  })();
 
   function renderHeader(h) {
     const total = (h.twk || 0) + (h.tiu || 0) + (h.tkp || 0);
