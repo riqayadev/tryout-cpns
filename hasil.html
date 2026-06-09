@@ -99,7 +99,8 @@
 
   <!-- Skor Utama -->
   <div id="scoreCard" class="rounded-3xl p-8 text-center text-white bg-gray-400">
-    <p class="text-sm font-medium opacity-80 mb-2" id="paketNama">...</p>
+    <p class="text-sm font-medium opacity-80 mb-1" id="paketNama">...</p>
+    <p class="text-xs font-bold opacity-90 mb-3 hidden" id="attemptLabel"></p>
     <div class="text-7xl font-black mb-3" id="totalSkor">0</div>
     <p class="text-sm opacity-80 mb-4">dari 550 poin maksimal</p>
     <div id="statusBadge" class="inline-flex items-center gap-2 bg-white/20 backdrop-blur rounded-full px-6 py-2 text-lg font-black">...</div>
@@ -546,9 +547,26 @@
     const card = document.getElementById('scoreCard');
     card.className = `rounded-3xl p-8 text-center text-white ${lulus ? 'bg-gradient-to-br from-green-500 to-green-700' : 'bg-gradient-to-br from-red-500 to-red-700'}`;
     document.getElementById('paketNama').textContent = h.paket || 'SKD Simulasi';
+    // Tampilkan label percobaan di bawah nama paket
+    const attemptLabelEl = document.getElementById('attemptLabel');
+    if (attemptLabelEl) {
+      if (h.attemptNumber === 1) {
+        attemptLabelEl.textContent = 'Percobaan ke-1 · Skor Resmi';
+        attemptLabelEl.classList.remove('hidden');
+      } else if (h.attemptNumber === 2) {
+        attemptLabelEl.textContent = 'Percobaan ke-2 · Remidi';
+        attemptLabelEl.classList.remove('hidden');
+      } else {
+        attemptLabelEl.classList.add('hidden');
+      }
+    }
     document.getElementById('totalSkor').textContent = '0';
     document.getElementById('statusBadge').textContent = lulus ? '✅ SELAMAT, ANDA LULUS!' : '❌ BELUM MEMENUHI PASSING GRADE';
-    document.getElementById('tglTryout').textContent = new Date(h.tanggal).toLocaleString('id-ID', {dateStyle:'full', timeStyle:'short'});
+    // Tangani tanggal tidak valid (misal data minimal dari Supabase-inject tanpa field tanggal)
+    const tglDate = h.tanggal ? new Date(h.tanggal) : null;
+    document.getElementById('tglTryout').textContent = (tglDate && !isNaN(tglDate))
+      ? tglDate.toLocaleString('id-ID', { dateStyle: 'full', timeStyle: 'short' })
+      : '';
 
     // Animated total score counter
     setTimeout(() => animateCounter(document.getElementById('totalSkor'), total), 200);
