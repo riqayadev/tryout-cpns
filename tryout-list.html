@@ -410,12 +410,38 @@
     // Hanya satu percobaan tersedia — langsung ke halaman hasil (statistik) percobaan tsb.
     // Dari sana user bisa klik "Review Soal" untuk membuka pembahasan.html.
     const attemptKey = has1 ? 1 : (has2 ? 2 : 0);
+    navigateToHasil(paketId, attemptKey);
+  }
+
+  // Inject skor dari Supabase ke localStorage (jika belum ada) sebelum navigasi ke hasil.html.
+  // Ini mencegah hasil.html jatuh ke fallback skorin_last_result_paketId yang bisa menampilkan
+  // data attempt yang BERBEDA dari yang dipilih user di modal.
+  function ensureAttemptInLocalStorage(paketId, attemptKey) {
+    if (attemptKey < 1) return;
+    const dbData = (attemptDataByPaket[paketId] || {})[attemptKey];
+    if (!dbData) return;
+    const lsKey = 'skorin_result_' + paketId + '_' + attemptKey;
+    if (localStorage.getItem(lsKey)) return; // sudah ada, tidak perlu overwrite
+    try {
+      localStorage.setItem(lsKey, JSON.stringify({
+        paketId: paketId,
+        attemptNumber: attemptKey,
+        twk: dbData.twk,
+        tiu: dbData.tiu,
+        tkp: dbData.tkp,
+        total: dbData.total
+      }));
+    } catch (e) { /* abaikan jika localStorage penuh */ }
+  }
+
+  function navigateToHasil(paketId, attemptKey) {
+    ensureAttemptInLocalStorage(paketId, attemptKey);
     window.location.href = `hasil.html?paket_id=${paketId}&attempt=${attemptKey}`;
   }
 
   function goToPembahasan(attemptKey, paketId) {
     // Alur: tryout-list → modal pilih percobaan → hasil.html (statistik) → tombol "Review Soal" → pembahasan.html
-    window.location.href = `hasil.html?paket_id=${paketId}&attempt=${attemptKey}`;
+    navigateToHasil(paketId, attemptKey);
   }
 
   function closePembahasanModal() {

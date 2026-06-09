@@ -233,10 +233,12 @@
     let raw = null, sourceKey = null;
     if (_paketIdParam) {
       if (_attemptParam > 0) {
+        // Attempt spesifik diminta — hanya load key yang tepat.
+        // Jangan fallback ke skorin_last_result_paketId karena bisa memuat
+        // data attempt LAIN (misal attempt 2 saat user pilih Percobaan 1).
         sourceKey = 'skorin_result_' + _paketIdParam + '_' + _attemptParam;
         raw = localStorage.getItem(sourceKey);
-      }
-      if (!raw) {
+      } else {
         sourceKey = 'skorin_last_result_' + _paketIdParam;
         raw = localStorage.getItem(sourceKey);
       }
