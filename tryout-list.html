@@ -246,16 +246,19 @@
   }
 
   function updateProgressBanner() {
-    const history = JSON.parse(localStorage.getItem('skorin_history') || '[]');
     const gratisPakets = allPakets.filter(p => p.tipe === 'gratis');
-    const gratisDone = gratisPakets.filter(p => history.some(h => h.paket === p.nama)).length;
+    // Hitung unique paket gratis yang sudah punya minimal 1 attempt di Supabase
+    const gratisDone = gratisPakets.filter(p => {
+      const attempts = attemptDataByPaket[p.id];
+      return attempts && Object.keys(attempts).length > 0;
+    }).length;
     const total = gratisPakets.length;
-    if (history.length > 0) {
+    if (total > 0) {
       document.getElementById('progressBanner').classList.remove('hidden');
       document.getElementById('progressCount').textContent = gratisDone;
       document.getElementById('progressTotal').textContent = total;
-      document.getElementById('progressBar').style.width = (total > 0 ? gratisDone / total * 100 : 0) + '%';
-      document.getElementById('progressMsg').textContent = gratisDone >= total && total > 0
+      document.getElementById('progressBar').style.width = (gratisDone / total * 100) + '%';
+      document.getElementById('progressMsg').textContent = gratisDone >= total
         ? '🎉 Semua tryout gratis sudah dikerjakan! Coba upgrade ke Premium untuk soal lebih banyak.'
         : `Selesaikan ${total - gratisDone} tryout gratis lagi untuk unlock statistik lengkap.`;
     }
@@ -426,11 +429,11 @@
     const paketNama = (allPakets.find(p => p.id === paketId) || {}).nama || '';
     const existing = localStorage.getItem(lsKey);
     if (existing) {
-      // Data sudah ada — patch field 'paket' jika kosong (data lama mungkin tidak punya field ini)
+      // Selalu overwrite nama paket agar nama lama/terpotong ikut terupdate
       if (paketNama) {
         try {
           const d = JSON.parse(existing);
-          if (!d.paket) {
+          if (d.paket !== paketNama) {
             d.paket = paketNama;
             localStorage.setItem(lsKey, JSON.stringify(d));
           }

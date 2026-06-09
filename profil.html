@@ -318,7 +318,7 @@ async function loadProfileData() {
 
   let records = [];
   if (!error && dbData && dbData.length > 0) {
-    records = dbData.map(r => ({
+    const rawRecords = dbData.map(r => ({
       paket: (r.paket_id && paketNameById[r.paket_id]) || r.paket_nama,
       tanggal: r.tanggal,
       twk: r.skor_twk || 0,
@@ -329,6 +329,15 @@ async function loadProfileData() {
       attemptNumber: r.attempt_number || null,
       paketId: r.paket_id || null
     }));
+    // Deduplicate: 1 baris per kombinasi paket_id + attempt_number (ambil yang terbaru = urutan pertama)
+    const seen = new Set();
+    records = rawRecords.filter(r => {
+      if (!r.paketId || !r.attemptNumber) return true;
+      const key = r.paketId + '_' + r.attemptNumber;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
   } else {
     const ls = JSON.parse(localStorage.getItem('skorin_history') || '[]');
     records = ls.slice().reverse().map(r => ({
@@ -435,7 +444,7 @@ function loadHistory(records) {
             <td class="px-4 py-3.5 text-center"><span class="${h.tkp >= 166 ? 'text-green-600' : 'text-red-500'} font-semibold">${h.tkp}</span></td>
             <td class="px-4 py-3.5 text-center font-black text-gray-900 dark:text-white">${h.total}</td>
             <td class="px-4 py-3.5 text-center"><span class="px-2 py-0.5 rounded-full text-xs font-bold ${h.lulus ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">${h.lulus ? 'LULUS' : 'BELUM'}</span></td>
-            <td class="px-5 py-3.5 text-gray-400 text-xs hidden md:table-cell">${new Date(h.tanggal).toLocaleDateString('id-ID')}</td>
+            <td class="px-5 py-3.5 text-gray-400 text-xs hidden md:table-cell">${(()=>{const d=h.tanggal?new Date(h.tanggal):null;return d&&!isNaN(d)?d.toLocaleDateString('id-ID'):'-';})()}</td>
           </tr>`).join('')}
         </tbody>
       </table>

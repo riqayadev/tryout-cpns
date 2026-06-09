@@ -274,21 +274,20 @@
     document.getElementById('sbName').textContent = name;
     document.getElementById('sbEmail').textContent = session.user.email;
 
-    // Jika nama paket tidak ada di data localStorage (data lama/minimal tanpa field 'paket'),
-    // fetch dari Supabase dan perbarui tampilan. Ini mencakup semua kasus:
-    // beda browser, localStorage di-clear, atau data minimal yang dibuat sebelum fix.
-    if (hasil && !hasil.paket && _paketIdParam) {
+    // Selalu fetch nama paket dari Supabase saat ada paket_id di URL,
+    // agar nama lama/terpotong di localStorage ikut terkoreksi.
+    if (_paketIdParam) {
       try {
         const { data: pd } = await _sb.from('pakets').select('nama').eq('id', _paketIdParam).single();
         if (pd?.nama) {
-          hasil.paket = pd.nama;
+          if (hasil) hasil.paket = pd.nama;
           document.getElementById('paketNama').textContent = pd.nama;
-          // Patch data di localStorage agar tidak perlu fetch lagi ke depannya
+          // Overwrite nama di localStorage agar konsisten ke depannya
           const lsKey = _attemptParam > 0
             ? 'skorin_result_' + _paketIdParam + '_' + _attemptParam
             : 'skorin_last_result_' + _paketIdParam;
           const raw = localStorage.getItem(lsKey);
-          if (raw) { try { const d = JSON.parse(raw); if (!d.paket) { d.paket = pd.nama; localStorage.setItem(lsKey, JSON.stringify(d)); } } catch(e) {} }
+          if (raw) { try { const d = JSON.parse(raw); if (d.paket !== pd.nama) { d.paket = pd.nama; localStorage.setItem(lsKey, JSON.stringify(d)); } } catch(e) {} }
         }
       } catch (e) {}
     }
