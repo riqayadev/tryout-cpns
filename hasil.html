@@ -256,9 +256,19 @@
 
   // Baca hasil dari localStorage sebelum IIFE async berjalan
   const hasil = loadHasilData();
+  // Normalisasi field: soalList/soal → soal; paketNama/paket → paket; skorXxx/xxx → xxx
+  if (hasil) {
+    if (!hasil.soal && hasil.soalList) hasil.soal = hasil.soalList;
+    if (!hasil.paket && hasil.paketNama) hasil.paket = hasil.paketNama;
+    if (!hasil.twk && hasil.skorTwk) hasil.twk = hasil.skorTwk;
+    if (!hasil.tiu && hasil.skorTiu) hasil.tiu = hasil.skorTiu;
+    if (!hasil.tkp && hasil.skorTkp) hasil.tkp = hasil.skorTkp;
+    if (!hasil.total && hasil.skorTotal) hasil.total = hasil.skorTotal;
+  }
   console.log('[SkorinCPNS] hasil.html — data hasil:', hasil ? {
     paket: hasil.paket, paketId: hasil.paketId, attemptNumber: hasil.attemptNumber,
     soalLength: Array.isArray(hasil.soal) ? hasil.soal.length : 'N/A',
+    soalListLength: Array.isArray(hasil.soalList) ? hasil.soalList.length : 'N/A',
     jawabanLength: Array.isArray(hasil.jawaban) ? hasil.jawaban.length : 'N/A',
     total: hasil.total
   } : 'null (tidak ada data hasil tersimpan)');

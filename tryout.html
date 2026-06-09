@@ -459,17 +459,32 @@
   }
 
   function saveResultToLS(r) {
+    const _pid   = parseInt(params.get('id') || '0');
+    const _total = r.twk + r.tiu + r.tkp;
     const result = {
-      paket: paketNama,
-      paketId: parseInt(params.get('id') || '0'),
-      tanggal: new Date().toISOString(),
-      twk: r.twk, tiu: r.tiu, tkp: r.tkp,
-      total: r.twk + r.tiu + r.tkp,
-      twkBenar: r.twkBenar, tiuBenar: r.tiuBenar,
-      soal: r.soalSnap, jawaban: r.jawSnap,
+      // Field lama (backward compat — hasil.html & pembahasan.html masih membacanya)
+      paket:       paketNama,
+      twk:         r.twk,
+      tiu:         r.tiu,
+      tkp:         r.tkp,
+      total:       _total,
+      soal:        r.soalSnap,
+      // Field baru (format yang diminta)
+      paketNama:   paketNama,
+      skorTwk:     r.twk,
+      skorTiu:     r.tiu,
+      skorTkp:     r.tkp,
+      skorTotal:   _total,
+      soalList:    r.soalSnap,
+      // Field yang sama di kedua format
+      paketId:       _pid,
+      tanggal:       new Date().toISOString(),
+      twkBenar:      r.twkBenar,
+      tiuBenar:      r.tiuBenar,
+      jawaban:       r.jawSnap,
       attemptNumber: isLatihanMode ? 0 : _attemptNumber
     };
-    console.log('[SkorinCPNS] saveResultToLS → paket:', result.paket, '| paketId:', result.paketId, '| attempt:', result.attemptNumber, '| soal.length:', result.soal.length, '| jawaban.length:', result.jawaban.length, '| total:', result.total);
+    console.log('[SkorinCPNS] saveResultToLS → paket:', result.paket, '| paketId:', result.paketId, '| attempt:', result.attemptNumber, '| soalList.length:', result.soalList.length, '| jawaban.length:', result.jawaban.length, '| total:', result.total);
     const json = JSON.stringify(result);
     safeSetItem('skorin_last_result', json);
     // Per-paket key so tryout-list can load the specific result for "Lihat Pembahasan"
@@ -543,14 +558,22 @@
   async function doSubmit() {
     if (_submitted) return;
     _submitted = true;
-    console.log('[SkorinCPNS] doSubmit() dipanggil — mode:', isLatihanMode ? 'latihan' : 'ujian', '| attempt:', _attemptNumber, '| soal terjawab:', jawaban.filter(j => j !== null).length + '/' + jawaban.length);
+    console.log('[SkorinCPNS] doSubmit() dipanggil — mode:', isLatihanMode ? 'latihan' : 'ujian', '| attempt:', _attemptNumber, '| soalDB.length:', soalDB.length, '| soal terjawab:', jawaban.filter(j => j !== null).length + '/' + jawaban.length);
+
+    // Guard: jangan simpan jika soalDB kosong (tryout belum selesai di-load)
+    if (soalDB.length === 0) {
+      console.error('[SkorinCPNS] doSubmit dibatalkan — soalDB kosong saat submit, data tidak akan tersimpan');
+      _submitted = false;
+      return;
+    }
+
     clearInterval(timerInterval);
     closeAllModals();
 
-    // Compute and save to localStorage IMMEDIATELY (sync, before any async)
+    // Compute dan simpan ke localStorage SEGERA (sync, sebelum async apapun)
     const r = computeResult();
     const _paketId = parseInt(params.get('id') || '0');
-    soalDB = []; // prevent re-use
+    soalDB = []; // prevent re-use after snapshot diambil
     const result = saveResultToLS(r);
     if (!isLatihanMode) clearProgress(_paketId, _attemptNumber);
 

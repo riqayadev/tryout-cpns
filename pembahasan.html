@@ -224,7 +224,9 @@
 
   (async function initPembahasan() {
     // Kasus 1: data soal lengkap ada di localStorage
-    if (_data && Array.isArray(_data.soal) && _data.soal.length > 0) {
+    const _dataSoal = _data && (_data.soalList || _data.soal);
+    if (_data && Array.isArray(_dataSoal) && _dataSoal.length > 0) {
+      _data.soal = _dataSoal; // normalisasi ke field 'soal' untuk fungsi render
       renderHeader(_data);
       renderSoalList();
       return;
@@ -248,13 +250,16 @@
       if (soalErr || !soalRows || soalRows.length === 0) throw new Error('soal kosong');
       const base = _data || {};
       _data = {
-        paket: base.paket || (paketData && paketData.nama) || '',
+        paket: base.paket || base.paketNama || (paketData && paketData.nama) || '',
         paketId: _paketIdParam,
         tanggal: base.tanggal || null,
-        twk: base.twk || 0, tiu: base.tiu || 0, tkp: base.tkp || 0,
-        total: base.total || 0,
+        twk: base.twk || base.skorTwk || 0,
+        tiu: base.tiu || base.skorTiu || 0,
+        tkp: base.tkp || base.skorTkp || 0,
+        total: base.total || base.skorTotal || 0,
         attemptNumber: base.attemptNumber || _attemptParam || 0,
         soal: soalRows,
+        soalList: soalRows,
         jawaban: new Array(soalRows.length).fill(null)
       };
       renderHeader(_data);
