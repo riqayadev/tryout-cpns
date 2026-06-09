@@ -422,8 +422,22 @@
     const dbData = (attemptDataByPaket[paketId] || {})[attemptKey];
     if (!dbData) return;
     const lsKey = 'skorin_result_' + paketId + '_' + attemptKey;
-    if (localStorage.getItem(lsKey)) return; // sudah ada, tidak perlu overwrite
     const paketNama = (allPakets.find(p => p.id === paketId) || {}).nama || '';
+    const existing = localStorage.getItem(lsKey);
+    if (existing) {
+      // Data sudah ada — patch field 'paket' jika kosong (data lama mungkin tidak punya field ini)
+      if (paketNama) {
+        try {
+          const d = JSON.parse(existing);
+          if (!d.paket) {
+            d.paket = paketNama;
+            localStorage.setItem(lsKey, JSON.stringify(d));
+          }
+        } catch (e) {}
+      }
+      return;
+    }
+    // Buat entri minimal baru dengan nama paket
     try {
       localStorage.setItem(lsKey, JSON.stringify({
         paketId: paketId,
