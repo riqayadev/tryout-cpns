@@ -19,6 +19,7 @@
     #sidebar.collapsed .sb-label{display:none!important;}
     #sidebar.collapsed nav a,#sidebar.collapsed .sb-icon-btn{justify-content:center;padding-left:.625rem;padding-right:.625rem;}
     #sidebar.collapsed .sb-user{display:none;}
+    #sidebar.collapsed>div:first-child{justify-content:center;padding-left:0;padding-right:0;}
     html.dark body{background-color:#0f172a;color:#e2e8f0;}
     html.dark .bg-gray-50{background-color:#0f172a!important;}
     html.dark .bg-white{background-color:#1e293b!important;}
@@ -422,9 +423,11 @@
     if (!dbData) return;
     const lsKey = 'skorin_result_' + paketId + '_' + attemptKey;
     if (localStorage.getItem(lsKey)) return; // sudah ada, tidak perlu overwrite
+    const paketNama = (allPakets.find(p => p.id === paketId) || {}).nama || '';
     try {
       localStorage.setItem(lsKey, JSON.stringify({
         paketId: paketId,
+        paket: paketNama,
         attemptNumber: attemptKey,
         twk: dbData.twk,
         tiu: dbData.tiu,
