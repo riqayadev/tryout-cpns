@@ -549,10 +549,11 @@
     const lulus = h.twk >= 65 && h.tiu >= 80 && h.tkp >= 166;
     const total  = h.twk + h.tiu + h.tkp;
 
-    // Tombol Review Soal → buka pembahasan.html dengan paket+attempt yang sesuai
+    // Tombol Review Soal → selalu tampil jika paketId ada; pembahasan.html menangani
+    // kasus data soal belum tersimpan (mis. dibuka dari riwayat, bukan langsung setelah ujian)
     const reviewBtn = document.getElementById('reviewSoalBtn');
     if (reviewBtn) {
-      if (h.paketId && h.soal && h.soal.length > 0) {
+      if (h.paketId) {
         reviewBtn.href = `pembahasan.html?paket_id=${h.paketId}&attempt=${h.attemptNumber ?? 0}`;
         reviewBtn.classList.remove('hidden');
       } else {
