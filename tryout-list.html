@@ -535,22 +535,22 @@
 
 <!-- Warning Before Start Modal -->
 <div id="warningModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4" style="background:rgba(0,0,0,.6)" onclick="if(event.target===this)closeWarningModal()">
-  <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
+  <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full sm:max-w-[520px] lg:max-w-[560px] p-6 max-h-[90vh] overflow-y-auto">
     <h3 class="font-black text-gray-900 dark:text-white text-lg mb-3">⚠️ Perhatian Sebelum Memulai</h3>
-    <ul class="list-disc list-inside space-y-2 text-sm text-gray-600 dark:text-gray-300 mb-4">
+    <ul class="list-disc list-inside space-y-2 text-[13px] sm:text-sm lg:text-[15px] text-gray-600 dark:text-gray-300 mb-4">
       <li>Pastikan koneksi internetmu stabil sebelum memulai</li>
       <li>Ujian akan otomatis berakhir jika kamu berpindah tab atau aplikasi</li>
       <li>Skor Percobaan ke-1 adalah skor resmi yang digunakan untuk leaderboard</li>
       <li>Waktu 100 menit berjalan terus dan tidak dapat dijeda</li>
       <li>Dilarang keras mencontek, bertanya ke orang lain, atau menggunakan AI selama ujian berlangsung</li>
     </ul>
-    <div class="bg-indigo-50 dark:bg-indigo-950/30 border-2 border-indigo-200 dark:border-indigo-800 rounded-xl p-3 mb-4">
-      <p class="text-sm font-bold text-indigo-700 dark:text-indigo-300 mb-1">🎯 Anggap ujian ini sebagai tes CPNS sesungguhnya.</p>
+    <div class="bg-indigo-50 dark:bg-indigo-950/30 border-2 border-indigo-200 dark:border-indigo-800 rounded-xl p-3 sm:p-4 lg:p-5 mb-4">
+      <p class="text-sm sm:text-base font-bold text-indigo-700 dark:text-indigo-300 mb-1">🎯 Anggap ujian ini sebagai tes CPNS sesungguhnya.</p>
       <p class="text-xs text-indigo-600 dark:text-indigo-400">Integritas dan kejujuranmu adalah modal utama menjadi ASN yang baik.</p>
     </div>
     <label class="flex items-start gap-2 mb-4 cursor-pointer select-none">
       <input type="checkbox" id="warningCheckbox" onchange="toggleWarningStart()" class="mt-0.5 w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 flex-shrink-0">
-      <span class="text-sm text-gray-700 dark:text-gray-300">Saya memahami seluruh peringatan di atas dan siap mengerjakan dengan jujur</span>
+      <span class="text-[13px] sm:text-sm lg:text-[15px] text-gray-700 dark:text-gray-300">Saya memahami seluruh peringatan di atas dan siap mengerjakan dengan jujur</span>
     </label>
     <div class="flex gap-2">
       <button onclick="closeWarningModal()" class="flex-1 text-sm font-semibold text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-slate-600 py-3 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-700 transition">Batal</button>
