@@ -505,7 +505,6 @@
       document.getElementById('sbAvatar').textContent = initials;
     }
 
-    console.log('[DEBUG] userData sebelum loadDashboardData:', userData);
     await loadDashboardData();
     loadTarget();
     checkOnboarding();
@@ -514,11 +513,7 @@
 
   // Dashboard data — fetch from Supabase hasil_tryout, fallback to localStorage
   async function loadDashboardData() {
-    console.log('[DEBUG] loadDashboardData dipanggil, userData:', userData);
-    if (!userData) {
-      console.log('[DEBUG] loadDashboardData dibatalkan: userData masih null/kosong');
-      return;
-    }
+    if (!userData) return;
 
     let records = [];
 
@@ -530,8 +525,6 @@
       .eq('attempt_number', 1)
       .order('tanggal', { ascending: false })
       .limit(100);
-
-    console.log('[DEBUG] Hasil query hasil_tryout - data:', dbData, 'error:', error);
 
     if (!error && dbData && dbData.length > 0) {
       records = dbData.map(r => ({
@@ -557,8 +550,6 @@
       }));
     }
 
-    console.log('[DEBUG] records setelah mapping:', JSON.parse(JSON.stringify(records)));
-
     if (!records.length) return;
 
     // Urutkan terbaru duluan berdasarkan tanggal (client-side), karena beberapa
@@ -575,8 +566,6 @@
     // Hitung rata-rata
     const mean = key => Math.round(records.reduce((a, r) => a + r[key], 0) / records.length);
     const twkAvg = mean('twk'), tiuAvg = mean('tiu'), tkpAvg = mean('tkp');
-
-    console.log('[DEBUG] rata-rata TWK/TIU/TKP:', { twkAvg, tiuAvg, tkpAvg, totalTryout: _totalTryout });
 
     // Update Progress SKD bars with animation
     const setBar = (id, barId, pctId, val, max) => {

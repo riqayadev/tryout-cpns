@@ -275,13 +275,6 @@
   function renderPakets() {
     const grid = document.getElementById('tryoutGrid');
     const filtered = filterAktif === 'semua' ? allPakets : allPakets.filter(p => p.tipe === filterAktif);
-    const levelColor = {
-      Mudah: 'bg-green-100 text-green-700',
-      Menengah: 'bg-amber-100 text-amber-700',
-      Sulit: 'bg-red-100 text-red-700',
-      'Sangat Sulit': 'bg-red-200 text-red-800',
-      Khusus: 'bg-purple-100 text-purple-700'
-    };
 
     if (!filtered.length) {
       grid.innerHTML = '<div class="col-span-3 text-center py-16"><div class="text-5xl mb-3">🔍</div><p class="text-gray-400 dark:text-gray-500">Tidak ada paket ditemukan.</p></div>';
@@ -290,7 +283,6 @@
 
     grid.innerHTML = filtered.map(p => {
       const icon = p.icon || '📝';
-      const level = p.level || 'Menengah';
       const desc = p.deskripsi || 'Latihan SKD CPNS lengkap dengan soal TWK, TIU, dan TKP.';
       const soal = p.total_soal || 110;
 
@@ -304,7 +296,6 @@
               <div class="text-3xl">${icon}</div>
               <div class="flex flex-col items-end gap-1">
                 <span class="bg-white/25 text-white text-xs font-bold px-2.5 py-1 rounded-full">PREMIUM ✨</span>
-                <span class="text-amber-900 text-xs font-medium px-2 py-0.5 rounded-full bg-white/20">${level}</span>
               </div>
             </div>
             <h3 class="font-black text-white text-base mb-1">${p.nama}</h3>
@@ -312,7 +303,7 @@
             <div class="flex items-center gap-3 text-xs text-amber-200 mb-4">
               <span>📝 ${soal} soal</span><span>⏱️ 100 menit</span>
             </div>
-            <button onclick="alertPremium()" class="w-full text-center bg-white/20 hover:bg-white/30 backdrop-blur border border-white/30 text-white text-sm font-bold py-2.5 rounded-xl transition">🔒 Upgrade untuk Akses</button>
+            <button onclick="openUpgradeModal()" class="w-full text-center bg-white/20 hover:bg-white/30 backdrop-blur border border-white/30 text-white text-sm font-bold py-2.5 rounded-xl transition">🔒 Upgrade untuk Akses</button>
           </div>
         </div>`;
       }
@@ -344,7 +335,6 @@
           <div class="text-3xl">${icon}</div>
           <div class="flex flex-col items-end gap-1">
             <span class="bg-green-100 text-green-700 text-xs font-bold px-2.5 py-1 rounded-full">GRATIS</span>
-            <span class="text-xs font-medium px-2 py-0.5 rounded-full ${levelColor[level] || 'bg-gray-100 text-gray-600'}">${level}</span>
             ${statusBadge}
           </div>
         </div>
@@ -473,8 +463,16 @@
     modal.classList.remove('flex');
   }
 
-  function alertPremium() {
-    alert('✨ Paket Premium akan segera tersedia!\n\nDaftarkan email Anda untuk mendapat notifikasi pertama saat Premium diluncurkan.');
+  function openUpgradeModal() {
+    const modal = document.getElementById('upgradeModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+  }
+
+  function closeUpgradeModal() {
+    const modal = document.getElementById('upgradeModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
   }
 </script>
 
@@ -486,6 +484,21 @@
     <p class="text-gray-500 dark:text-gray-400 text-sm mb-4">Pilih percobaan mana yang ingin kamu lihat hasil & pembahasannya.</p>
     <div class="space-y-3" id="pembahasanChoiceList"></div>
     <button onclick="closePembahasanModal()" class="mt-4 w-full text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 py-2 transition">Batal</button>
+  </div>
+</div>
+
+<!-- Upgrade Premium Modal -->
+<div id="upgradeModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4" style="background:rgba(0,0,0,.6)" onclick="if(event.target===this)closeUpgradeModal()">
+  <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-sm p-6 text-center">
+    <div class="text-5xl mb-3">⭐</div>
+    <h3 class="font-black text-gray-900 dark:text-white text-lg mb-2">Upgrade ke Premium</h3>
+    <p class="text-gray-500 dark:text-gray-400 text-sm mb-4 leading-relaxed">Buka akses ke semua paket tryout premium dan pantau statistik performamu secara lengkap untuk persiapan SKD yang lebih maksimal.</p>
+    <div class="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-3 mb-4">
+      <p class="text-xs text-gray-500 dark:text-gray-400">Harga</p>
+      <p class="font-black text-amber-600 text-lg">Hubungi Kami</p>
+    </div>
+    <a href="https://wa.me/628xxxxxxxxxx?text=Halo%2C%20saya%20ingin%20upgrade%20ke%20Premium%20SkorinCPNS" target="_blank" rel="noopener" class="block w-full bg-green-500 hover:bg-green-600 text-white text-sm font-bold py-3 rounded-xl transition mb-2">💬 Hubungi via WhatsApp (08xxxxxxxxxx)</a>
+    <button onclick="closeUpgradeModal()" class="w-full text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 py-2 transition">Batal</button>
   </div>
 </div>
 </body>
