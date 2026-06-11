@@ -536,10 +536,10 @@
       records = dbData.map(r => ({
         paket: r.paket_nama,
         tanggal: r.tanggal,
-        twk: r.skor_twk || 0,
-        tiu: r.skor_tiu || 0,
-        tkp: r.skor_tkp || 0,
-        total: r.skor_total || 0,
+        twk: Number(r.skor_twk) || 0,
+        tiu: Number(r.skor_tiu) || 0,
+        tkp: Number(r.skor_tkp) || 0,
+        total: Number(r.skor_total) || 0,
         lulus: r.status_lulus
       }));
     } else {
@@ -548,18 +548,25 @@
       records = ls.slice().reverse().map(r => ({
         paket: r.paket,
         tanggal: r.tanggal,
-        twk: r.twk || 0,
-        tiu: r.tiu || 0,
-        tkp: r.tkp || 0,
-        total: r.total || (r.twk + r.tiu + r.tkp) || 0,
+        twk: Number(r.twk) || 0,
+        tiu: Number(r.tiu) || 0,
+        tkp: Number(r.tkp) || 0,
+        total: Number(r.total) || (Number(r.twk) || 0) + (Number(r.tiu) || 0) + (Number(r.tkp) || 0),
         lulus: (r.twk >= 65 && r.tiu >= 80 && r.tkp >= 166)
       }));
     }
 
+    console.log('[DEBUG] records setelah mapping (sebelum dedup):', JSON.parse(JSON.stringify(records)));
+
     if (!records.length) return;
 
-    // Deduplikasi: records sudah diurutkan terbaru duluan (tanggal DESC dari Supabase).
-    // Simpan hanya satu record per paket (yang paling baru).
+    // Urutkan terbaru duluan berdasarkan tanggal (client-side), karena beberapa
+    // baris lama bisa punya tanggal null/invalid yang membuat .order() Supabase
+    // tidak bisa diandalkan untuk menempatkan record terbaru di posisi pertama.
+    records.sort((a, b) => (Date.parse(b.tanggal) || 0) - (Date.parse(a.tanggal) || 0));
+
+    // Deduplikasi: simpan hanya satu record per paket (yang paling baru,
+    // karena records sudah diurutkan terbaru duluan di atas).
     const seenPaket = new Set();
     records = records.filter(r => {
       const key = r.paket || 'unknown';
@@ -567,6 +574,8 @@
       seenPaket.add(key);
       return true;
     });
+
+    console.log('[DEBUG] records setelah dedup per paket:', JSON.parse(JSON.stringify(records)));
 
     _totalTryout = records.length;
 
@@ -577,6 +586,8 @@
     // Hitung rata-rata
     const mean = key => Math.round(records.reduce((a, r) => a + r[key], 0) / records.length);
     const twkAvg = mean('twk'), tiuAvg = mean('tiu'), tkpAvg = mean('tkp');
+
+    console.log('[DEBUG] rata-rata TWK/TIU/TKP:', { twkAvg, tiuAvg, tkpAvg, totalTryout: _totalTryout });
 
     // Update Progress SKD bars with animation
     const setBar = (id, barId, pctId, val, max) => {
