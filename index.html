@@ -14,7 +14,7 @@
   <meta name="twitter:title" content="SkorinCPNS – Tryout CPNS Gratis"/>
   <meta name="twitter:description" content="110 soal SKD, timer 100 menit, dashboard progress. Mulai gratis sekarang!"/>
   <link rel="manifest" href="manifest.json"/>
-  <meta name="theme-color" content="#2563eb"/>
+  <meta name="theme-color" content="#1E3A5F"/>
   <link rel="canonical" href="https://skorincpns.web.app/"/>
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"SkorinCPNS","description":"Platform tryout CPNS terbaik dengan soal SKD lengkap TWK TIU TKP","url":"https://skorincpns.web.app","applicationCategory":"EducationalApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"IDR"}}</script>
   <script src="https://cdn.tailwindcss.com"></script>
@@ -23,7 +23,8 @@
       theme: {
         extend: {
           colors: {
-            primary: { 50:'#eff6ff',100:'#dbeafe',200:'#bfdbfe',300:'#93c5fd',400:'#60a5fa',500:'#3b82f6',600:'#2563eb',700:'#1d4ed8',800:'#1e40af',900:'#1e3a8a' }
+            primary: { 50:'#eff6ff',100:'#dbeafe',200:'#bfdbfe',300:'#93c5fd',400:'#60a5fa',500:'#3b82f6',600:'#2563eb',700:'#1d4ed8',800:'#1e40af',900:'#1e3a8a' },
+            navy: '#1E3A5F'
           },
           fontFamily: { sans: ['Inter','sans-serif'] }
         }
@@ -33,372 +34,416 @@
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
   <style>
-    .hero-bg { background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 60%, #3b82f6 100%); }
-    .fade-up { opacity:0; transform:translateY(28px); transition:all .6s ease; }
+    html { scroll-behavior: smooth; }
+    section[id] { scroll-margin-top: 80px; }
+    body { font-feature-settings: "tnum" 1; }
+
+    .hero-bg { background: linear-gradient(135deg, #1E3A5F 0%, #4F46E5 100%); position: relative; }
+    .hero-bg::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image: radial-gradient(rgba(255,255,255,.14) 1px, transparent 1px);
+      background-size: 28px 28px;
+      pointer-events: none;
+    }
+
+    .badge-label { display:inline-block; background:#eef2ff; color:#4F46E5; font-size:.75rem; font-weight:700; letter-spacing:.15em; text-transform:uppercase; padding:.3rem .9rem; border-radius:8px; }
+
+    .fade-up { opacity:0; transform:translateY(28px); transition:opacity .6s ease, transform .6s ease; }
     .fade-up.vis { opacity:1; transform:translateY(0); }
-    .card-lift { transition:all .3s ease; }
-    .card-lift:hover { transform:translateY(-5px); box-shadow:0 20px 40px rgba(37,99,235,.12); }
+
+    .card-lift { transition: all .3s ease; }
+    .card-lift:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,.1); }
+
+    .shadow-card { box-shadow: 0 4px 24px rgba(0,0,0,.08); }
+
     .faq-body { max-height:0; overflow:hidden; transition:max-height .35s ease; }
-    .faq-body.open { max-height:400px; }
-    html { scroll-behavior:smooth; }
+    .faq-body.open { max-height:500px; }
+
+    @keyframes floatMockup {
+      0%, 100% { transform: rotate(-2deg) translateY(-10px); }
+      50% { transform: rotate(-2deg) translateY(-16px); }
+    }
+    .hero-mockup { animation: floatMockup 3s ease-in-out infinite; }
+
+    #navbar { transition: all .3s ease; border-bottom: 1px solid transparent; }
+    #navbar.scrolled { box-shadow: 0 1px 12px rgba(0,0,0,.06); border-bottom-color: #e5e7eb; }
   </style>
 </head>
-<body class="font-sans antialiased text-gray-800">
+<body class="font-sans antialiased text-gray-800 bg-white">
 
-<!-- NAVBAR -->
-<nav class="fixed inset-x-0 top-0 z-50 bg-white/95 backdrop-blur border-b border-gray-100 shadow-sm">
+<!-- SECTION 1: NAVBAR -->
+<nav id="navbar" class="fixed inset-x-0 top-0 z-50 bg-white">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex items-center justify-between h-16">
-      <a href="index.html" class="flex items-center gap-2 font-extrabold text-xl text-primary-600">
-        <div class="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
-          <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-        </div>
+      <a href="index.html" class="flex items-center gap-2 font-extrabold text-xl text-navy">
+        <span class="w-9 h-9 bg-navy rounded-lg flex items-center justify-center text-base">🎯</span>
         SkorinCPNS
       </a>
-      <div class="hidden md:flex items-center gap-7 text-sm font-medium text-gray-600">
-        <a href="#fitur" class="hover:text-primary-600 transition">Fitur</a>
-        <a href="#cara-kerja" class="hover:text-primary-600 transition">Cara Kerja</a>
-        <a href="#harga" class="hover:text-primary-600 transition">Harga</a>
-        <a href="#faq" class="hover:text-primary-600 transition">FAQ</a>
+      <div class="hidden md:flex items-center gap-8 text-sm font-semibold text-gray-600">
+        <a href="#fitur" class="hover:text-navy transition">Fitur</a>
+        <a href="#cara-kerja" class="hover:text-navy transition">Cara Kerja</a>
+        <a href="#harga" class="hover:text-navy transition">Harga</a>
+        <a href="#faq" class="hover:text-navy transition">FAQ</a>
       </div>
       <div class="flex items-center gap-3">
-        <a href="login.html" class="hidden sm:block text-sm font-semibold text-gray-700 hover:text-primary-600 px-4 py-2 transition">Masuk</a>
-        <a href="login.html" class="bg-primary-600 hover:bg-primary-700 text-white text-sm font-bold px-5 py-2.5 rounded-xl transition shadow-sm">Daftar Gratis</a>
+        <a href="login.html" class="hidden sm:inline-block text-sm font-bold text-navy border-2 border-navy px-4 py-2 rounded-lg hover:bg-navy hover:text-white transition">Masuk</a>
+        <a href="login.html#daftar" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold px-5 py-2.5 rounded-lg transition shadow-sm hover:scale-105 inline-block">Daftar Gratis</a>
         <button onclick="toggleMenu()" class="md:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100">
           <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
         </button>
       </div>
     </div>
-    <div id="mMenu" class="hidden md:hidden border-t border-gray-100 py-4 space-y-2 text-sm font-medium text-gray-600">
-      <a href="#fitur" onclick="toggleMenu()" class="block py-2 hover:text-primary-600">Fitur</a>
-      <a href="#cara-kerja" onclick="toggleMenu()" class="block py-2 hover:text-primary-600">Cara Kerja</a>
-      <a href="#harga" onclick="toggleMenu()" class="block py-2 hover:text-primary-600">Harga</a>
-      <a href="#faq" onclick="toggleMenu()" class="block py-2 hover:text-primary-600">FAQ</a>
-      <a href="login.html" class="block py-2 hover:text-primary-600">Masuk</a>
+    <div id="mMenu" class="hidden md:hidden border-t border-gray-100 py-4 space-y-1 text-sm font-semibold text-gray-600">
+      <a href="#fitur" onclick="toggleMenu()" class="block py-2 hover:text-navy">Fitur</a>
+      <a href="#cara-kerja" onclick="toggleMenu()" class="block py-2 hover:text-navy">Cara Kerja</a>
+      <a href="#harga" onclick="toggleMenu()" class="block py-2 hover:text-navy">Harga</a>
+      <a href="#faq" onclick="toggleMenu()" class="block py-2 hover:text-navy">FAQ</a>
+      <a href="login.html" class="block py-2 hover:text-navy">Masuk</a>
     </div>
   </div>
 </nav>
 
-<!-- HERO -->
-<section class="hero-bg min-h-screen flex items-center pt-16 relative overflow-hidden">
-  <div class="absolute inset-0 pointer-events-none">
-    <div class="absolute -top-32 -right-32 w-96 h-96 bg-white/5 rounded-full"></div>
-    <div class="absolute -bottom-48 -left-48 w-[500px] h-[500px] bg-white/5 rounded-full"></div>
-  </div>
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 relative z-10 text-center w-full">
-    <div class="inline-flex items-center gap-2 bg-white/20 backdrop-blur border border-white/30 rounded-full px-4 py-2 text-white text-sm font-medium mb-8">
-      <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-      Platform Tryout CPNS Terpercaya di Indonesia
-    </div>
-    <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black text-white leading-tight mb-6">
-      Lolos CPNS 2026<br/><span class="text-amber-400">Dimulai dari Sini</span>
-    </h1>
-    <p class="text-lg sm:text-xl text-blue-100 leading-relaxed mb-10 max-w-2xl mx-auto">
-      Latih kemampuan SKD &amp; SKB dengan ribuan soal terkini, pembahasan lengkap, dan analisis performa real-time. Gratis untuk memulai!
-    </p>
-    <div class="flex flex-col sm:flex-row gap-4 justify-center mb-20">
-      <a href="login.html" class="bg-amber-400 hover:bg-amber-500 text-gray-900 font-bold text-lg px-8 py-4 rounded-xl shadow-xl transition hover:scale-105 inline-block">
-        🚀 Mulai Tryout Gratis
-      </a>
-      <a href="#cara-kerja" class="bg-white/20 hover:bg-white/30 text-white font-semibold text-lg px-8 py-4 rounded-xl border border-white/40 transition inline-block">
-        Lihat Cara Kerja →
-      </a>
-    </div>
-    <div class="grid grid-cols-3 gap-4 sm:gap-10 max-w-xl mx-auto text-white">
-      <div>
-        <div class="text-3xl sm:text-4xl font-black">110</div>
-        <div class="text-blue-200 text-xs sm:text-sm mt-1">Soal per Sesi</div>
+<!-- SECTION 2: HERO -->
+<section class="hero-bg overflow-hidden pt-32 pb-20 lg:pt-40 lg:pb-28">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+    <div class="flex flex-col lg:flex-row items-center gap-14 lg:gap-10">
+      <!-- LEFT 60% -->
+      <div class="lg:basis-[60%] w-full text-center lg:text-left fade-up">
+        <span class="inline-flex items-center gap-2 bg-amber-400 text-navy text-xs sm:text-sm font-bold px-4 py-2 rounded-full mb-6">🏆 Platform Tryout CPNS Terpercaya</span>
+        <h1 class="text-4xl sm:text-5xl lg:text-[52px] font-extrabold text-white leading-[1.15] mb-6">Ribuan Orang Sudah Latihan.<br/>Sekarang Giliranmu.</h1>
+        <p class="text-lg sm:text-xl text-white/80 leading-relaxed mb-8 max-w-xl mx-auto lg:mx-0">Simulasi ujian SKD lengkap dengan 1.100+ soal, pembahasan setiap soal, dan analisis performa real-time. Mulai gratis hari ini.</p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-10">
+          <a href="login.html#daftar" class="bg-amber-600 hover:bg-amber-700 text-white font-bold text-lg px-8 py-4 rounded-xl shadow-xl transition hover:scale-105 inline-block text-center">🚀 Mulai Tryout Gratis</a>
+          <a href="#cara-kerja" class="border-2 border-white/70 hover:bg-white/10 text-white font-semibold text-lg px-8 py-4 rounded-xl transition inline-block text-center">Lihat Cara Kerja →</a>
+        </div>
+        <div class="flex flex-wrap items-center justify-center lg:justify-start divide-x divide-white/25 text-white">
+          <div class="px-4 sm:px-6 first:pl-0 text-sm sm:text-base font-bold"><span data-counter="1100" data-suffix="+">0</span> Soal</div>
+          <div class="px-4 sm:px-6 text-sm sm:text-base font-bold">Format Resmi BKN</div>
+          <div class="px-4 sm:px-6 text-sm sm:text-base font-bold">Gratis Mulai</div>
+        </div>
       </div>
-      <div class="border-x border-white/20">
-        <div class="text-3xl sm:text-4xl font-black">3</div>
-        <div class="text-blue-200 text-xs sm:text-sm mt-1">Kategori SKD</div>
-      </div>
-      <div>
-        <div class="text-3xl sm:text-4xl font-black">100%</div>
-        <div class="text-blue-200 text-xs sm:text-sm mt-1">Gratis untuk Mulai</div>
+      <!-- RIGHT 40%: browser mockup -->
+      <div class="lg:basis-[40%] w-full max-w-md mx-auto fade-up">
+        <div class="hero-mockup bg-slate-800 rounded-2xl shadow-2xl overflow-hidden">
+          <div class="flex items-center gap-1.5 px-4 py-3 bg-slate-900">
+            <span class="w-2.5 h-2.5 rounded-full bg-red-400"></span>
+            <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+            <span class="w-2.5 h-2.5 rounded-full bg-green-400"></span>
+          </div>
+          <div class="bg-white p-4 sm:p-5">
+            <div class="bg-navy rounded-xl px-4 py-3 flex items-center justify-between mb-4 text-white">
+              <div>
+                <p class="text-[11px] text-blue-200">Selamat datang,</p>
+                <p class="font-bold text-sm">Budi Santoso</p>
+              </div>
+              <div class="text-right">
+                <p class="text-[11px] text-blue-200">Skor Terakhir</p>
+                <p class="font-black text-2xl text-amber-400">412</p>
+              </div>
+            </div>
+            <div class="grid grid-cols-3 gap-2 mb-4">
+              <div class="bg-blue-50 rounded-lg py-3 text-center">
+                <p class="text-[10px] font-bold text-blue-600 mb-0.5">TWK</p>
+                <p class="font-black text-blue-700 text-lg">115</p>
+              </div>
+              <div class="bg-indigo-50 rounded-lg py-3 text-center">
+                <p class="text-[10px] font-bold text-indigo-600 mb-0.5">TIU</p>
+                <p class="font-black text-indigo-700 text-lg">130</p>
+              </div>
+              <div class="bg-teal-50 rounded-lg py-3 text-center">
+                <p class="text-[10px] font-bold text-teal-600 mb-0.5">TKP</p>
+                <p class="font-black text-teal-700 text-lg">167</p>
+              </div>
+            </div>
+            <div class="flex justify-center mb-4">
+              <svg viewBox="0 0 100 90" class="w-36 h-32">
+                <polygon points="50,8 90,68 10,68" fill="none" stroke="#e2e8f0" stroke-width="1.5"/>
+                <polygon points="50,38 70,68 30,68" fill="none" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="2,2"/>
+                <polygon points="50,16 78,64 18,66" fill="#4F46E5" fill-opacity="0.25" stroke="#4F46E5" stroke-width="1.5"/>
+                <text x="50" y="6" text-anchor="middle" font-size="6" fill="#64748b" font-weight="700">TWK</text>
+                <text x="93" y="73" text-anchor="start" font-size="6" fill="#64748b" font-weight="700">TIU</text>
+                <text x="7" y="73" text-anchor="end" font-size="6" fill="#64748b" font-weight="700">TKP</text>
+              </svg>
+            </div>
+            <button class="w-full bg-amber-600 text-white font-bold text-sm py-3 rounded-xl">Mulai Ujian</button>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-  <div class="absolute bottom-0 inset-x-0">
-    <svg viewBox="0 0 1440 64" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M0 64L1440 64L1440 32C1080 0 360 0 0 32Z"/></svg>
   </div>
 </section>
 
-<!-- STATS -->
-<section class="py-16 bg-white">
+<!-- SECTION 3: SOCIAL PROOF BAR -->
+<section class="bg-white border-y border-gray-100 py-12">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-      <div class="fade-up flex items-center gap-4 p-6 bg-blue-50 rounded-2xl">
-        <div class="w-14 h-14 bg-primary-600 rounded-xl flex items-center justify-center flex-shrink-0 text-2xl">📋</div>
-        <div><div class="text-2xl font-black text-primary-600">110+</div><div class="text-gray-600 font-medium text-sm">Soal per Paket</div></div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-y-8 gap-x-4">
+      <div class="text-center md:border-r md:border-gray-100 fade-up">
+        <div class="text-3xl sm:text-4xl font-black text-blue-600"><span data-counter="1100" data-suffix="+">0</span></div>
+        <div class="text-gray-500 text-sm font-medium mt-1">Soal Terverifikasi</div>
       </div>
-      <div class="fade-up flex items-center gap-4 p-6 bg-green-50 rounded-2xl">
-        <div class="w-14 h-14 bg-green-600 rounded-xl flex items-center justify-center flex-shrink-0 text-2xl">🗂️</div>
-        <div><div class="text-2xl font-black text-green-600">3</div><div class="text-gray-600 font-medium text-sm">Kategori SKD (TWK, TIU, TKP)</div></div>
+      <div class="text-center md:border-r md:border-gray-100 fade-up">
+        <div class="text-3xl sm:text-4xl font-black text-indigo-600"><span data-counter="110">0</span></div>
+        <div class="text-gray-500 text-sm font-medium mt-1">Soal per Sesi</div>
       </div>
-      <div class="fade-up flex items-center gap-4 p-6 bg-amber-50 rounded-2xl">
-        <div class="w-14 h-14 bg-amber-500 rounded-xl flex items-center justify-center flex-shrink-0 text-2xl">🎁</div>
-        <div><div class="text-2xl font-black text-amber-600">100%</div><div class="text-gray-600 font-medium text-sm">Gratis untuk Mulai</div></div>
+      <div class="text-center md:border-r md:border-gray-100 fade-up">
+        <div class="text-xl sm:text-2xl font-black text-teal-600 pt-1 sm:pt-2">TWK • TIU • TKP</div>
+        <div class="text-gray-500 text-sm font-medium mt-1">3 Kategori SKD</div>
       </div>
-    </div>
-  </div>
-</section>
-
-<!-- FITUR -->
-<section class="py-20 bg-gray-50" id="fitur">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="text-center mb-14 fade-up">
-      <span class="text-primary-600 font-semibold text-xs uppercase tracking-widest">Fitur Unggulan</span>
-      <h2 class="text-3xl sm:text-4xl font-black text-gray-900 mt-2">Semua yang Anda Butuhkan<br class="hidden sm:block"/>untuk Lolos CPNS</h2>
-      <p class="text-gray-500 mt-4 max-w-lg mx-auto">Dirancang khusus untuk calon ASN yang ingin mempersiapkan ujian dengan cara paling efektif.</p>
-    </div>
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      <div class="fade-up card-lift bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-        <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-4 text-2xl">📋</div>
-        <h3 class="text-lg font-bold text-gray-900 mb-2">5.000+ Soal Terkini</h3>
-        <p class="text-gray-500 text-sm leading-relaxed">Bank soal SKD yang selalu diperbarui mengikuti kisi-kisi CPNS terbaru dengan pembahasan lengkap dari para ahli.</p>
-      </div>
-      <div class="fade-up card-lift bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-        <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mb-4 text-2xl">📊</div>
-        <h3 class="text-lg font-bold text-gray-900 mb-2">Analisis Performa Real-time</h3>
-        <p class="text-gray-500 text-sm leading-relaxed">Pantau skor TWK, TIU, dan TKP secara detail. Ketahui kelemahan dan fokus pada area yang butuh peningkatan.</p>
-      </div>
-      <div class="fade-up card-lift bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-        <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mb-4 text-2xl">⏱️</div>
-        <h3 class="text-lg font-bold text-gray-900 mb-2">Simulasi Ujian Nyata</h3>
-        <p class="text-gray-500 text-sm leading-relaxed">Rasakan suasana ujian sesungguhnya: 110 soal, timer 100 menit, dan format persis seperti ujian BKN.</p>
-      </div>
-      <div class="fade-up card-lift bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-        <div class="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center mb-4 text-2xl">📚</div>
-        <h3 class="text-lg font-bold text-gray-900 mb-2">Materi Belajar Terstruktur</h3>
-        <p class="text-gray-500 text-sm leading-relaxed">Panduan belajar TWK, TIU, dan TKP yang tersusun sistematis dari dasar hingga mahir.</p>
-      </div>
-      <div class="fade-up card-lift bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-        <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center mb-4 text-2xl">🎯</div>
-        <h3 class="text-lg font-bold text-gray-900 mb-2">Passing Grade Akurat</h3>
-        <p class="text-gray-500 text-sm leading-relaxed">Hasil tryout langsung dibandingkan passing grade SKD terbaru (TWK ≥65, TIU ≥80, TKP ≥166).</p>
-      </div>
-      <div class="fade-up card-lift bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-        <div class="w-12 h-12 bg-teal-100 rounded-xl flex items-center justify-center mb-4 text-2xl">📱</div>
-        <h3 class="text-lg font-bold text-gray-900 mb-2">Mobile-Friendly 100%</h3>
-        <p class="text-gray-500 text-sm leading-relaxed">Belajar kapan saja dan di mana saja. Tampilan optimal di semua perangkat dari HP hingga laptop.</p>
+      <div class="text-center fade-up">
+        <div class="text-3xl sm:text-4xl font-black text-amber-600"><span data-counter="100" data-suffix="%">0</span></div>
+        <div class="text-gray-500 text-sm font-medium mt-1">Gratis untuk Mulai</div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- CARA KERJA -->
-<section class="py-20 bg-white" id="cara-kerja">
+<!-- SECTION 4: CARA KERJA -->
+<section class="py-20 bg-slate-50" id="cara-kerja">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="text-center mb-14 fade-up">
-      <span class="text-primary-600 font-semibold text-xs uppercase tracking-widest">Cara Kerja</span>
-      <h2 class="text-3xl sm:text-4xl font-black text-gray-900 mt-2">Mulai dalam 3 Langkah Mudah</h2>
+      <span class="badge-label">CARA KERJA</span>
+      <h2 class="text-3xl sm:text-4xl font-extrabold text-navy mt-3">Mulai dalam 3 Langkah Mudah</h2>
+      <p class="text-gray-500 mt-4 max-w-lg mx-auto">Tidak perlu download. Tidak perlu kartu kredit. Langsung latihan.</p>
     </div>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
-      <div class="fade-up text-center">
-        <div class="w-20 h-20 bg-primary-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-200 text-3xl font-black text-white">1</div>
-        <h3 class="text-xl font-bold text-gray-900 mb-3">Daftar Gratis</h3>
-        <p class="text-gray-500 leading-relaxed">Buat akun dalam hitungan detik. Tidak perlu kartu kredit atau biaya apapun.</p>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <!-- Step 1 -->
+      <div class="fade-up card-lift bg-white rounded-xl border border-gray-100 shadow-card p-6">
+        <div class="flex items-center justify-between mb-4">
+          <span class="text-5xl font-black text-indigo-600">01</span>
+          <span class="text-3xl">📝</span>
+        </div>
+        <h3 class="font-bold text-lg text-gray-900 mb-2">Daftar 2 Menit</h3>
+        <p class="text-gray-500 text-sm leading-relaxed mb-4">Buat akun dengan email dalam hitungan detik. Tanpa kartu kredit, tanpa biaya tersembunyi.</p>
+        <div class="bg-slate-50 rounded-xl p-4 border border-slate-100 space-y-2">
+          <div class="bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-400">📧 nama@email.com</div>
+          <div class="bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-400">🔒 ••••••••</div>
+          <div class="bg-blue-600 text-white text-xs font-bold text-center rounded-lg py-2">Daftar Sekarang</div>
+        </div>
       </div>
-      <div class="fade-up text-center">
-        <div class="w-20 h-20 bg-primary-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-200 text-3xl font-black text-white">2</div>
-        <h3 class="text-xl font-bold text-gray-900 mb-3">Pilih Paket Tryout</h3>
-        <p class="text-gray-500 leading-relaxed">Pilih dari berbagai paket tryout SKD yang tersedia, mulai dari gratis hingga premium.</p>
+      <!-- Step 2 -->
+      <div class="fade-up card-lift bg-white rounded-xl border border-gray-100 shadow-card p-6">
+        <div class="flex items-center justify-between mb-4">
+          <span class="text-5xl font-black text-indigo-600">02</span>
+          <span class="text-3xl">🎯</span>
+        </div>
+        <h3 class="font-bold text-lg text-gray-900 mb-2">Pilih &amp; Kerjakan</h3>
+        <p class="text-gray-500 text-sm leading-relaxed mb-4">Pilih paket tryout, lalu kerjakan 110 soal dengan timer 100 menit seperti ujian sesungguhnya.</p>
+        <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
+          <div class="bg-white rounded-lg border border-gray-200 p-3">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-bold text-gray-800">Tryout Paket 1</span>
+              <span class="text-[10px] bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded-full">GRATIS</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] text-gray-400">⏱ 100:00</span>
+              <span class="bg-amber-600 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg">Mulai →</span>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="fade-up text-center">
-        <div class="w-20 h-20 bg-primary-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-200 text-3xl font-black text-white">3</div>
-        <h3 class="text-xl font-bold text-gray-900 mb-3">Analisis &amp; Tingkatkan</h3>
-        <p class="text-gray-500 leading-relaxed">Lihat hasil lengkap dengan pembahasan detail dan pantau perkembangan skor Anda dari waktu ke waktu.</p>
+      <!-- Step 3 -->
+      <div class="fade-up card-lift bg-white rounded-xl border border-gray-100 shadow-card p-6">
+        <div class="flex items-center justify-between mb-4">
+          <span class="text-5xl font-black text-indigo-600">03</span>
+          <span class="text-3xl">📊</span>
+        </div>
+        <h3 class="font-bold text-lg text-gray-900 mb-2">Analisis Performa</h3>
+        <p class="text-gray-500 text-sm leading-relaxed mb-4">Lihat skor TWK/TIU/TKP, status lulus passing grade, dan pembahasan setiap soal secara instan.</p>
+        <div class="bg-slate-50 rounded-xl p-4 border border-slate-100">
+          <div class="grid grid-cols-3 gap-2 mb-2">
+            <div class="bg-white rounded-lg p-2 text-center"><p class="text-[9px] text-gray-400 font-semibold">TWK</p><p class="text-sm font-black text-blue-600">115</p></div>
+            <div class="bg-white rounded-lg p-2 text-center"><p class="text-[9px] text-gray-400 font-semibold">TIU</p><p class="text-sm font-black text-indigo-600">130</p></div>
+            <div class="bg-white rounded-lg p-2 text-center"><p class="text-[9px] text-gray-400 font-semibold">TKP</p><p class="text-sm font-black text-teal-600">167</p></div>
+          </div>
+          <div class="bg-green-100 text-green-700 text-center text-xs font-black py-1.5 rounded-lg">✓ LULUS</div>
+        </div>
       </div>
-    </div>
-    <div class="text-center mt-12 fade-up">
-      <a href="login.html" class="bg-primary-600 hover:bg-primary-700 text-white font-bold text-lg px-8 py-4 rounded-xl shadow-lg transition hover:scale-105 inline-block">Mulai Sekarang — Gratis!</a>
     </div>
   </div>
 </section>
 
-<!-- KENAPA SKORINCPNS -->
-<section class="py-20 bg-gray-50" id="keunggulan">
+<!-- SECTION 5: FITUR UNGGULAN -->
+<section class="py-20 bg-white" id="fitur">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="text-center mb-14 fade-up">
-      <span class="text-primary-600 font-semibold text-xs uppercase tracking-widest">Keunggulan</span>
-      <h2 class="text-3xl sm:text-4xl font-black text-gray-900 mt-2">Kenapa SkorinCPNS?</h2>
-      <p class="text-gray-500 mt-4">Dibangun khusus untuk memaksimalkan persiapan SKD Anda — tidak lebih, tidak kurang</p>
+      <span class="badge-label">FITUR UNGGULAN</span>
+      <h2 class="text-3xl sm:text-4xl font-extrabold text-navy mt-3">Semua yang Kamu Butuhkan untuk Lolos SKD</h2>
     </div>
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      <div class="fade-up bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-        <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center mb-4">
-          <svg class="w-6 h-6 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+    <div class="flex flex-col lg:flex-row gap-8">
+      <!-- LEFT 55%: Big feature -->
+      <div class="lg:basis-[55%] fade-up card-lift bg-gradient-to-br from-navy to-indigo-600 rounded-xl p-8 text-white relative overflow-hidden">
+        <div class="text-5xl mb-4">🛡️</div>
+        <h3 class="text-2xl font-extrabold mb-3">Simulasi Ujian Anti-Cheat</h3>
+        <p class="text-blue-100 leading-relaxed mb-6">110 soal, timer 100 menit, mode fullscreen, dan sistem deteksi pindah tab — persis seperti kondisi ujian BKN sesungguhnya.</p>
+        <div class="bg-white/10 backdrop-blur rounded-xl p-4 mb-6">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-semibold text-blue-100">Soal No. 24 dari 110</span>
+            <span class="bg-red-500/90 text-white text-xs font-bold px-3 py-1 rounded-full">⏱ 01:24:36</span>
+          </div>
+          <div class="bg-white/10 rounded-lg p-3 mb-3 text-sm text-white/90">Pancasila sebagai dasar negara memiliki kedudukan sebagai...</div>
+          <div class="space-y-1.5">
+            <div class="bg-white/10 rounded-lg px-3 py-2 text-xs flex gap-2"><span class="font-bold">A</span> Sumber dari segala sumber hukum</div>
+            <div class="bg-white/20 border border-white/30 rounded-lg px-3 py-2 text-xs flex gap-2"><span class="font-bold">B</span> Ideologi terbuka bangsa</div>
+            <div class="bg-white/10 rounded-lg px-3 py-2 text-xs flex gap-2"><span class="font-bold">C</span> Norma dasar bernegara</div>
+            <div class="bg-white/10 rounded-lg px-3 py-2 text-xs flex gap-2"><span class="font-bold">D</span> Pandangan hidup bangsa</div>
+            <div class="bg-white/10 rounded-lg px-3 py-2 text-xs flex gap-2"><span class="font-bold">E</span> Perjanjian luhur bangsa</div>
+          </div>
         </div>
-        <h3 class="font-bold text-gray-900 mb-2">Format Ujian Resmi BKN</h3>
-        <p class="text-gray-500 text-sm leading-relaxed">110 soal per sesi (30 TWK + 35 TIU + 45 TKP), 100 menit — persis seperti format SKD yang digunakan pada ujian CPNS sesungguhnya.</p>
+        <span class="inline-flex items-center gap-1.5 bg-white/15 text-white text-xs font-bold px-3 py-1.5 rounded-full">Format Resmi BKN ✓</span>
       </div>
-      <div class="fade-up bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-        <div class="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center mb-4">
-          <svg class="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      <!-- RIGHT 45%: 2x2 grid -->
+      <div class="lg:basis-[45%] grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div class="fade-up card-lift bg-white border border-gray-100 rounded-xl p-6 shadow-card hover:border-indigo-300">
+          <div class="text-3xl mb-3">📊</div>
+          <h4 class="font-bold text-gray-900 mb-2">Radar Chart Performa</h4>
+          <p class="text-gray-500 text-sm leading-relaxed">Visual skor TWK/TIU/TKP vs passing grade dalam grafik radar interaktif.</p>
         </div>
-        <h3 class="font-bold text-gray-900 mb-2">Passing Grade Real-time</h3>
-        <p class="text-gray-500 text-sm leading-relaxed">Skor langsung dibandingkan PG SKD terbaru (TWK ≥ 65, TIU ≥ 80, TKP ≥ 166). Tahu LULUS atau TIDAK seketika setelah selesai.</p>
-      </div>
-      <div class="fade-up bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-        <div class="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center mb-4">
-          <svg class="w-6 h-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+        <div class="fade-up card-lift bg-white border border-gray-100 rounded-xl p-6 shadow-card hover:border-indigo-300">
+          <div class="text-3xl mb-3">📖</div>
+          <h4 class="font-bold text-gray-900 mb-2">Pembahasan Setiap Soal</h4>
+          <p class="text-gray-500 text-sm leading-relaxed">Pelajari soal yang salah lengkap dengan kunci jawaban dan penjelasan mendalam.</p>
         </div>
-        <h3 class="font-bold text-gray-900 mb-2">Pembahasan Setiap Soal</h3>
-        <p class="text-gray-500 text-sm leading-relaxed">Setiap soal dilengkapi pembahasan lengkap agar Anda benar-benar memahami pola soal, bukan sekadar menghafal jawaban yang benar.</p>
-      </div>
-      <div class="fade-up bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-        <div class="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center mb-4">
-          <svg class="w-6 h-6 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+        <div class="fade-up card-lift bg-white border border-gray-100 rounded-xl p-6 shadow-card hover:border-indigo-300">
+          <div class="text-3xl mb-3">🏋️</div>
+          <h4 class="font-bold text-gray-900 mb-2">Mode Latihan Santai</h4>
+          <p class="text-gray-500 text-sm leading-relaxed">55 soal tanpa timer, jawaban langsung tampil. Belajar tanpa tekanan.</p>
         </div>
-        <h3 class="font-bold text-gray-900 mb-2">Tanpa Instalasi Aplikasi</h3>
-        <p class="text-gray-500 text-sm leading-relaxed">Berjalan langsung di browser HP maupun laptop. Tidak perlu download atau instal apapun — buka dan langsung mulai latihan.</p>
-      </div>
-      <div class="fade-up bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-        <div class="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center mb-4">
-          <svg class="w-6 h-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <div class="fade-up card-lift bg-white border border-gray-100 rounded-xl p-6 shadow-card hover:border-indigo-300">
+          <div class="text-3xl mb-3">🏆</div>
+          <h4 class="font-bold text-gray-900 mb-2">Leaderboard Real-time</h4>
+          <p class="text-gray-500 text-sm leading-relaxed">Bandingkan skormu dengan peserta lain se-Indonesia. Tahu posisimu.</p>
         </div>
-        <h3 class="font-bold text-gray-900 mb-2">Gratis Tanpa Jebakan</h3>
-        <p class="text-gray-500 text-sm leading-relaxed">5 tryout SKD penuh 100% gratis — tanpa kartu kredit, tanpa iklan mengganggu, tanpa batas waktu percobaan yang dipaksakan.</p>
-      </div>
-      <div class="fade-up bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-        <div class="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center mb-4">
-          <svg class="w-6 h-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-        </div>
-        <h3 class="font-bold text-gray-900 mb-2">Riwayat Skor Tersimpan</h3>
-        <p class="text-gray-500 text-sm leading-relaxed">Semua hasil tryout tersimpan otomatis. Pantau perkembangan skor TWK, TIU, dan TKP Anda dari satu tryout ke tryout berikutnya.</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- HARGA -->
-<section class="py-20 bg-white" id="harga">
+<!-- SECTION 6: HARGA -->
+<section class="py-20 bg-slate-50" id="harga">
   <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="text-center mb-14 fade-up">
-      <span class="text-primary-600 font-semibold text-xs uppercase tracking-widest">Paket Harga</span>
-      <h2 class="text-3xl sm:text-4xl font-black text-gray-900 mt-2">Mulai Gratis, Upgrade Kapan Saja</h2>
+      <span class="badge-label">PAKET HARGA</span>
+      <h2 class="text-3xl sm:text-4xl font-extrabold text-navy mt-3">Mulai Gratis, Upgrade Kapan Saja</h2>
+      <p class="text-gray-500 mt-4 max-w-lg mx-auto">Tidak ada biaya tersembunyi. Tidak ada iklan. Fokus belajar.</p>
     </div>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-      <div class="fade-up border-2 border-gray-200 rounded-2xl p-8">
-        <span class="bg-gray-100 text-gray-600 text-xs font-bold px-3 py-1 rounded-full">GRATIS</span>
-        <h3 class="text-2xl font-black text-gray-900 mt-4 mb-1">Paket Gratis</h3>
-        <div class="flex items-end gap-1 mb-6"><span class="text-4xl font-black text-gray-900">Rp 0</span><span class="text-gray-400 mb-1">/selamanya</span></div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+      <!-- GRATIS -->
+      <div class="fade-up card-lift bg-white border-2 border-gray-200 rounded-xl p-8 shadow-card">
+        <span class="inline-block bg-gray-100 text-gray-600 text-xs font-bold px-3 py-1 rounded-lg">GRATIS</span>
+        <h3 class="text-2xl font-extrabold text-gray-900 mt-4 mb-1">Paket Gratis</h3>
+        <div class="mb-1"><span class="text-4xl font-black text-gray-900">Rp 0</span></div>
+        <p class="text-gray-400 text-sm mb-6">selamanya, tanpa kartu kredit</p>
         <ul class="space-y-3 mb-8 text-sm">
-          <li class="flex gap-2 items-start"><span class="text-green-500">✓</span><span class="text-gray-600">5 paket tryout SKD gratis</span></li>
-          <li class="flex gap-2 items-start"><span class="text-green-500">✓</span><span class="text-gray-600">110 soal per sesi (TWK/TIU/TKP)</span></li>
-          <li class="flex gap-2 items-start"><span class="text-green-500">✓</span><span class="text-gray-600">Skor &amp; hasil instan</span></li>
-          <li class="flex gap-2 items-start"><span class="text-green-500">✓</span><span class="text-gray-600">Pembahasan dasar</span></li>
-          <li class="flex gap-2 items-start"><span class="text-gray-300">✗</span><span class="text-gray-400">Analisis performa detail</span></li>
-          <li class="flex gap-2 items-start"><span class="text-gray-300">✗</span><span class="text-gray-400">Materi belajar lengkap</span></li>
+          <li class="flex gap-2 items-start"><span class="text-green-500 font-bold">✓</span><span class="text-gray-600">2 tryout SKD lengkap</span></li>
+          <li class="flex gap-2 items-start"><span class="text-green-500 font-bold">✓</span><span class="text-gray-600">110 soal per tryout (TWK+TIU+TKP)</span></li>
+          <li class="flex gap-2 items-start"><span class="text-green-500 font-bold">✓</span><span class="text-gray-600">Skor &amp; hasil instan</span></li>
+          <li class="flex gap-2 items-start"><span class="text-green-500 font-bold">✓</span><span class="text-gray-600">Pembahasan soal</span></li>
+          <li class="flex gap-2 items-start"><span class="text-gray-300 font-bold">✗</span><span class="text-gray-400">Statistik lengkap</span></li>
+          <li class="flex gap-2 items-start"><span class="text-gray-300 font-bold">✗</span><span class="text-gray-400">5 paket premium</span></li>
         </ul>
-        <a href="login.html" class="block text-center bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 rounded-xl transition">Mulai Gratis</a>
+        <a href="login.html#daftar" class="block text-center border-2 border-navy text-navy font-bold py-3 rounded-xl hover:bg-navy hover:text-white transition">Mulai Gratis</a>
       </div>
-      <div class="fade-up border-2 border-primary-600 rounded-2xl p-8 relative bg-gradient-to-br from-primary-600 to-primary-800 text-white shadow-2xl shadow-blue-200">
+      <!-- PREMIUM -->
+      <div class="fade-up card-lift relative bg-gradient-to-br from-navy to-indigo-600 text-white rounded-xl p-8 shadow-2xl md:scale-105">
         <div class="absolute -top-4 left-1/2 -translate-x-1/2 whitespace-nowrap">
-          <span class="bg-amber-400 text-gray-900 text-xs font-black px-4 py-1.5 rounded-full shadow">⭐ PALING POPULER</span>
+          <span class="bg-amber-500 text-navy text-xs font-black px-4 py-1.5 rounded-full shadow">⭐ PALING POPULER</span>
         </div>
-        <span class="bg-white/20 text-white text-xs font-bold px-3 py-1 rounded-full">PREMIUM</span>
-        <h3 class="text-2xl font-black text-white mt-4 mb-1">Paket Premium</h3>
-        <div class="flex items-end gap-1 mb-6"><span class="text-4xl font-black">Rp 99K</span><span class="text-blue-200 mb-1">/bulan</span></div>
+        <span class="inline-block bg-white/15 text-white text-xs font-bold px-3 py-1 rounded-lg">PREMIUM</span>
+        <h3 class="text-2xl font-extrabold mt-4 mb-1">Paket Premium</h3>
+        <div class="mb-1"><span class="text-4xl font-black">Rp 77.000</span></div>
+        <p class="text-blue-200 text-sm mb-1">kurang dari Rp 3.000/hari</p>
+        <p class="text-amber-300 text-xs font-semibold mb-6">Lebih murah dari 1 buku soal CPNS</p>
         <ul class="space-y-3 mb-8 text-sm">
-          <li class="flex gap-2 items-start"><span class="text-green-400">✓</span><span class="text-blue-100">Unlimited tryout SKD &amp; SKB</span></li>
-          <li class="flex gap-2 items-start"><span class="text-green-400">✓</span><span class="text-blue-100">5.000+ bank soal terlengkap</span></li>
-          <li class="flex gap-2 items-start"><span class="text-green-400">✓</span><span class="text-blue-100">Pembahasan super lengkap</span></li>
-          <li class="flex gap-2 items-start"><span class="text-green-400">✓</span><span class="text-blue-100">Analisis performa mendalam</span></li>
-          <li class="flex gap-2 items-start"><span class="text-green-400">✓</span><span class="text-blue-100">Materi belajar PDF &amp; video</span></li>
-          <li class="flex gap-2 items-start"><span class="text-green-400">✓</span><span class="text-blue-100">Prioritas dukungan 24/7</span></li>
+          <li class="flex gap-2 items-start"><span class="text-amber-400 font-bold">✓</span><span class="text-blue-50">Semua paket (2 gratis + 5 premium)</span></li>
+          <li class="flex gap-2 items-start"><span class="text-amber-400 font-bold">✓</span><span class="text-blue-50">Statistik lengkap unlock</span></li>
+          <li class="flex gap-2 items-start"><span class="text-amber-400 font-bold">✓</span><span class="text-blue-50">Pembahasan super lengkap</span></li>
+          <li class="flex gap-2 items-start"><span class="text-amber-400 font-bold">✓</span><span class="text-blue-50">Analisis kelemahan per kategori</span></li>
+          <li class="flex gap-2 items-start"><span class="text-amber-400 font-bold">✓</span><span class="text-blue-50">Update soal terbaru otomatis</span></li>
+          <li class="flex gap-2 items-start"><span class="text-amber-400 font-bold">✓</span><span class="text-blue-50">Akses selamanya</span></li>
         </ul>
-        <a href="login.html" class="block text-center bg-amber-400 hover:bg-amber-500 text-gray-900 font-bold py-3 rounded-xl transition shadow-lg">Coba Premium Sekarang</a>
+        <a href="https://wa.me/6285159773052?text=Halo%2C%20saya%20ingin%20upgrade%20ke%20Premium%20SkorinCPNS" target="_blank" rel="noopener" class="block text-center bg-amber-500 hover:bg-amber-600 text-navy font-black py-3 rounded-xl transition shadow-lg hover:scale-105">Hubungi via WhatsApp</a>
       </div>
     </div>
   </div>
 </section>
 
-<!-- FAQ -->
-<section class="py-20 bg-gray-50" id="faq">
+<!-- SECTION 7: FAQ -->
+<section class="py-20 bg-white" id="faq">
   <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="text-center mb-14 fade-up">
-      <span class="text-primary-600 font-semibold text-xs uppercase tracking-widest">FAQ</span>
-      <h2 class="text-3xl sm:text-4xl font-black text-gray-900 mt-2">Pertanyaan yang Sering Diajukan</h2>
+      <span class="badge-label">FAQ</span>
+      <h2 class="text-3xl sm:text-4xl font-extrabold text-navy mt-3">Pertanyaan yang Sering Diajukan</h2>
     </div>
     <div class="space-y-3">
-      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden fade-up">
+      <div class="bg-white rounded-xl border border-gray-100 shadow-card overflow-hidden fade-up">
         <button onclick="tf(0)" class="w-full flex items-center justify-between p-6 text-left gap-4">
-          <span class="font-semibold text-gray-900 text-sm sm:text-base">Apa perbedaan SKD dan SKB dalam seleksi CPNS?</span>
+          <span class="font-semibold text-gray-900 text-sm sm:text-base">Apakah SkorinCPNS benar-benar gratis?</span>
           <svg id="fi0" class="w-5 h-5 text-gray-400 flex-shrink-0 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
         </button>
-        <div id="fb0" class="faq-body"><p class="px-6 pb-6 text-gray-500 text-sm leading-relaxed">SKD (Seleksi Kompetensi Dasar) adalah ujian tahap pertama CPNS yang wajib diikuti semua peserta, meliputi TWK, TIU, dan TKP. SKB (Seleksi Kompetensi Bidang) adalah tahap kedua khusus untuk pelamar yang lulus SKD, menguji kompetensi teknis sesuai jabatan yang dilamar.</p></div>
+        <div id="fb0" class="faq-body"><p class="px-6 pb-6 text-gray-500 text-sm leading-relaxed">Ya, 2 paket tryout SKD pertama sepenuhnya gratis — tanpa kartu kredit, tanpa batas waktu. Upgrade ke Premium hanya jika kamu ingin akses lebih banyak paket dan statistik lengkap.</p></div>
       </div>
-      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden fade-up">
+      <div class="bg-white rounded-xl border border-gray-100 shadow-card overflow-hidden fade-up">
         <button onclick="tf(1)" class="w-full flex items-center justify-between p-6 text-left gap-4">
-          <span class="font-semibold text-gray-900 text-sm sm:text-base">Apa itu TWK, TIU, dan TKP?</span>
+          <span class="font-semibold text-gray-900 text-sm sm:text-base">Apakah soal sesuai format ujian BKN?</span>
           <svg id="fi1" class="w-5 h-5 text-gray-400 flex-shrink-0 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
         </button>
-        <div id="fb1" class="faq-body"><p class="px-6 pb-6 text-gray-500 text-sm leading-relaxed">TWK (Tes Wawasan Kebangsaan) menguji pemahaman Pancasila, UUD 1945, NKRI, dan Bhinneka Tunggal Ika — 30 soal. TIU (Tes Intelegensia Umum) menguji kemampuan verbal, numerik, dan figural — 35 soal. TKP (Tes Karakteristik Pribadi) menguji sikap dan perilaku sesuai nilai ASN — 45 soal.</p></div>
+        <div id="fb1" class="faq-body"><p class="px-6 pb-6 text-gray-500 text-sm leading-relaxed">Soal kami mengikuti format SKD resmi BKN: 110 soal (30 TWK + 35 TIU + 45 TKP), waktu 100 menit, dengan passing grade TWK ≥65, TIU ≥80, TKP ≥166.</p></div>
       </div>
-      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden fade-up">
+      <div class="bg-white rounded-xl border border-gray-100 shadow-card overflow-hidden fade-up">
         <button onclick="tf(2)" class="w-full flex items-center justify-between p-6 text-left gap-4">
-          <span class="font-semibold text-gray-900 text-sm sm:text-base">Berapa skor maksimum SKD dan passing grade-nya?</span>
+          <span class="font-semibold text-gray-900 text-sm sm:text-base">Bisa dikerjakan di HP?</span>
           <svg id="fi2" class="w-5 h-5 text-gray-400 flex-shrink-0 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
         </button>
-        <div id="fb2" class="faq-body"><p class="px-6 pb-6 text-gray-500 text-sm leading-relaxed">Skor maksimum SKD adalah 550 (TWK maks 150, TIU maks 175, TKP maks 225). Passing grade SKD 2024: TWK ≥ 65, TIU ≥ 80, TKP ≥ 166. Peserta harus memenuhi ketiga ambang batas tersebut secara bersamaan untuk lolos ke tahap SKB.</p></div>
+        <div id="fb2" class="faq-body"><p class="px-6 pb-6 text-gray-500 text-sm leading-relaxed">Bisa. SkorinCPNS dirancang mobile-friendly dan berjalan langsung di browser tanpa perlu download aplikasi.</p></div>
       </div>
-      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden fade-up">
+      <div class="bg-white rounded-xl border border-gray-100 shadow-card overflow-hidden fade-up">
         <button onclick="tf(3)" class="w-full flex items-center justify-between p-6 text-left gap-4">
-          <span class="font-semibold text-gray-900 text-sm sm:text-base">Apakah SkorinCPNS benar-benar gratis?</span>
+          <span class="font-semibold text-gray-900 text-sm sm:text-base">Apa bedanya Tryout dan Mode Latihan?</span>
           <svg id="fi3" class="w-5 h-5 text-gray-400 flex-shrink-0 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
         </button>
-        <div id="fb3" class="faq-body"><p class="px-6 pb-6 text-gray-500 text-sm leading-relaxed">Ya! Tanpa kartu kredit dan tanpa jebakan. Anda mendapat akses ke 5 paket tryout SKD penuh (masing-masing 110 soal, 100 menit) secara gratis selamanya. Paket Premium tersedia untuk fitur dan bank soal yang lebih lengkap.</p></div>
+        <div id="fb3" class="faq-body"><p class="px-6 pb-6 text-gray-500 text-sm leading-relaxed">Tryout adalah simulasi ujian penuh (110 soal, timer, anti-cheat). Mode Latihan lebih santai: 55 soal, tanpa timer, jawaban langsung tampil setelah pilih.</p></div>
       </div>
-      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden fade-up">
+      <div class="bg-white rounded-xl border border-gray-100 shadow-card overflow-hidden fade-up">
         <button onclick="tf(4)" class="w-full flex items-center justify-between p-6 text-left gap-4">
-          <span class="font-semibold text-gray-900 text-sm sm:text-base">Apakah bisa mengerjakan tryout di HP?</span>
+          <span class="font-semibold text-gray-900 text-sm sm:text-base">Bagaimana cara upgrade ke Premium?</span>
           <svg id="fi4" class="w-5 h-5 text-gray-400 flex-shrink-0 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
         </button>
-        <div id="fb4" class="faq-body"><p class="px-6 pb-6 text-gray-500 text-sm leading-relaxed">Tentu! SkorinCPNS dioptimalkan untuk semua ukuran layar. Buka lewat browser HP Anda (Chrome, Safari, dll), daftar, dan langsung mulai tryout — tanpa instal aplikasi apapun.</p></div>
-      </div>
-      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden fade-up">
-        <button onclick="tf(5)" class="w-full flex items-center justify-between p-6 text-left gap-4">
-          <span class="font-semibold text-gray-900 text-sm sm:text-base">Bagaimana cara melihat pembahasan soal?</span>
-          <svg id="fi5" class="w-5 h-5 text-gray-400 flex-shrink-0 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-        </button>
-        <div id="fb5" class="faq-body"><p class="px-6 pb-6 text-gray-500 text-sm leading-relaxed">Setelah tryout selesai, Anda akan diarahkan ke halaman Hasil. Di sana terdapat kartu setiap soal lengkap dengan jawaban Anda, kunci jawaban, dan penjelasan. Klik tombol "Lihat Pembahasan" pada tiap soal untuk membaca detailnya.</p></div>
+        <div id="fb4" class="faq-body"><p class="px-6 pb-6 text-gray-500 text-sm leading-relaxed">Klik tombol "Hubungi via WhatsApp" di halaman ini. Tim kami akan membantu proses upgrade dalam hitungan menit.</p></div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- CTA FINAL -->
-<section class="py-16 bg-primary-600">
-  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-    <h2 class="text-2xl sm:text-3xl font-black text-white mb-4">Siap Mulai Latihan Sekarang?</h2>
-    <p class="text-blue-100 mb-8">Daftar gratis, tidak perlu kartu kredit. Mulai tryout SKD pertama Anda dalam 2 menit.</p>
-    <a href="login.html" class="inline-block bg-white hover:bg-blue-50 text-primary-600 font-black text-lg px-10 py-4 rounded-xl shadow-lg transition hover:scale-105">Daftar &amp; Mulai Tryout →</a>
+<!-- SECTION 8: CTA BANNER PENUTUP -->
+<section class="py-20 bg-gradient-to-br from-navy to-indigo-600">
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center fade-up">
+    <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-4">Siap Lolos CPNS 2026?</h2>
+    <p class="text-blue-100 text-lg mb-8">Bergabung sekarang. Gratis. Tanpa kartu kredit.</p>
+    <a href="login.html#daftar" class="inline-block bg-amber-500 hover:bg-amber-600 text-navy font-black text-lg px-10 py-5 rounded-xl shadow-2xl transition hover:scale-105">🚀 Daftar &amp; Mulai Tryout Gratis</a>
+    <p class="text-blue-200 text-sm mt-6">Sudah digunakan oleh ribuan calon ASN Indonesia</p>
   </div>
 </section>
 
-<!-- FOOTER -->
-<footer class="bg-gray-900 text-gray-400 py-16">
+<!-- SECTION 9: FOOTER -->
+<footer class="bg-slate-900 text-gray-400 py-16">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-10">
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10 mb-10">
       <div class="sm:col-span-2">
         <a href="index.html" class="flex items-center gap-2 font-extrabold text-xl text-white mb-4">
-          <div class="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
-            <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-          </div>
+          <span class="w-9 h-9 bg-navy rounded-lg flex items-center justify-center text-base">🎯</span>
           SkorinCPNS
         </a>
-        <p class="text-sm leading-relaxed max-w-xs">Platform tryout CPNS terpercaya untuk membantu Anda lulus SKD dan meraih impian menjadi ASN.</p>
+        <p class="text-sm leading-relaxed max-w-xs">Platform tryout CPNS terpercaya untuk membantu kamu lulus SKD dan meraih impian menjadi ASN.</p>
         <p class="text-sm mt-4">📧 support@skorincpns.id</p>
       </div>
       <div>
         <h4 class="text-white font-semibold mb-4">Platform</h4>
         <ul class="space-y-2 text-sm">
-          <li><a href="login.html" class="hover:text-white transition">Mulai Tryout</a></li>
-          <li><a href="#fitur" class="hover:text-white transition">Fitur</a></li>
-          <li><a href="#harga" class="hover:text-white transition">Harga</a></li>
-          <li><a href="materi.html" class="hover:text-white transition">Materi Belajar</a></li>
+          <li><a href="login.html" class="hover:text-white transition">Tryout</a></li>
+          <li><a href="latihan.html" class="hover:text-white transition">Latihan</a></li>
+          <li><a href="materi.html" class="hover:text-white transition">Materi</a></li>
+          <li><a href="leaderboard.html" class="hover:text-white transition">Leaderboard</a></li>
         </ul>
       </div>
       <div>
@@ -409,26 +454,56 @@
         </ul>
       </div>
     </div>
-    <div class="border-t border-gray-800 pt-8 flex flex-col sm:flex-row justify-between items-center gap-4 text-sm">
-      <p>© 2026 SkorinCPNS. Hak Cipta Dilindungi.</p>
-      <p>Dibuat dengan ❤️ untuk calon ASN Indonesia</p>
+    <div class="border-t border-white/10 pt-8 text-center text-sm">
+      <p>© 2026 SkorinCPNS. All rights reserved.</p>
     </div>
   </div>
 </footer>
 
 <script>
-  const fadeEls = document.querySelectorAll('.fade-up');
-  const io = new IntersectionObserver(es => es.forEach(e => { if(e.isIntersecting) e.target.classList.add('vis'); }), {threshold:.1});
-  fadeEls.forEach(el => io.observe(el));
+  // Navbar shadow on scroll
+  const navbar = document.getElementById('navbar');
+  window.addEventListener('scroll', () => {
+    navbar.classList.toggle('scrolled', window.scrollY > 50);
+  });
+
+  // Mobile menu toggle
   function toggleMenu() { document.getElementById('mMenu').classList.toggle('hidden'); }
+
+  // FAQ accordion
   function tf(i) {
-    const b=document.getElementById('fb'+i), ic=document.getElementById('fi'+i);
+    const b = document.getElementById('fb' + i), ic = document.getElementById('fi' + i);
     b.classList.toggle('open');
     ic.style.transform = b.classList.contains('open') ? 'rotate(180deg)' : '';
   }
-  document.querySelectorAll('a[href^="#"]').forEach(a => {
-    a.addEventListener('click', e => { const t=document.querySelector(a.getAttribute('href')); if(t){e.preventDefault();t.scrollIntoView({behavior:'smooth'});} });
-  });
+
+  // Fade-in on scroll
+  const fadeEls = document.querySelectorAll('.fade-up');
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) e.target.classList.add('vis'); }), { threshold: .1 });
+  fadeEls.forEach(el => io.observe(el));
+
+  // Animated counters
+  const counters = document.querySelectorAll('[data-counter]');
+  const counterIO = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      const el = entry.target;
+      counterIO.unobserve(el);
+      const target = parseInt(el.dataset.counter, 10);
+      const suffix = el.dataset.suffix || '';
+      const duration = 1200;
+      const start = performance.now();
+      function tick(now) {
+        const progress = Math.min((now - start) / duration, 1);
+        const value = Math.floor(progress * target);
+        el.textContent = value.toLocaleString('id-ID') + suffix;
+        if (progress < 1) requestAnimationFrame(tick);
+        else el.textContent = target.toLocaleString('id-ID') + suffix;
+      }
+      requestAnimationFrame(tick);
+    });
+  }, { threshold: .5 });
+  counters.forEach(el => counterIO.observe(el));
 </script>
 </body>
 </html>
