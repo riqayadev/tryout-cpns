@@ -6,7 +6,7 @@
   <title>Mode Latihan – SkorinCPNS</title>
   <meta name="description" content="Latihan soal SKD CPNS: 55 soal per sesi, jawaban langsung tampil, bisa diulang bebas."/>
   <link rel="manifest" href="manifest.json"/>
-  <meta name="theme-color" content="#2563eb"/>
+  <meta name="theme-color" content="#0d9488"/>
   <script>(function(){const d=localStorage.getItem('dark_mode');if(d==='1'||(d===null&&window.matchMedia('(prefers-color-scheme:dark)').matches))document.documentElement.classList.add('dark');})();</script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>tailwind.config={darkMode:'class',theme:{extend:{colors:{primary:{50:'#eff6ff',100:'#dbeafe',600:'#2563eb',700:'#1d4ed8'}},fontFamily:{sans:['Inter','sans-serif']}}}}</script>
@@ -100,36 +100,22 @@
   <!-- Header -->
   <div class="mb-6">
     <div class="flex items-center gap-3 mb-2">
-      <div class="w-10 h-10 bg-amber-100 dark:bg-amber-900/40 rounded-xl flex items-center justify-center">
-        <svg class="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+      <div class="w-10 h-10 bg-teal-100 dark:bg-teal-900/40 rounded-xl flex items-center justify-center">
+        <svg class="w-5 h-5 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
       </div>
       <h1 class="text-2xl font-black text-gray-900 dark:text-white">Mode Latihan</h1>
     </div>
-    <p class="text-gray-500 dark:text-gray-400 text-sm">Latihan soal SKD kapan saja — <span class="font-semibold text-amber-600">55 soal per sesi</span>, jawaban langsung tampil, <span class="font-semibold text-green-600">bisa diulang bebas</span>.</p>
-  </div>
-
-  <!-- Info banner -->
-  <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-2xl p-4 mb-6 flex items-start gap-3">
-    <span class="text-2xl flex-shrink-0">📖</span>
-    <div>
-      <p class="font-bold text-amber-800 dark:text-amber-400 text-sm mb-1">Cara Kerja Mode Latihan</p>
-      <ul class="text-amber-700 dark:text-amber-500 text-xs space-y-0.5 list-disc list-inside leading-relaxed">
-        <li>Setiap sesi mengambil 55 soal acak (15 TWK + 17 TIU + 23 TKP)</li>
-        <li>Setelah memilih jawaban, langsung tampil benar/salah beserta pembahasan</li>
-        <li>Tidak ada timer — belajar santai tanpa tekanan waktu</li>
-        <li>Bisa diulang berkali-kali dengan soal yang diacak ulang setiap sesi</li>
-      </ul>
-    </div>
+    <p class="text-gray-500 dark:text-gray-400 text-sm">Latihan soal SKD kapan saja — <span class="font-semibold text-teal-600">55 soal per sesi</span>, jawaban langsung tampil, <span class="font-semibold text-green-600">bisa diulang bebas</span>.</p>
   </div>
 
   <!-- Filter -->
   <div class="flex gap-2 mb-6 overflow-x-auto pb-1">
-    <button onclick="setFilter('semua')" id="f-semua" class="px-4 py-2 rounded-xl text-sm font-semibold bg-primary-600 text-white flex-shrink-0">Semua</button>
+    <button onclick="setFilter('semua')" id="f-semua" class="px-4 py-2 rounded-xl text-sm font-semibold bg-teal-600 text-white flex-shrink-0">Semua</button>
     <button onclick="setFilter('gratis')" id="f-gratis" class="px-4 py-2 rounded-xl text-sm font-semibold bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700 flex-shrink-0 transition">Gratis</button>
     <button onclick="setFilter('premium')" id="f-premium" class="px-4 py-2 rounded-xl text-sm font-semibold bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700 flex-shrink-0 transition">Premium</button>
   </div>
 
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5" id="latihanGrid"></div>
+  <div class="space-y-3" id="latihanGrid"></div>
 </main>
 </div>
 
@@ -189,8 +175,8 @@
 
   async function fetchPakets() {
     const grid = document.getElementById('latihanGrid');
-    grid.innerHTML = `<div class="col-span-3 text-center py-16">
-      <div class="animate-spin w-8 h-8 border-4 border-primary-600 border-t-transparent rounded-full mx-auto mb-3"></div>
+    grid.innerHTML = `<div class="text-center py-16">
+      <div class="animate-spin w-8 h-8 border-4 border-teal-600 border-t-transparent rounded-full mx-auto mb-3"></div>
       <p class="text-gray-400 dark:text-gray-500">Memuat paket latihan...</p>
     </div>`;
 
@@ -201,7 +187,7 @@
       .order('id', { ascending: true });
 
     if (error) {
-      grid.innerHTML = `<div class="col-span-3 text-center py-16">
+      grid.innerHTML = `<div class="text-center py-16">
         <div class="text-4xl mb-3">⚠️</div>
         <p class="text-red-500 dark:text-red-400 font-semibold">Gagal memuat paket</p>
         <p class="text-gray-400 text-sm mt-1">${error.message}</p>
@@ -216,7 +202,7 @@
   function setFilter(f) {
     filterAktif = f;
     ['semua','gratis','premium'].forEach(k => {
-      document.getElementById('f-'+k).className = `px-4 py-2 rounded-xl text-sm font-semibold flex-shrink-0 transition ${k===f?'bg-primary-600 text-white':'bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700'}`;
+      document.getElementById('f-'+k).className = `px-4 py-2 rounded-xl text-sm font-semibold flex-shrink-0 transition ${k===f?'bg-teal-600 text-white':'bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700'}`;
     });
     renderPakets();
   }
@@ -226,59 +212,63 @@
     const filtered = filterAktif === 'semua' ? allPakets : allPakets.filter(p => p.tipe === filterAktif);
 
     if (!filtered.length) {
-      grid.innerHTML = '<div class="col-span-3 text-center py-16"><div class="text-5xl mb-3">🔍</div><p class="text-gray-400 dark:text-gray-500">Tidak ada paket ditemukan.</p></div>';
+      grid.innerHTML = '<div class="text-center py-16"><div class="text-5xl mb-3">🔍</div><p class="text-gray-400 dark:text-gray-500">Tidak ada paket ditemukan.</p></div>';
       return;
     }
 
     grid.innerHTML = filtered.map(p => {
-      const icon  = p.icon || '📝';
-      const desc  = p.deskripsi || 'Latihan SKD CPNS lengkap dengan soal TWK, TIU, dan TKP.';
-
-      if (p.tipe === 'premium') {
-        return `
-        <div class="relative bg-gradient-to-br from-amber-400 via-orange-400 to-amber-500 rounded-2xl p-5 shadow-lg shadow-amber-200/50 dark:shadow-none overflow-hidden">
-          <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
-          <div class="relative">
-            <div class="flex items-start justify-between mb-3">
-              <div class="text-3xl">${icon}</div>
-              <div class="flex flex-col items-end gap-1">
-                <span class="bg-white/25 text-white text-xs font-bold px-2.5 py-1 rounded-full">PREMIUM ✨</span>
-              </div>
-            </div>
-            <h3 class="font-black text-white text-base mb-1">${p.nama}</h3>
-            <p class="text-amber-100 text-xs leading-relaxed mb-3">${desc}</p>
-            <p class="text-amber-200 text-xs mb-4">55 soal · jawaban langsung · bisa diulang</p>
-            <button onclick="alertPremium()" class="w-full text-center bg-white/20 hover:bg-white/30 backdrop-blur border border-white/30 text-white text-sm font-bold py-2.5 rounded-xl transition">🔒 Upgrade untuk Akses</button>
-          </div>
-        </div>`;
-      }
+      const icon = p.icon || '📝';
+      const isPremium = p.tipe === 'premium';
+      const badge = isPremium
+        ? '<span class="bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 text-xs font-bold px-2.5 py-1 rounded-full flex-shrink-0">PREMIUM ✨</span>'
+        : '<span class="bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-400 text-xs font-bold px-2.5 py-1 rounded-full flex-shrink-0">GRATIS</span>';
+      const button = isPremium
+        ? `<button onclick="openUpgradeModal()" class="flex items-center justify-center gap-2 bg-gray-200 dark:bg-slate-700 text-gray-500 dark:text-gray-400 text-sm font-bold py-2.5 px-5 rounded-xl transition w-full sm:w-auto">🔒 Upgrade untuk Akses</button>`
+        : `<a href="tryout.html?id=${p.id}&nama=${encodeURIComponent(p.nama)}&mode=latihan" class="flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-700 text-white text-sm font-bold py-2.5 px-5 rounded-xl transition w-full sm:w-auto">📖 Mulai Latihan</a>`;
 
       return `
-      <div class="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm p-5 hover:shadow-md hover:border-amber-300 dark:hover:border-amber-700 transition">
-        <div class="flex items-start justify-between mb-3">
-          <div class="text-3xl">${icon}</div>
-          <div class="flex flex-col items-end gap-1">
-            <span class="bg-green-100 text-green-700 text-xs font-bold px-2.5 py-1 rounded-full">GRATIS</span>
+      <div class="bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-sm p-4 flex flex-col sm:flex-row sm:items-center gap-4 hover:shadow-md hover:border-teal-300 dark:hover:border-teal-700 transition">
+        <div class="flex items-center gap-3 flex-1 min-w-0">
+          <div class="w-12 h-12 flex-shrink-0 rounded-xl bg-teal-50 dark:bg-teal-900/30 flex items-center justify-center text-2xl">${icon}</div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-2 flex-wrap mb-0.5">
+              <h3 class="font-bold text-gray-900 dark:text-white truncate">${p.nama}</h3>
+              ${badge}
+            </div>
+            <p class="text-gray-500 dark:text-gray-400 text-xs">55 soal · Jawaban langsung · Bisa diulang</p>
           </div>
         </div>
-        <h3 class="font-bold text-gray-900 dark:text-white mb-1">${p.nama}</h3>
-        <p class="text-gray-500 dark:text-gray-400 text-xs leading-relaxed mb-3">${desc}</p>
-        <div class="flex flex-wrap items-center gap-2 text-xs mb-4">
-          <span class="bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 px-2 py-1 rounded-lg font-medium">📝 55 soal/sesi</span>
-          <span class="bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-2 py-1 rounded-lg font-medium">✓ Jawaban langsung</span>
-          <span class="bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 px-2 py-1 rounded-lg font-medium">∞ Bisa diulang</span>
-        </div>
-        <a href="tryout.html?id=${p.id}&nama=${encodeURIComponent(p.nama)}&mode=latihan"
-           class="flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold py-3 rounded-xl transition w-full">
-          📖 Mulai Latihan
-        </a>
+        <div class="flex-shrink-0">${button}</div>
       </div>`;
     }).join('');
   }
 
-  function alertPremium() {
-    alert('✨ Paket Premium akan segera tersedia!\n\nDaftarkan email Anda untuk mendapat notifikasi pertama saat Premium diluncurkan.');
+  function openUpgradeModal() {
+    const modal = document.getElementById('upgradeModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+  }
+
+  function closeUpgradeModal() {
+    const modal = document.getElementById('upgradeModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
   }
 </script>
+
+<!-- Upgrade Premium Modal -->
+<div id="upgradeModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4" style="background:rgba(0,0,0,.6)" onclick="if(event.target===this)closeUpgradeModal()">
+  <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-sm p-6 text-center">
+    <div class="text-5xl mb-3">⭐</div>
+    <h3 class="font-black text-gray-900 dark:text-white text-lg mb-2">Upgrade ke Premium</h3>
+    <p class="text-gray-500 dark:text-gray-400 text-sm mb-4 leading-relaxed">Buka akses ke semua paket tryout premium dan pantau statistik performamu secara lengkap untuk persiapan SKD yang lebih maksimal.</p>
+    <div class="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-3 mb-4">
+      <p class="text-xs text-gray-500 dark:text-gray-400">Harga</p>
+      <p class="font-black text-amber-600 text-lg">Hubungi Kami</p>
+    </div>
+    <a href="https://wa.me/628xxxxxxxxxx?text=Halo%2C%20saya%20ingin%20upgrade%20ke%20Premium%20SkorinCPNS" target="_blank" rel="noopener" class="block w-full bg-green-500 hover:bg-green-600 text-white text-sm font-bold py-3 rounded-xl transition mb-2">💬 Hubungi via WhatsApp (08xxxxxxxxxx)</a>
+    <button onclick="closeUpgradeModal()" class="w-full text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 py-2 transition">Batal</button>
+  </div>
+</div>
 </body>
 </html>

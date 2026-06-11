@@ -323,9 +323,10 @@ function updateStreak() {
 async function loadProfileData() {
   if (!currentUser) return;
 
-  const [{ data: dbData, error }, { data: paketRows }] = await Promise.all([
+  const [{ data: dbData, error }, { data: paketRows }, { count: attempt1Count }] = await Promise.all([
     _sb.from('hasil_tryout').select('*').eq('user_id', currentUser.id).order('tanggal', { ascending: false }),
-    _sb.from('pakets').select('id, nama')
+    _sb.from('pakets').select('id, nama'),
+    _sb.from('hasil_tryout').select('*', { count: 'exact', head: true }).eq('user_id', currentUser.id).eq('attempt_number', 1)
   ]);
 
   // Nama paket resmi (dari tabel pakets) jadi sumber kebenaran tampilan —
@@ -371,7 +372,7 @@ async function loadProfileData() {
 
   const streak = updateStreak();
   loadStats(records);
-  renderStatistikLengkap(records);
+  renderStatistikLengkap(records, attempt1Count || 0);
   renderChart(records);
   renderAchievements(records, streak);
   loadHistory(records);
@@ -389,9 +390,9 @@ function loadStats(records) {
 // Statistik lengkap (radar TWK/TIU/TKP + breakdown) — terkunci sampai 5 tryout
 // resmi (attempt_number = 1) selesai.
 let _radarInstance = null;
-function renderStatistikLengkap(records) {
+function renderStatistikLengkap(records, attempt1Count) {
   const attempt1 = records.filter(r => r.attemptNumber === 1);
-  const count = attempt1.length;
+  const count = attempt1Count;
 
   const overlay = document.getElementById('statsLockOverlay');
   const body = document.getElementById('statsLengkapBody');
