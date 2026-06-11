@@ -224,13 +224,6 @@
   function renderPakets() {
     const grid = document.getElementById('latihanGrid');
     const filtered = filterAktif === 'semua' ? allPakets : allPakets.filter(p => p.tipe === filterAktif);
-    const levelColor = {
-      Mudah: 'bg-green-100 text-green-700',
-      Menengah: 'bg-amber-100 text-amber-700',
-      Sulit: 'bg-red-100 text-red-700',
-      'Sangat Sulit': 'bg-red-200 text-red-800',
-      Khusus: 'bg-purple-100 text-purple-700'
-    };
 
     if (!filtered.length) {
       grid.innerHTML = '<div class="col-span-3 text-center py-16"><div class="text-5xl mb-3">🔍</div><p class="text-gray-400 dark:text-gray-500">Tidak ada paket ditemukan.</p></div>';
@@ -239,7 +232,6 @@
 
     grid.innerHTML = filtered.map(p => {
       const icon  = p.icon || '📝';
-      const level = p.level || 'Menengah';
       const desc  = p.deskripsi || 'Latihan SKD CPNS lengkap dengan soal TWK, TIU, dan TKP.';
 
       if (p.tipe === 'premium') {
@@ -251,7 +243,6 @@
               <div class="text-3xl">${icon}</div>
               <div class="flex flex-col items-end gap-1">
                 <span class="bg-white/25 text-white text-xs font-bold px-2.5 py-1 rounded-full">PREMIUM ✨</span>
-                <span class="text-amber-900 text-xs font-medium px-2 py-0.5 rounded-full bg-white/20">${level}</span>
               </div>
             </div>
             <h3 class="font-black text-white text-base mb-1">${p.nama}</h3>
@@ -268,7 +259,6 @@
           <div class="text-3xl">${icon}</div>
           <div class="flex flex-col items-end gap-1">
             <span class="bg-green-100 text-green-700 text-xs font-bold px-2.5 py-1 rounded-full">GRATIS</span>
-            <span class="text-xs font-medium px-2 py-0.5 rounded-full ${levelColor[level] || 'bg-gray-100 text-gray-600'}">${level}</span>
           </div>
         </div>
         <h3 class="font-bold text-gray-900 dark:text-white mb-1">${p.nama}</h3>
