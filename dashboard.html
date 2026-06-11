@@ -505,6 +505,7 @@
       document.getElementById('sbAvatar').textContent = initials;
     }
 
+    console.log('[DEBUG] userData sebelum loadDashboardData:', userData);
     await loadDashboardData();
     loadTarget();
     checkOnboarding();
@@ -513,7 +514,11 @@
 
   // Dashboard data — fetch from Supabase hasil_tryout, fallback to localStorage
   async function loadDashboardData() {
-    if (!userData) return;
+    console.log('[DEBUG] loadDashboardData dipanggil, userData:', userData);
+    if (!userData) {
+      console.log('[DEBUG] loadDashboardData dibatalkan: userData masih null/kosong');
+      return;
+    }
 
     let records = [];
 
@@ -524,6 +529,8 @@
       .eq('user_id', userData.id)
       .order('tanggal', { ascending: false })
       .limit(100);
+
+    console.log('[DEBUG] Hasil query hasil_tryout - data:', dbData, 'error:', error);
 
     if (!error && dbData && dbData.length > 0) {
       records = dbData.map(r => ({
