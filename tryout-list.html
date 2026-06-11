@@ -495,7 +495,7 @@
     const btn = document.getElementById('warningStartBtn');
     btn.disabled = !checked;
     btn.className = checked
-      ? 'flex-1 bg-primary-600 hover:bg-primary-700 text-white text-lg lg:text-2xl font-bold py-4 lg:py-5 px-12 rounded-xl transition'
+      ? 'flex-1 bg-[#1E3A5F] hover:bg-[#16314f] text-white text-lg lg:text-2xl font-bold py-4 lg:py-5 px-12 rounded-xl shadow-lg shadow-[#1E3A5F]/30 transition'
       : 'flex-1 bg-gray-300 dark:bg-slate-700 text-gray-400 dark:text-gray-500 text-lg lg:text-2xl font-bold py-4 lg:py-5 px-12 rounded-xl cursor-not-allowed transition';
   }
 
@@ -535,26 +535,61 @@
 
 <!-- Warning Before Start Modal -->
 <div id="warningModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4" style="background:rgba(0,0,0,.6)" onclick="if(event.target===this)closeWarningModal()">
-  <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full sm:max-w-[680px] lg:max-w-[820px] p-8 sm:p-10 lg:p-12 max-h-[90vh] overflow-y-auto">
-    <h3 class="font-bold text-gray-900 dark:text-white text-3xl lg:text-4xl mb-3">⚠️ Perhatian Sebelum Memulai</h3>
-    <ul class="list-disc list-inside space-y-5 text-lg lg:text-2xl leading-relaxed text-gray-600 dark:text-gray-300 mb-4">
-      <li>Pastikan koneksi internetmu stabil sebelum memulai</li>
-      <li>Ujian akan otomatis berakhir jika kamu berpindah tab atau aplikasi</li>
-      <li>Skor Percobaan ke-1 adalah skor resmi yang digunakan untuk leaderboard</li>
-      <li>Waktu 100 menit berjalan terus dan tidak dapat dijeda</li>
-      <li>Dilarang keras mencontek, bertanya ke orang lain, atau menggunakan AI selama ujian berlangsung</li>
-    </ul>
-    <div class="bg-indigo-50 dark:bg-indigo-950/30 border-2 border-indigo-200 dark:border-indigo-800 rounded-xl p-7 lg:p-8 mb-4">
-      <p class="text-2xl lg:text-3xl font-bold text-indigo-700 dark:text-indigo-300 mb-1">🎯 Anggap ujian ini sebagai tes CPNS sesungguhnya.</p>
-      <p class="text-lg lg:text-xl text-indigo-600 dark:text-indigo-400">Integritas dan kejujuranmu adalah modal utama menjadi ASN yang baik.</p>
-    </div>
-    <label class="flex items-start gap-2 mb-4 cursor-pointer select-none">
-      <input type="checkbox" id="warningCheckbox" onchange="toggleWarningStart()" class="mt-0.5 w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 flex-shrink-0">
-      <span class="text-lg lg:text-2xl text-gray-700 dark:text-gray-300">Saya memahami seluruh peringatan di atas dan siap mengerjakan dengan jujur</span>
-    </label>
-    <div class="flex gap-2">
-      <button onclick="closeWarningModal()" class="flex-1 text-lg lg:text-2xl font-semibold text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-slate-600 py-4 lg:py-5 px-12 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-700 transition">Batal</button>
-      <button id="warningStartBtn" onclick="confirmStartUjian()" disabled class="flex-1 bg-gray-300 dark:bg-slate-700 text-gray-400 dark:text-gray-500 text-lg lg:text-2xl font-bold py-4 lg:py-5 px-12 rounded-xl cursor-not-allowed transition">Mulai Ujian →</button>
+  <div class="relative w-full sm:max-w-[680px] lg:max-w-[820px] rounded-2xl lg:rounded-3xl shadow-2xl ring-1 ring-black/5 overflow-hidden bg-gradient-to-br from-white via-white to-blue-50/60 dark:from-slate-800 dark:via-slate-800 dark:to-slate-900">
+    <div class="absolute top-0 right-0 w-48 h-48 bg-blue-100/50 dark:bg-blue-900/10 rounded-full -translate-y-1/2 translate-x-1/3 blur-3xl pointer-events-none"></div>
+    <div class="absolute bottom-0 left-0 w-48 h-48 bg-blue-50/60 dark:bg-blue-900/10 rounded-full translate-y-1/3 -translate-x-1/3 blur-3xl pointer-events-none"></div>
+
+    <div class="relative max-h-[90vh] overflow-y-auto p-8 sm:p-10 lg:p-12">
+      <div class="text-center mb-6 lg:mb-8">
+        <div class="inline-flex items-center justify-center w-16 h-16 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br from-[#1E3A5F] to-[#0B1F35] text-white text-3xl lg:text-4xl shadow-lg shadow-[#1E3A5F]/30 mb-4">🛡️</div>
+        <h3 class="font-bold text-[#1E3A5F] dark:text-blue-100 text-3xl lg:text-4xl mb-3">⚠️ Perhatian Sebelum Memulai</h3>
+        <div class="h-1 w-20 lg:w-24 mx-auto rounded-full bg-gradient-to-r from-transparent via-[#1E3A5F] to-transparent"></div>
+      </div>
+
+      <div class="space-y-4 lg:space-y-5 mb-6">
+        <div class="flex items-start gap-4">
+          <span class="flex-shrink-0 w-10 h-10 lg:w-12 lg:h-12 rounded-xl bg-[#1E3A5F]/10 dark:bg-blue-400/10 text-[#1E3A5F] dark:text-blue-300 font-bold text-base lg:text-lg flex items-center justify-center">01</span>
+          <p class="text-lg lg:text-2xl leading-relaxed text-gray-700 dark:text-gray-200 pt-1 lg:pt-2">Pastikan koneksi internetmu stabil sebelum memulai</p>
+        </div>
+        <div class="flex items-start gap-4">
+          <span class="flex-shrink-0 w-10 h-10 lg:w-12 lg:h-12 rounded-xl bg-[#1E3A5F]/10 dark:bg-blue-400/10 text-[#1E3A5F] dark:text-blue-300 font-bold text-base lg:text-lg flex items-center justify-center">02</span>
+          <p class="text-lg lg:text-2xl leading-relaxed text-gray-700 dark:text-gray-200 pt-1 lg:pt-2">Ujian akan otomatis berakhir jika kamu berpindah tab atau aplikasi</p>
+        </div>
+        <div class="flex items-start gap-4">
+          <span class="flex-shrink-0 w-10 h-10 lg:w-12 lg:h-12 rounded-xl bg-[#1E3A5F]/10 dark:bg-blue-400/10 text-[#1E3A5F] dark:text-blue-300 font-bold text-base lg:text-lg flex items-center justify-center">03</span>
+          <p class="text-lg lg:text-2xl leading-relaxed text-gray-700 dark:text-gray-200 pt-1 lg:pt-2">Skor Percobaan ke-1 adalah skor resmi yang digunakan untuk leaderboard</p>
+        </div>
+        <div class="flex items-start gap-4">
+          <span class="flex-shrink-0 w-10 h-10 lg:w-12 lg:h-12 rounded-xl bg-[#1E3A5F]/10 dark:bg-blue-400/10 text-[#1E3A5F] dark:text-blue-300 font-bold text-base lg:text-lg flex items-center justify-center">04</span>
+          <p class="text-lg lg:text-2xl leading-relaxed text-gray-700 dark:text-gray-200 pt-1 lg:pt-2">Waktu 100 menit berjalan terus dan tidak dapat dijeda</p>
+        </div>
+        <div class="flex items-start gap-4">
+          <span class="flex-shrink-0 w-10 h-10 lg:w-12 lg:h-12 rounded-xl bg-[#1E3A5F]/10 dark:bg-blue-400/10 text-[#1E3A5F] dark:text-blue-300 font-bold text-base lg:text-lg flex items-center justify-center">05</span>
+          <p class="text-lg lg:text-2xl leading-relaxed text-gray-700 dark:text-gray-200 pt-1 lg:pt-2">Dilarang keras mencontek, bertanya ke orang lain, atau menggunakan AI selama ujian berlangsung</p>
+        </div>
+      </div>
+
+      <div class="relative overflow-hidden rounded-2xl lg:rounded-3xl bg-gradient-to-br from-[#1E3A5F] to-[#0B1F35] p-7 lg:p-8 mb-6 shadow-lg shadow-[#1E3A5F]/30">
+        <div class="absolute -top-8 -right-8 w-28 h-28 lg:w-36 lg:h-36 bg-white/5 rounded-full"></div>
+        <div class="absolute -bottom-10 -left-10 w-32 h-32 lg:w-40 lg:h-40 bg-white/5 rounded-full"></div>
+        <div class="relative flex items-start gap-4 lg:gap-6">
+          <div class="text-4xl lg:text-6xl flex-shrink-0 leading-none">🎯</div>
+          <div>
+            <p class="text-2xl lg:text-3xl font-bold text-white mb-1">Anggap ujian ini sebagai tes CPNS sesungguhnya.</p>
+            <p class="text-lg lg:text-xl text-blue-100">Integritas dan kejujuranmu adalah modal utama menjadi ASN yang baik.</p>
+          </div>
+        </div>
+      </div>
+
+      <label class="flex items-start gap-3 mb-6 cursor-pointer select-none">
+        <input type="checkbox" id="warningCheckbox" onchange="toggleWarningStart()" class="mt-1 w-6 h-6 lg:w-7 lg:h-7 rounded-md border-2 border-gray-300 dark:border-slate-600 accent-[#1E3A5F] flex-shrink-0">
+        <span class="text-lg lg:text-2xl text-gray-700 dark:text-gray-200">Saya memahami seluruh peringatan di atas dan siap mengerjakan dengan jujur</span>
+      </label>
+
+      <div class="flex gap-3">
+        <button onclick="closeWarningModal()" class="flex-1 text-lg lg:text-2xl font-semibold text-[#1E3A5F] dark:text-blue-200 border-2 border-[#1E3A5F] dark:border-blue-300 py-4 lg:py-5 px-12 rounded-xl hover:bg-[#1E3A5F]/5 dark:hover:bg-blue-900/30 transition">Batal</button>
+        <button id="warningStartBtn" onclick="confirmStartUjian()" disabled class="flex-1 bg-gray-300 dark:bg-slate-700 text-gray-400 dark:text-gray-500 text-lg lg:text-2xl font-bold py-4 lg:py-5 px-12 rounded-xl cursor-not-allowed transition">Mulai Ujian →</button>
+      </div>
     </div>
   </div>
 </div>
