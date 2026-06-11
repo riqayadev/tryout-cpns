@@ -386,6 +386,8 @@
       // Kedua percobaan ada — tampilkan modal pilih percobaan
       const d1 = getAttemptDisplayData(paketId, 1);
       const d2 = getAttemptDisplayData(paketId, 2);
+      const paket = allPakets.find(p => p.id === paketId);
+      document.getElementById('pembahasanModalPaket').textContent = paket ? paket.nama : '';
       const list = document.getElementById('pembahasanChoiceList');
       list.innerHTML = `
         <button onclick="goToPembahasan(1, ${paketId})" class="w-full bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl p-4 text-left transition">
@@ -480,6 +482,7 @@
 <div id="pembahasanModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4" style="background:rgba(0,0,0,.6)" onclick="if(event.target===this)closePembahasanModal()">
   <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-sm p-6">
     <h3 class="font-black text-gray-900 dark:text-white text-lg mb-1">Pilih Percobaan</h3>
+    <p class="text-primary-600 dark:text-primary-400 text-sm font-semibold mb-1" id="pembahasanModalPaket"></p>
     <p class="text-gray-500 dark:text-gray-400 text-sm mb-4">Pilih percobaan mana yang ingin kamu lihat hasil & pembahasannya.</p>
     <div class="space-y-3" id="pembahasanChoiceList"></div>
     <button onclick="closePembahasanModal()" class="mt-4 w-full text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 py-2 transition">Batal</button>

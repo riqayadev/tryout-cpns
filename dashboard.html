@@ -522,11 +522,12 @@
 
     let records = [];
 
-    // 1. Try Supabase
+    // 1. Try Supabase — hanya percobaan ke-1 (skor resmi), percobaan ke-2 (remidi) tidak dihitung
     const { data: dbData, error } = await _sb
       .from('hasil_tryout')
       .select('skor_twk, skor_tiu, skor_tkp, skor_total, status_lulus, paket_nama, tanggal')
       .eq('user_id', userData.id)
+      .eq('attempt_number', 1)
       .order('tanggal', { ascending: false })
       .limit(100);
 
@@ -556,7 +557,7 @@
       }));
     }
 
-    console.log('[DEBUG] records setelah mapping (sebelum dedup):', JSON.parse(JSON.stringify(records)));
+    console.log('[DEBUG] records setelah mapping:', JSON.parse(JSON.stringify(records)));
 
     if (!records.length) return;
 
@@ -564,18 +565,6 @@
     // baris lama bisa punya tanggal null/invalid yang membuat .order() Supabase
     // tidak bisa diandalkan untuk menempatkan record terbaru di posisi pertama.
     records.sort((a, b) => (Date.parse(b.tanggal) || 0) - (Date.parse(a.tanggal) || 0));
-
-    // Deduplikasi: simpan hanya satu record per paket (yang paling baru,
-    // karena records sudah diurutkan terbaru duluan di atas).
-    const seenPaket = new Set();
-    records = records.filter(r => {
-      const key = r.paket || 'unknown';
-      if (seenPaket.has(key)) return false;
-      seenPaket.add(key);
-      return true;
-    });
-
-    console.log('[DEBUG] records setelah dedup per paket:', JSON.parse(JSON.stringify(records)));
 
     _totalTryout = records.length;
 
