@@ -51,7 +51,7 @@
 <!-- SIDEBAR -->
 <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 flex flex-col bg-gray-900 transform -translate-x-full lg:translate-x-0 transition-[width,transform] duration-300 overflow-hidden">
   <div class="flex items-center gap-2 px-4 h-16 border-b border-white/10 flex-shrink-0 min-w-0">
-    <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0"><svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+    <img src="skorincpns-logo.png" alt="SkorinCPNS" class="h-8 sm:h-10 w-auto flex-shrink-0" style="filter:brightness(0) invert(1)">
     <span class="sb-label font-extrabold text-base text-white whitespace-nowrap flex-1">SkorinCPNS</span>
     <button onclick="toggleSbCollapse()" class="hidden lg:flex p-1.5 rounded-lg text-gray-400 hover:bg-white/10 hover:text-white transition" title="Toggle sidebar">
       <svg id="sbColIcon" class="w-4 h-4 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/></svg>
@@ -90,7 +90,10 @@
 <!-- Mobile Topbar -->
 <div class="lg:hidden fixed top-0 inset-x-0 z-30 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 flex items-center justify-between h-14 px-4">
   <button onclick="openSidebar()" class="p-2 -ml-1 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-800"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg></button>
-  <span class="font-extrabold text-primary-600">SkorinCPNS</span>
+  <span class="flex items-center gap-2 font-extrabold text-[#1E3A5F] dark:text-white">
+    <img src="skorincpns-logo.png" alt="SkorinCPNS" class="h-8 w-auto [filter:brightness(0)] dark:[filter:brightness(0)_invert(1)]">
+    SkorinCPNS
+  </span>
   <div class="w-9"></div>
 </div>
 
