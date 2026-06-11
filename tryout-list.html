@@ -246,21 +246,18 @@
   }
 
   function updateProgressBanner() {
-    const gratisPakets = allPakets.filter(p => p.tipe === 'gratis');
-    // Hitung unique paket gratis yang sudah punya minimal 1 attempt di Supabase
-    const gratisDone = gratisPakets.filter(p => {
-      const attempts = attemptDataByPaket[p.id];
-      return attempts && Object.keys(attempts).length > 0;
-    }).length;
-    const total = gratisPakets.length;
-    if (total > 0) {
+    const TOTAL_TRYOUT = 5;
+    // Total tryout selesai = jumlah paket (gratis maupun premium) yang sudah
+    // punya hasil_tryout dengan attempt_number = 1.
+    const done = Object.values(attemptDataByPaket).filter(a => a[1]).length;
+    if (allPakets.length > 0) {
       document.getElementById('progressBanner').classList.remove('hidden');
-      document.getElementById('progressCount').textContent = gratisDone;
-      document.getElementById('progressTotal').textContent = total;
-      document.getElementById('progressBar').style.width = (gratisDone / total * 100) + '%';
-      document.getElementById('progressMsg').textContent = gratisDone >= total
-        ? '🎉 Semua tryout gratis sudah dikerjakan! Coba upgrade ke Premium untuk soal lebih banyak.'
-        : `Selesaikan ${total - gratisDone} tryout gratis lagi untuk unlock statistik lengkap.`;
+      document.getElementById('progressCount').textContent = done;
+      document.getElementById('progressTotal').textContent = TOTAL_TRYOUT;
+      document.getElementById('progressBar').style.width = Math.min(done / TOTAL_TRYOUT * 100, 100) + '%';
+      document.getElementById('progressMsg').textContent = done >= TOTAL_TRYOUT
+        ? '🎉 Statistik lengkap sudah terbuka! Cek halaman Profil untuk lihat performamu.'
+        : `Kerjakan 5 tryout untuk unlock statistik lengkap! (${done}/${TOTAL_TRYOUT} selesai)`;
     }
   }
 
