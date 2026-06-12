@@ -88,6 +88,22 @@
   </div>
 </aside>
 <div id="sbOverlay" onclick="closeSidebar()" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden"></div>
+
+<!-- Notification Bell -->
+<div id="notifBell" class="fixed top-3 right-3 sm:top-4 sm:right-4 z-40">
+  <button onclick="toggleNotifDropdown()" class="relative w-10 h-10 flex items-center justify-center rounded-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-sm hover:bg-gray-50 dark:hover:bg-slate-700 transition">
+    <svg class="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+    <span id="notifBadge" class="hidden absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-600 text-white text-[10px] font-bold flex items-center justify-center">0</span>
+  </button>
+  <div id="notifDropdown" class="hidden absolute right-0 mt-2 w-80 max-w-[calc(100vw-1.5rem)] bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 shadow-xl overflow-hidden">
+    <div class="px-4 py-3 border-b border-gray-100 dark:border-slate-700">
+      <h3 class="font-bold text-gray-900 dark:text-white text-sm">🔔 Notifikasi</h3>
+    </div>
+    <div id="notifList" class="max-h-80 overflow-y-auto divide-y divide-gray-100 dark:divide-slate-700"></div>
+    <button onclick="markAllNotifRead()" class="w-full text-center text-xs font-semibold text-primary-600 hover:bg-gray-50 dark:hover:bg-slate-700 py-3 border-t border-gray-100 dark:border-slate-700 transition">Tandai semua dibaca</button>
+  </div>
+</div>
+
 <div class="lg:hidden fixed top-0 inset-x-0 z-30 bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 flex items-center justify-between h-14 px-4">
   <button onclick="openSidebar()" class="p-2 -ml-1 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-800"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg></button>
   <span class="flex items-center gap-2 font-extrabold text-[#1E3A5F] dark:text-white">
@@ -189,6 +205,64 @@ function openSidebar() { document.getElementById('sidebar').classList.remove('-t
 function closeSidebar() { document.getElementById('sidebar').classList.add('-translate-x-full'); document.getElementById('sbOverlay').classList.add('hidden'); }
 
 async function confirmLogout() { if (!confirm('Yakin ingin keluar?')) return; await _sb.auth.signOut(); localStorage.removeItem('skorin_history'); window.location.href = 'index.html'; }
+
+// ====== Notifikasi Bell ======
+function toggleNotifDropdown() {
+  const dd = document.getElementById('notifDropdown');
+  if (dd.classList.contains('hidden')) { dd.classList.remove('hidden'); loadNotifications(); }
+  else dd.classList.add('hidden');
+}
+document.addEventListener('click', (e) => {
+  const wrap = document.getElementById('notifBell');
+  if (wrap && !wrap.contains(e.target)) document.getElementById('notifDropdown')?.classList.add('hidden');
+});
+function notifRelativeTime(dateStr) {
+  const diffMs = Date.now() - new Date(dateStr).getTime();
+  const min = Math.floor(diffMs / 60000);
+  if (min < 1) return 'Baru saja';
+  if (min < 60) return `${min} menit lalu`;
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return `${hr} jam lalu`;
+  const day = Math.floor(hr / 24);
+  if (day === 1) return 'Kemarin';
+  if (day < 7) return `${day} hari lalu`;
+  return new Date(dateStr).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+async function loadUnreadCount(userId) {
+  const { count } = await _sb.from('notifications').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('dibaca', false);
+  const badge = document.getElementById('notifBadge');
+  if (count > 0) { badge.textContent = count > 9 ? '9+' : count; badge.classList.remove('hidden'); }
+  else badge.classList.add('hidden');
+}
+async function loadNotifications() {
+  const { data: { session } } = await _sb.auth.getSession();
+  if (!session) return;
+  const list = document.getElementById('notifList');
+  list.innerHTML = '<div class="text-center py-8 text-sm text-gray-400 dark:text-gray-500">Memuat...</div>';
+  const { data, error } = await _sb.from('notifications').select('id, judul, pesan, tipe, dibaca, created_at').eq('user_id', session.user.id).order('created_at', { ascending: false }).limit(5);
+  if (error || !data || !data.length) {
+    list.innerHTML = '<div class="text-center py-8 text-sm text-gray-400 dark:text-gray-500">Belum ada notifikasi</div>';
+    return;
+  }
+  const iconMap = { success: '✅', warning: '⚠️', info: 'ℹ️' };
+  list.innerHTML = data.map(n => `
+    <div class="px-4 py-3 flex items-start gap-2.5 ${n.dibaca ? '' : 'bg-blue-50 dark:bg-blue-900/10'}">
+      <span class="text-base flex-shrink-0">${iconMap[n.tipe] || 'ℹ️'}</span>
+      <div class="flex-1 min-w-0">
+        <p class="text-sm font-semibold text-gray-900 dark:text-white">${n.judul}</p>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">${n.pesan}</p>
+        <p class="text-[11px] text-gray-400 dark:text-gray-500 mt-1">${notifRelativeTime(n.created_at)}</p>
+      </div>
+      ${n.dibaca ? '' : '<span class="w-2 h-2 rounded-full bg-primary-600 flex-shrink-0 mt-1.5"></span>'}
+    </div>`).join('');
+}
+async function markAllNotifRead() {
+  const { data: { session } } = await _sb.auth.getSession();
+  if (!session) return;
+  await _sb.from('notifications').update({ dibaca: true }).eq('user_id', session.user.id).eq('dibaca', false);
+  await loadNotifications();
+  await loadUnreadCount(session.user.id);
+}
 
 function setTime(t) {
   activeTime = t;
@@ -359,6 +433,7 @@ async function loadLeaderboard() {
   const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   document.getElementById('sbName').textContent = name;
   document.getElementById('sbEmail').textContent = currentUser.email;
+  loadUnreadCount(currentUser.id);
 
   const photo = localStorage.getItem('skorin_photo');
   if (photo) {

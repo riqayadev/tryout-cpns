@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Panel – SkorinCPNS</title>
+  <meta name="robots" content="noindex, nofollow"/>
+  <link rel="icon" href="skorincpns-logo.png" type="image/png"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter','sans-serif'] } } } };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <style>
+    * { font-family: 'Inter', sans-serif; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+    .page-fade { animation: fadeIn .35s ease; }
+    @keyframes shake { 10%,90%{transform:translateX(-2px)} 20%,80%{transform:translateX(4px)} 30%,50%,70%{transform:translateX(-6px)} 40%,60%{transform:translateX(6px)} }
+    .shake { animation: shake .4s; }
+    input[type=date] { color-scheme: dark; }
+    .pin-box::-webkit-outer-spin-button, .pin-box::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
+    .pin-box { -moz-appearance: textfield; }
+    .nav-item.active { background:#2563EB; color:#fff; }
+    .nav-item:not(.active):hover { background:#334155; color:#fff; }
+    ::-webkit-scrollbar { width:8px; height:8px; }
+    ::-webkit-scrollbar-track { background:#0F172A; }
+    ::-webkit-scrollbar-thumb { background:#334155; border-radius:4px; }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 antialiased">
+
+  <!-- ============ LAYER 1: AUTH CHECK ============ -->
+  <div id="authCheck" class="min-h-screen flex items-center justify-center px-4">
+    <div class="text-center">
+      <div class="animate-spin w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-3"></div>
+      <p class="text-slate-400 text-sm">Memeriksa autentikasi...</p>
+    </div>
+  </div>
+
+  <!-- ============ LAYER 2: PIN SCREEN ============ -->
+  <div id="pinScreen" class="hidden min-h-screen items-center justify-center px-4">
+    <div id="pinCard" class="bg-slate-800 border border-slate-700 rounded-2xl p-8 w-full max-w-sm text-center shadow-2xl">
+      <div class="w-14 h-14 rounded-2xl bg-blue-600/15 border border-blue-600/30 flex items-center justify-center text-3xl mx-auto mb-4">🔒</div>
+      <h2 class="text-xl font-black text-white mb-1">Verifikasi PIN Admin</h2>
+      <p class="text-slate-400 text-sm mb-6">Masukkan 6 digit PIN untuk masuk ke panel admin</p>
+      <div id="pinBoxes" class="flex justify-center gap-2 mb-4">
+        <input type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" data-idx="0" class="pin-box w-11 h-13 sm:w-12 sm:h-14 text-center text-2xl font-bold bg-slate-900 border border-slate-700 rounded-xl text-white focus:border-blue-600 focus:ring-2 focus:ring-blue-600/30 focus:outline-none transition"/>
+        <input type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" data-idx="1" class="pin-box w-11 h-13 sm:w-12 sm:h-14 text-center text-2xl font-bold bg-slate-900 border border-slate-700 rounded-xl text-white focus:border-blue-600 focus:ring-2 focus:ring-blue-600/30 focus:outline-none transition"/>
+        <input type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" data-idx="2" class="pin-box w-11 h-13 sm:w-12 sm:h-14 text-center text-2xl font-bold bg-slate-900 border border-slate-700 rounded-xl text-white focus:border-blue-600 focus:ring-2 focus:ring-blue-600/30 focus:outline-none transition"/>
+        <input type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" data-idx="3" class="pin-box w-11 h-13 sm:w-12 sm:h-14 text-center text-2xl font-bold bg-slate-900 border border-slate-700 rounded-xl text-white focus:border-blue-600 focus:ring-2 focus:ring-blue-600/30 focus:outline-none transition"/>
+        <input type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" data-idx="4" class="pin-box w-11 h-13 sm:w-12 sm:h-14 text-center text-2xl font-bold bg-slate-900 border border-slate-700 rounded-xl text-white focus:border-blue-600 focus:ring-2 focus:ring-blue-600/30 focus:outline-none transition"/>
+        <input type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" data-idx="5" class="pin-box w-11 h-13 sm:w-12 sm:h-14 text-center text-2xl font-bold bg-slate-900 border border-slate-700 rounded-xl text-white focus:border-blue-600 focus:ring-2 focus:ring-blue-600/30 focus:outline-none transition"/>
+      </div>
+      <p id="pinError" class="hidden text-red-500 text-sm font-semibold mb-1">PIN salah. Coba lagi.</p>
+      <p id="pinLockMsg" class="hidden text-amber-500 text-sm font-semibold mb-1"></p>
+      <button onclick="adminLogout()" class="mt-4 text-slate-500 hover:text-slate-300 text-xs font-semibold transition">Keluar dari akun</button>
+    </div>
+  </div>
+
+  <!-- ============ ADMIN APP ============ -->
+  <div id="adminApp" class="hidden">
+
+    <!-- Mobile Topbar -->
+    <div class="lg:hidden fixed top-0 inset-x-0 z-30 h-14 bg-slate-800 border-b border-slate-700 flex items-center justify-between px-3">
+      <button onclick="toggleAdminSidebar()" class="p-2 rounded-lg text-slate-300 hover:bg-slate-700 transition">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+      <div class="flex items-center gap-2">
+        <img src="skorincpns-logo.png" alt="SkorinCPNS" class="h-6 w-auto" style="filter:brightness(0) invert(1)"/>
+        <span class="font-extrabold text-sm">Admin Panel</span>
+      </div>
+      <div class="w-9"></div>
+    </div>
+
+    <!-- Sidebar Overlay (mobile) -->
+    <div id="adminSbOverlay" onclick="toggleAdminSidebar()" class="fixed inset-0 bg-black/50 z-30 hidden lg:hidden"></div>
+
+    <!-- Sidebar -->
+    <aside id="adminSidebar" class="fixed inset-y-0 left-0 z-40 w-60 bg-slate-800 border-r border-slate-700 flex flex-col -translate-x-full lg:translate-x-0 transition-transform duration-200">
+      <div class="h-16 flex items-center gap-2 px-4 border-b border-slate-700 flex-shrink-0">
+        <img src="skorincpns-logo.png" alt="SkorinCPNS" class="h-8 w-auto" style="filter:brightness(0) invert(1)"/>
+        <span class="font-extrabold text-white text-base">SkorinCPNS</span>
+      </div>
+      <div class="px-4 py-3">
+        <span class="inline-flex items-center gap-1 bg-amber-500/15 text-amber-400 text-xs font-bold px-2.5 py-1 rounded-full border border-amber-500/30">⚙️ Admin Panel</span>
+      </div>
+      <nav class="flex-1 px-2 space-y-1 overflow-y-auto">
+        <button id="nav-transaksi" onclick="showSection('transaksi')" class="nav-item active w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition text-left">
+          <span class="text-lg">📋</span> Transaksi
+        </button>
+        <button id="nav-users" onclick="showSection('users')" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition text-slate-400 text-left">
+          <span class="text-lg">👥</span> Users
+        </button>
+        <button id="nav-akses" onclick="showSection('akses')" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition text-slate-400 text-left">
+          <span class="text-lg">🔑</span> Akses
+        </button>
+        <button id="nav-pengaturan" onclick="showSection('pengaturan')" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition text-slate-400 text-left">
+          <span class="text-lg">⚙️</span> Pengaturan
+        </button>
+      </nav>
+      <div class="border-t border-slate-700 p-3 flex-shrink-0">
+        <p id="adminEmailDisplay" class="text-xs text-slate-400 truncate px-2 mb-2">-</p>
+        <button onclick="adminLogout()" class="w-full text-left text-red-400 hover:bg-red-500/10 rounded-xl px-3 py-2 text-sm font-semibold transition">🚪 Keluar</button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="lg:ml-60 pt-14 lg:pt-0 min-h-screen">
+      <main class="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto page-fade">
+
+        <!-- ===================== SECTION: TRANSAKSI ===================== -->
+        <div id="section-transaksi">
+          <div class="mb-6">
+            <h1 class="text-2xl font-black text-white">Transaksi</h1>
+            <p class="text-slate-400 text-sm mt-1">Kelola pembayaran & pembukaan akses premium</p>
+          </div>
+
+          <!-- Summary Cards -->
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
+            <div class="bg-slate-800 border border-slate-700 rounded-2xl p-4">
+              <p class="text-xs font-semibold text-amber-400 mb-1">⏳ Pending</p>
+              <p id="sumPending" class="text-2xl font-black text-white">–</p>
+            </div>
+            <div class="bg-slate-800 border border-slate-700 rounded-2xl p-4">
+              <p class="text-xs font-semibold text-green-400 mb-1">✅ Confirmed Hari Ini</p>
+              <p id="sumConfirmedToday" class="text-2xl font-black text-white">–</p>
+            </div>
+            <div class="bg-slate-800 border border-slate-700 rounded-2xl p-4">
+              <p class="text-xs font-semibold text-blue-400 mb-1">💰 Revenue</p>
+              <p id="sumRevenue" class="text-2xl font-black text-white">–</p>
+            </div>
+            <div class="bg-slate-800 border border-slate-700 rounded-2xl p-4">
+              <p class="text-xs font-semibold text-slate-400 mb-1">👥 Total Users</p>
+              <p id="sumUsers" class="text-2xl font-black text-white">–</p>
+            </div>
+          </div>
+
+          <!-- Filter & Search -->
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+            <div class="flex gap-2 overflow-x-auto pb-1">
+              <button id="txf-semua" onclick="setTxFilter('semua')" class="px-4 py-2 rounded-xl text-sm font-semibold transition bg-blue-600 text-white whitespace-nowrap">Semua</button>
+              <button id="txf-pending" onclick="setTxFilter('pending')" class="px-4 py-2 rounded-xl text-sm font-semibold transition bg-slate-800 text-slate-400 border border-slate-700 hover:bg-slate-700 whitespace-nowrap">Pending</button>
+              <button id="txf-confirmed" onclick="setTxFilter('confirmed')" class="px-4 py-2 rounded-xl text-sm font-semibold transition bg-slate-800 text-slate-400 border border-slate-700 hover:bg-slate-700 whitespace-nowrap">Confirmed</button>
+              <button id="txf-cancelled" onclick="setTxFilter('cancelled')" class="px-4 py-2 rounded-xl text-sm font-semibold transition bg-slate-800 text-slate-400 border border-slate-700 hover:bg-slate-700 whitespace-nowrap">Cancelled</button>
+            </div>
+            <div class="relative w-full sm:w-64">
+              <svg class="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z"/></svg>
+              <input id="txSearchInput" type="text" placeholder="Cari nama / email..." class="w-full bg-slate-800 border border-slate-700 rounded-xl pl-9 pr-3 py-2 text-sm text-white placeholder-slate-500 focus:border-blue-600 focus:outline-none"/>
+            </div>
+          </div>
+
+          <!-- Table -->
+          <div class="bg-slate-800 border border-slate-700 rounded-2xl overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left min-w-[820px]">
+                <thead>
+                  <tr class="border-b border-slate-700 text-xs font-bold text-slate-400 uppercase">
+                    <th class="px-4 py-3">No</th>
+                    <th class="px-4 py-3">Nama / Email</th>
+                    <th class="px-4 py-3">Paket</th>
+                    <th class="px-4 py-3">Tipe</th>
+                    <th class="px-4 py-3">Harga</th>
+                    <th class="px-4 py-3">Status</th>
+                    <th class="px-4 py-3">Tanggal</th>
+                    <th class="px-4 py-3">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="txTableBody">
+                  <tr><td colspan="8" class="text-center py-10 text-slate-500">Memuat data...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===================== SECTION: USERS ===================== -->
+        <div id="section-users" class="hidden">
+          <div class="mb-6">
+            <h1 class="text-2xl font-black text-white">Users</h1>
+            <p class="text-slate-400 text-sm mt-1">Daftar pengguna terdaftar & status akses mereka</p>
+          </div>
+          <div class="bg-slate-800 border border-slate-700 rounded-2xl overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left min-w-[760px]">
+                <thead>
+                  <tr class="border-b border-slate-700 text-xs font-bold text-slate-400 uppercase">
+                    <th class="px-4 py-3">Nama</th>
+                    <th class="px-4 py-3">Email</th>
+                    <th class="px-4 py-3">Total Tryout</th>
+                    <th class="px-4 py-3">Status Akses</th>
+                    <th class="px-4 py-3">Bergabung</th>
+                    <th class="px-4 py-3">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="usersTableBody">
+                  <tr><td colspan="6" class="text-center py-10 text-slate-500">Memuat data...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===================== SECTION: AKSES ===================== -->
+        <div id="section-akses" class="hidden">
+          <div class="mb-6">
+            <h1 class="text-2xl font-black text-white">Akses Premium</h1>
+            <p class="text-slate-400 text-sm mt-1">Daftar akses premium yang telah diberikan</p>
+          </div>
+          <div class="bg-slate-800 border border-slate-700 rounded-2xl overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left min-w-[760px]">
+                <thead>
+                  <tr class="border-b border-slate-700 text-xs font-bold text-slate-400 uppercase">
+                    <th class="px-4 py-3">Nama / Email</th>
+                    <th class="px-4 py-3">Paket</th>
+                    <th class="px-4 py-3">Tipe</th>
+                    <th class="px-4 py-3">Berlaku Sampai</th>
+                    <th class="px-4 py-3">Status</th>
+                    <th class="px-4 py-3">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="aksesTableBody">
+                  <tr><td colspan="6" class="text-center py-10 text-slate-500">Memuat data...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===================== SECTION: PENGATURAN ===================== -->
+        <div id="section-pengaturan" class="hidden">
+          <div class="mb-6">
+            <h1 class="text-2xl font-black text-white">Pengaturan</h1>
+            <p class="text-slate-400 text-sm mt-1">Konfigurasi keamanan panel admin</p>
+          </div>
+          <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 max-w-md">
+            <h3 class="font-bold text-white mb-1">Ubah PIN Admin</h3>
+            <p class="text-slate-400 text-xs mb-4">PIN digunakan untuk masuk ke panel admin ini. Gunakan 6 digit angka.</p>
+            <div class="space-y-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-400 mb-1">PIN Lama</label>
+                <input id="oldPinInput" type="password" inputmode="numeric" maxlength="6" placeholder="••••••" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-blue-600 focus:outline-none"/>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-400 mb-1">PIN Baru</label>
+                <input id="newPinInput" type="password" inputmode="numeric" maxlength="6" placeholder="••••••" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-blue-600 focus:outline-none"/>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-400 mb-1">Konfirmasi PIN Baru</label>
+                <input id="confirmPinInput" type="password" inputmode="numeric" maxlength="6" placeholder="••••••" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-blue-600 focus:outline-none"/>
+              </div>
+              <button onclick="changePin()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl transition text-sm">Simpan PIN Baru</button>
+            </div>
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- ============ MODAL: KONFIRMASI TRANSAKSI ============ -->
+  <div id="confirmTxModal" class="hidden fixed inset-0 z-[100] items-center justify-center bg-black/60 px-4">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-md shadow-2xl">
+      <h3 class="text-lg font-black text-white mb-1">Konfirmasi Transaksi</h3>
+      <p class="text-slate-400 text-xs mb-4">Buka akses premium untuk user setelah pembayaran diverifikasi.</p>
+      <div class="bg-slate-900 border border-slate-700 rounded-xl p-3 mb-4 space-y-1 text-sm">
+        <div class="flex justify-between"><span class="text-slate-400">Nama</span><span id="ctxName" class="font-semibold text-white">-</span></div>
+        <div class="flex justify-between"><span class="text-slate-400">Email</span><span id="ctxEmail" class="font-semibold text-white">-</span></div>
+        <div class="flex justify-between"><span class="text-slate-400">Paket</span><span id="ctxPaket" class="font-semibold text-white text-right">-</span></div>
+        <div class="flex justify-between"><span class="text-slate-400">Tipe</span><span id="ctxTipe" class="font-semibold text-white capitalize">-</span></div>
+        <div class="flex justify-between"><span class="text-slate-400">Harga</span><span id="ctxHarga" class="font-semibold text-white">-</span></div>
+      </div>
+      <div class="mb-4">
+        <label class="block text-xs font-semibold text-slate-400 mb-1">Akses berlaku sampai</label>
+        <input id="ctxExpiry" type="date" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:border-blue-600 focus:outline-none"/>
+      </div>
+      <label class="flex items-center justify-between mb-5 cursor-pointer">
+        <span class="text-sm font-semibold text-slate-300">Kirim notifikasi ke user</span>
+        <input id="ctxNotify" type="checkbox" checked class="w-5 h-5 rounded accent-blue-600"/>
+      </label>
+      <div class="flex gap-2">
+        <button onclick="closeConfirmTxModal()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-bold py-2.5 rounded-xl transition text-sm">Batal</button>
+        <button id="ctxSubmitBtn" onclick="confirmTxAndGrantAccess()" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 rounded-xl transition text-sm">✓ Konfirmasi & Buka Akses</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MODAL: PERPANJANG AKSES ============ -->
+  <div id="extendAccessModal" class="hidden fixed inset-0 z-[100] items-center justify-center bg-black/60 px-4">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-md shadow-2xl">
+      <h3 class="text-lg font-black text-white mb-1">Perpanjang Akses</h3>
+      <p id="extendUserInfo" class="text-slate-400 text-xs mb-4">-</p>
+      <div class="mb-5">
+        <label class="block text-xs font-semibold text-slate-400 mb-1">Akses berlaku sampai</label>
+        <input id="extendExpiry" type="date" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:border-blue-600 focus:outline-none"/>
+      </div>
+      <div class="flex gap-2">
+        <button onclick="closeExtendModal()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-bold py-2.5 rounded-xl transition text-sm">Batal</button>
+        <button onclick="submitExtend()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl transition text-sm">Simpan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MODAL: BERI AKSES (Users) ============ -->
+  <div id="grantAccessModal" class="hidden fixed inset-0 z-[100] items-center justify-center bg-black/60 px-4">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-md shadow-2xl">
+      <h3 class="text-lg font-black text-white mb-1">Beri Akses Premium</h3>
+      <p id="grantUserInfo" class="text-slate-400 text-xs mb-4">-</p>
+      <div class="mb-3">
+        <label class="block text-xs font-semibold text-slate-400 mb-1">Paket</label>
+        <select id="grantPaketSelect" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:border-blue-600 focus:outline-none"></select>
+      </div>
+      <div class="mb-5">
+        <label class="block text-xs font-semibold text-slate-400 mb-1">Akses berlaku sampai</label>
+        <input id="grantExpiry" type="date" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:border-blue-600 focus:outline-none"/>
+      </div>
+      <div class="flex gap-2">
+        <button onclick="closeGrantModal()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-bold py-2.5 rounded-xl transition text-sm">Batal</button>
+        <button onclick="submitGrant()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl transition text-sm">Beri Akses</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="fixed bottom-4 right-4 z-[200] space-y-2 flex flex-col items-end max-w-[90vw]"></div>
+
+  <script>
+    const { createClient } = supabase;
+    const _sb = createClient('https://ykvwwfsoqqhtijtnivmj.supabase.co', 'sb_publishable_p_RYUHTiKlARg_rDTe3Gaw_N3G8XPwl');
+
+    const ADMIN_EMAIL = 'riqayadev0921@gmail.com';
+    const LOCKOUT_MS = 15 * 60 * 1000;
+
+    let currentSession = null;
+    let allTransactions = [];
+    let premiumPakets = [];
+    let allPaketsById = {};
+    let usersMap = new Map();
+    let allUserAccess = [];
+    let txFilter = 'semua';
+    let txSearch = '';
+    let pendingConfirmTx = null;
+    let pendingExtendAccess = null;
+    let pendingGrantUser = null;
+
+    // ===================== TOAST =====================
+    function showToast(msg, type) {
+      type = type || 'success';
+      const colors = { success:'bg-green-600', error:'bg-red-600', info:'bg-blue-600' };
+      const icons = { success:'✅', error:'❌', info:'ℹ️' };
+      const el = document.createElement('div');
+      el.className = (colors[type]||colors.info) + ' text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 font-semibold text-sm page-fade';
+      el.innerHTML = '<span>' + (icons[type]||icons.info) + '</span><span>' + msg + '</span>';
+      document.getElementById('toastContainer').appendChild(el);
+      setTimeout(function () {
+        el.style.transition = 'opacity .3s';
+        el.style.opacity = '0';
+        setTimeout(function () { el.remove(); }, 300);
+      }, 3500);
+    }
+
+    // ===================== LAYER 1: AUTH ====================
+    (async function () {
+      const { data: { session } } = await _sb.auth.getSession();
+      if (!session) { window.location.replace('login.html'); return; }
+      if (session.user.email !== ADMIN_EMAIL) {
+        document.getElementById('authCheck').innerHTML =
+          '<div class="text-center px-4"><div class="text-5xl mb-3">🚫</div>' +
+          '<p class="text-white font-bold text-lg mb-1">Akses Ditolak</p>' +
+          '<p class="text-slate-400 text-sm">Halaman ini khusus untuk admin.</p></div>';
+        setTimeout(function () { window.location.replace('dashboard.html'); }, 2000);
+        return;
+      }
+      currentSession = session;
+      document.getElementById('adminEmailDisplay').textContent = session.user.email;
+      document.getElementById('authCheck').classList.add('hidden');
+      initPinScreen();
+    })();
+
+    // ===================== LAYER 2: PIN ====================
+    function initPinScreen() {
+      const pinScreen = document.getElementById('pinScreen');
+      pinScreen.classList.remove('hidden');
+      pinScreen.classList.add('flex');
+      const lockUntil = parseInt(localStorage.getItem('admin_lockout_until') || '0', 10);
+      if (Date.now() < lockUntil) { showLockout(lockUntil); return; }
+      setupPinBoxes();
+    }
+
+    function setupPinBoxes() {
+      const boxes = document.querySelectorAll('.pin-box');
+      boxes.forEach(function (box, i) {
+        box.disabled = false;
+        box.value = '';
+        box.oninput = function () {
+          box.value = box.value.replace(/[^0-9]/g, '').slice(0, 1);
+          if (box.value && i < boxes.length - 1) boxes[i + 1].focus();
+          if (Array.prototype.every.call(boxes, function (b) { return b.value; })) verifyPin();
+        };
+        box.onkeydown = function (e) {
+          if (e.key === 'Backspace' && !box.value && i > 0) boxes[i - 1].focus();
+        };
+      });
+      boxes[0].focus();
+    }
+
+    async function verifyPin() {
+      const boxes = document.querySelectorAll('.pin-box');
+      const pin = Array.prototype.map.call(boxes, function (b) { return b.value; }).join('');
+      const { data, error } = await _sb.from('admin_config').select('value').eq('key', 'admin_pin').single();
+      if (error) { showToast('Gagal memverifikasi PIN: ' + error.message, 'error'); return; }
+      if (data.value === pin) {
+        localStorage.removeItem('admin_pin_attempts');
+        localStorage.removeItem('admin_lockout_until');
+        const pinScreen = document.getElementById('pinScreen');
+        pinScreen.classList.add('hidden');
+        pinScreen.classList.remove('flex');
+        const app = document.getElementById('adminApp');
+        app.classList.remove('hidden');
+        app.classList.add('page-fade');
+        initAdminApp();
+      } else {
+        let attempts = parseInt(localStorage.getItem('admin_pin_attempts') || '0', 10) + 1;
+        localStorage.setItem('admin_pin_attempts', attempts);
+        const card = document.getElementById('pinCard');
+        card.classList.remove('shake');
+        void card.offsetWidth;
+        card.classList.add('shake');
+        document.getElementById('pinError').classList.remove('hidden');
+        boxes.forEach(function (b) { b.value = ''; });
+        boxes[0].focus();
+        if (attempts >= 3) {
+          const lockUntil = Date.now() + LOCKOUT_MS;
+          localStorage.setItem('admin_lockout_until', lockUntil);
+          localStorage.removeItem('admin_pin_attempts');
+          showLockout(lockUntil);
+        }
+      }
+    }
+
+    function showLockout(lockUntil) {
+      document.querySelectorAll('.pin-box').forEach(function (b) { b.disabled = true; b.value = ''; });
+      document.getElementById('pinError').classList.add('hidden');
+      const msg = document.getElementById('pinLockMsg');
+      msg.classList.remove('hidden');
+      let timer;
+      const tick = function () {
+        const remain = lockUntil - Date.now();
+        if (remain <= 0) {
+          msg.classList.add('hidden');
+          localStorage.removeItem('admin_lockout_until');
+          clearInterval(timer);
+          setupPinBoxes();
+          return;
+        }
+        const m = Math.floor(remain / 60000), s = Math.floor((remain % 60000) / 1000);
+        msg.textContent = 'Terlalu banyak percobaan salah. Coba lagi dalam ' + m + ':' + String(s).padStart(2, '0');
+      };
+      tick();
+      timer = setInterval(tick, 1000);
+    }
+
+    async function adminLogout() {
+      if (!confirm('Yakin ingin keluar?')) return;
+      await _sb.auth.signOut();
+      window.location.href = 'login.html';
+    }
+
+    // ===================== ADMIN APP INIT ====================
+    function initAdminApp() {
+      loadAllData();
+      setInterval(function () { loadTransactions(); }, 30000);
+    }
+
+    async function loadAllData() {
+      await loadPremiumPakets();
+      await loadTransactions();
+      await loadUsersAndAccess();
+    }
+
+    // ===================== SIDEBAR / NAV ====================
+    function toggleAdminSidebar() {
+      document.getElementById('adminSidebar').classList.toggle('-translate-x-full');
+      document.getElementById('adminSbOverlay').classList.toggle('hidden');
+    }
+
+    function showSection(name) {
+      ['transaksi', 'users', 'akses', 'pengaturan'].forEach(function (s) {
+        document.getElementById('section-' + s).classList.toggle('hidden', s !== name);
+        const navBtn = document.getElementById('nav-' + s);
+        if (s === name) {
+          navBtn.classList.add('active');
+          navBtn.classList.remove('text-slate-400');
+        } else {
+          navBtn.classList.remove('active');
+          navBtn.classList.add('text-slate-400');
+        }
+      });
+      if (window.innerWidth < 1024) {
+        document.getElementById('adminSidebar').classList.add('-translate-x-full');
+        document.getElementById('adminSbOverlay').classList.add('hidden');
+      }
+    }
+
+    // ===================== HELPERS ====================
+    function skeletonRows(rows, cols) {
+      let html = '';
+      for (let r = 0; r < rows; r++) {
+        html += '<tr class="border-b border-slate-700/60">' +
+          Array(cols).fill('<td class="px-4 py-3"><div class="h-4 bg-slate-700 rounded animate-pulse"></div></td>').join('') +
+          '</tr>';
+      }
+      return html;
+    }
+
+    function statusBadgeHtml(status) {
+      const map = {
+        pending: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
+        confirmed: 'bg-green-500/15 text-green-400 border-green-500/30',
+        cancelled: 'bg-slate-500/15 text-slate-400 border-slate-500/30'
+      };
+      const label = { pending: 'Pending', confirmed: 'Confirmed', cancelled: 'Cancelled' };
+      return '<span class="text-xs font-bold px-2.5 py-1 rounded-full border ' + (map[status] || map.cancelled) + '">' + (label[status] || status) + '</span>';
+    }
+
+    function formatTanggal(dateStr) {
+      if (!dateStr) return '-';
+      return new Date(dateStr).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+
+    // ===================== PAKETS ====================
+    async function loadPremiumPakets() {
+      const { data, error } = await _sb.from('pakets').select('id, kode, nama, tipe, aktif').eq('aktif', true);
+      if (error) { showToast('Gagal memuat data paket: ' + error.message, 'error'); return; }
+      allPaketsById = {};
+      (data || []).forEach(function (p) { allPaketsById[String(p.id)] = p; });
+      premiumPakets = (data || []).filter(function (p) { return p.tipe === 'premium'; });
+    }
+
+    // ===================== TRANSAKSI ====================
+    async function loadTransactions() {
+      const tbody = document.getElementById('txTableBody');
+      if (tbody && !tbody.dataset.loaded) tbody.innerHTML = skeletonRows(5, 8);
+      const { data, error } = await _sb.from('transactions').select('*').order('created_at', { ascending: false });
+      if (error) { showToast('Gagal memuat transaksi: ' + error.message, 'error'); return; }
+      allTransactions = data || [];
+      if (tbody) tbody.dataset.loaded = '1';
+      renderTxSummary();
+      renderTxTable();
+    }
+
+    function renderTxSummary() {
+      const pending = allTransactions.filter(function (t) { return t.status === 'pending'; });
+      const todayStr = new Date().toDateString();
+      const confirmedToday = allTransactions.filter(function (t) {
+        return t.status === 'confirmed' && t.confirmed_at && new Date(t.confirmed_at).toDateString() === todayStr;
+      });
+      const totalRevenue = allTransactions
+        .filter(function (t) { return t.status === 'confirmed'; })
+        .reduce(function (s, t) { return s + (t.harga || 0); }, 0);
+      document.getElementById('sumPending').textContent = pending.length;
+      document.getElementById('sumConfirmedToday').textContent = confirmedToday.length;
+      document.getElementById('sumRevenue').textContent = 'Rp ' + totalRevenue.toLocaleString('id-ID');
+    }
+
+    function renderTxTable() {
+      const tbody = document.getElementById('txTableBody');
+      let filtered = allTransactions;
+      if (txFilter !== 'semua') filtered = filtered.filter(function (t) { return t.status === txFilter; });
+      if (txSearch) {
+        const q = txSearch.toLowerCase();
+        filtered = filtered.filter(function (t) {
+          return ((t.user_email || '').toLowerCase().includes(q)) || ((t.user_name || '').toLowerCase().includes(q));
+        });
+      }
+      if (!filtered.length) {
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center py-10 text-slate-500">Tidak ada transaksi.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = filtered.map(function (t, i) {
+        const paketNama = t.tipe === 'membership'
+          ? 'Semua Premium (Membership)'
+          : ((allPaketsById[t.paket_id] && allPaketsById[t.paket_id].nama) || t.paket_id || '-');
+        let aksi = '<span class="text-slate-500 text-xs">–</span>';
+        if (t.status === 'pending') {
+          aksi = '<div class="flex gap-1.5">' +
+            '<button onclick="openConfirmTxModal(' + t.id + ')" class="bg-green-600 hover:bg-green-700 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg transition whitespace-nowrap">✓ Konfirmasi</button>' +
+            '<button onclick="cancelTx(' + t.id + ')" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg transition whitespace-nowrap">✗ Batalkan</button>' +
+            '</div>';
+        }
+        return '<tr class="border-b border-slate-700/60 hover:bg-slate-900/40">' +
+          '<td class="px-4 py-3 text-slate-400 text-sm">' + (i + 1) + '</td>' +
+          '<td class="px-4 py-3"><p class="font-semibold text-white text-sm">' + (t.user_name || '-') + '</p><p class="text-slate-400 text-xs">' + (t.user_email || '-') + '</p></td>' +
+          '<td class="px-4 py-3 text-sm text-slate-300">' + paketNama + '</td>' +
+          '<td class="px-4 py-3 text-sm text-slate-300 capitalize">' + t.tipe + '</td>' +
+          '<td class="px-4 py-3 text-sm text-slate-300">Rp ' + (t.harga || 0).toLocaleString('id-ID') + '</td>' +
+          '<td class="px-4 py-3">' + statusBadgeHtml(t.status) + '</td>' +
+          '<td class="px-4 py-3 text-sm text-slate-400">' + formatTanggal(t.created_at) + '</td>' +
+          '<td class="px-4 py-3">' + aksi + '</td>' +
+          '</tr>';
+      }).join('');
+    }
+
+    function setTxFilter(f) {
+      txFilter = f;
+      ['semua', 'pending', 'confirmed', 'cancelled'].forEach(function (k) {
+        const el = document.getElementById('txf-' + k);
+        el.className = 'px-4 py-2 rounded-xl text-sm font-semibold transition whitespace-nowrap ' +
+          (k === f ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400 border border-slate-700 hover:bg-slate-700');
+      });
+      renderTxTable();
+    }
+
+    document.getElementById('txSearchInput').addEventListener('input', function (e) {
+      txSearch = e.target.value;
+      renderTxTable();
+    });
+
+    async function cancelTx(id) {
+      if (!confirm('Yakin ingin membatalkan transaksi ini?')) return;
+      const { error } = await _sb.from('transactions').update({ status: 'cancelled' }).eq('id', id);
+      if (error) { showToast('Gagal membatalkan transaksi: ' + error.message, 'error'); return; }
+      showToast('Transaksi dibatalkan', 'success');
+      await loadTransactions();
+    }
+
+    // ===================== MODAL: KONFIRMASI TRANSAKSI ====================
+    function openConfirmTxModal(id) {
+      const tx = allTransactions.find(function (t) { return t.id === id; });
+      if (!tx) return;
+      pendingConfirmTx = tx;
+      document.getElementById('ctxName').textContent = tx.user_name || '-';
+      document.getElementById('ctxEmail').textContent = tx.user_email || '-';
+      document.getElementById('ctxPaket').textContent = tx.tipe === 'membership'
+        ? 'Semua Paket Premium (Membership)'
+        : ((allPaketsById[tx.paket_id] && allPaketsById[tx.paket_id].nama) || tx.paket_id || '-');
+      document.getElementById('ctxTipe').textContent = tx.tipe;
+      document.getElementById('ctxHarga').textContent = 'Rp ' + (tx.harga || 0).toLocaleString('id-ID');
+      document.getElementById('ctxExpiry').value = '2026-12-31';
+      document.getElementById('ctxNotify').checked = true;
+      const modal = document.getElementById('confirmTxModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeConfirmTxModal() {
+      pendingConfirmTx = null;
+      const modal = document.getElementById('confirmTxModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    async function confirmTxAndGrantAccess() {
+      if (!pendingConfirmTx) return;
+      const tx = pendingConfirmTx;
+      const expiryDate = document.getElementById('ctxExpiry').value;
+      const expiresAt = expiryDate ? new Date(expiryDate + 'T23:59:59').toISOString() : null;
+      const sendNotif = document.getElementById('ctxNotify').checked;
+      const btn = document.getElementById('ctxSubmitBtn');
+      btn.disabled = true;
+      btn.textContent = 'Memproses...';
+
+      try {
+        const { error: txErr } = await _sb.from('transactions').update({
+          status: 'confirmed',
+          confirmed_at: new Date().toISOString(),
+          confirmed_by: currentSession.user.email
+        }).eq('id', tx.id);
+        if (txErr) throw txErr;
+
+        let accessRows = [];
+        if (tx.tipe === 'membership') {
+          accessRows = premiumPakets.map(function (p) {
+            return { user_id: tx.user_id, paket_id: String(p.id), tipe: 'membership', transaction_id: tx.id, expires_at: expiresAt };
+          });
+        } else {
+          accessRows = [{ user_id: tx.user_id, paket_id: tx.paket_id, tipe: 'satuan', transaction_id: tx.id, expires_at: expiresAt }];
+        }
+        const { error: accErr } = await _sb.from('user_access').upsert(accessRows, { onConflict: 'user_id,paket_id' });
+        if (accErr) throw accErr;
+
+        if (sendNotif) {
+          const judul = tx.tipe === 'membership' ? 'Membership Aktif!' : 'Akses Paket Dibuka!';
+          const pesan = tx.tipe === 'membership'
+            ? 'Pembayaran membership kamu sudah dikonfirmasi. Semua paket premium kini bisa diakses!'
+            : 'Pembayaran untuk paket "' + ((allPaketsById[tx.paket_id] && allPaketsById[tx.paket_id].nama) || tx.paket_id) + '" sudah dikonfirmasi. Selamat belajar!';
+          const { error: notifErr } = await _sb.from('notifications').insert({ user_id: tx.user_id, judul: judul, pesan: pesan, tipe: 'success' });
+          if (notifErr) console.error(notifErr);
+
+          try {
+            await _sb.functions.invoke('send-notification-email', {
+              body: { user_id: tx.user_id, email: tx.user_email, judul: judul, pesan: pesan }
+            });
+          } catch (e) { /* edge function notifikasi email opsional */ }
+        }
+
+        showToast('Transaksi dikonfirmasi & akses dibuka!', 'success');
+        closeConfirmTxModal();
+        await loadTransactions();
+        await loadUsersAndAccess();
+      } catch (e) {
+        showToast('Gagal: ' + e.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '✓ Konfirmasi & Buka Akses';
+      }
+    }
+
+    // ===================== USERS & AKSES ====================
+    async function loadUsersAndAccess() {
+      let rpcUsers = null;
+      try {
+        const { data, error } = await _sb.rpc('admin_list_users');
+        if (!error) rpcUsers = data;
+      } catch (e) { /* fungsi admin_list_users opsional */ }
+
+      const [{ data: hasilData, error: hasilErr }, { data: accessData, error: accessErr }] = await Promise.all([
+        _sb.from('hasil_tryout').select('user_id, display_name, created_at'),
+        _sb.from('user_access').select('*').order('created_at', { ascending: false })
+      ]);
+
+      if (hasilErr) showToast('Gagal memuat hasil tryout: ' + hasilErr.message, 'error');
+      if (accessErr) showToast('Gagal memuat data akses: ' + accessErr.message, 'error');
+
+      allUserAccess = accessData || [];
+      usersMap = new Map();
+
+      if (rpcUsers) {
+        rpcUsers.forEach(function (u) {
+          usersMap.set(u.id, { email: u.email, name: u.full_name || (u.email ? u.email.split('@')[0] : '-'), totalTryout: 0, joined: u.created_at });
+        });
+      }
+
+      (hasilData || []).forEach(function (row) {
+        if (!usersMap.has(row.user_id)) {
+          usersMap.set(row.user_id, { email: null, name: row.display_name || '-', totalTryout: 0, joined: row.created_at });
+        }
+        const u = usersMap.get(row.user_id);
+        u.totalTryout++;
+        if (!rpcUsers && row.display_name && (!u.name || u.name === '-')) u.name = row.display_name;
+      });
+
+      allTransactions.forEach(function (tx) {
+        if (!usersMap.has(tx.user_id)) {
+          usersMap.set(tx.user_id, { email: tx.user_email, name: tx.user_name || (tx.user_email ? tx.user_email.split('@')[0] : '-'), totalTryout: 0, joined: tx.created_at });
+        } else {
+          const u = usersMap.get(tx.user_id);
+          if (!u.email) u.email = tx.user_email;
+          if (!u.name || u.name === '-') u.name = tx.user_name || (tx.user_email ? tx.user_email.split('@')[0] : '-');
+        }
+      });
+
+      allUserAccess.forEach(function (row) {
+        if (!usersMap.has(row.user_id)) {
+          usersMap.set(row.user_id, { email: null, name: '-', totalTryout: 0, joined: row.created_at });
+        }
+      });
+
+      document.getElementById('sumUsers').textContent = usersMap.size;
+      renderUsersTable();
+      renderAksesTable();
+    }
+
+    function renderUsersTable() {
+      const tbody = document.getElementById('usersTableBody');
+      if (!usersMap.size) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-10 text-slate-500">Belum ada data user.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = Array.from(usersMap.entries()).map(function (entry) {
+        const uid = entry[0], u = entry[1];
+        const access = allUserAccess.filter(function (a) { return a.user_id === uid; });
+        const aktif = access.filter(function (a) { return !a.expires_at || new Date(a.expires_at) > new Date(); });
+        let statusAkses;
+        if (aktif.some(function (a) { return a.tipe === 'membership'; })) {
+          statusAkses = '<span class="text-xs font-bold px-2.5 py-1 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30">Membership</span>';
+        } else if (aktif.length) {
+          statusAkses = '<span class="text-xs font-bold px-2.5 py-1 rounded-full bg-blue-500/15 text-blue-400 border border-blue-500/30">' + aktif.length + ' Paket</span>';
+        } else {
+          statusAkses = '<span class="text-xs font-bold px-2.5 py-1 rounded-full bg-slate-500/15 text-slate-400 border border-slate-500/30">Gratis</span>';
+        }
+        return '<tr class="border-b border-slate-700/60 hover:bg-slate-900/40">' +
+          '<td class="px-4 py-3 font-semibold text-white text-sm">' + (u.name || '-') + '</td>' +
+          '<td class="px-4 py-3 text-sm text-slate-300">' + (u.email || '-') + '</td>' +
+          '<td class="px-4 py-3 text-sm text-slate-300">' + u.totalTryout + '</td>' +
+          '<td class="px-4 py-3">' + statusAkses + '</td>' +
+          '<td class="px-4 py-3 text-sm text-slate-400">' + formatTanggal(u.joined) + '</td>' +
+          '<td class="px-4 py-3"><button onclick="openGrantModal(\'' + uid + '\')" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg transition whitespace-nowrap">+ Beri Akses</button></td>' +
+          '</tr>';
+      }).join('');
+    }
+
+    function renderAksesTable() {
+      const tbody = document.getElementById('aksesTableBody');
+      if (!allUserAccess.length) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-10 text-slate-500">Belum ada akses premium yang diberikan.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = allUserAccess.map(function (a) {
+        const u = usersMap.get(a.user_id) || {};
+        const paket = (allPaketsById[a.paket_id] && allPaketsById[a.paket_id].nama) || a.paket_id;
+        const berlaku = a.expires_at ? formatTanggal(a.expires_at) : 'Selamanya';
+        const aktif = !a.expires_at || new Date(a.expires_at) > new Date();
+        const statusBadge = aktif
+          ? '<span class="text-xs font-bold px-2.5 py-1 rounded-full bg-green-500/15 text-green-400 border border-green-500/30">Aktif</span>'
+          : '<span class="text-xs font-bold px-2.5 py-1 rounded-full bg-slate-500/15 text-slate-400 border border-slate-500/30">Expired</span>';
+        return '<tr class="border-b border-slate-700/60 hover:bg-slate-900/40">' +
+          '<td class="px-4 py-3"><p class="font-semibold text-white text-sm">' + (u.name || '-') + '</p><p class="text-slate-400 text-xs">' + (u.email || a.user_id) + '</p></td>' +
+          '<td class="px-4 py-3 text-sm text-slate-300">' + paket + '</td>' +
+          '<td class="px-4 py-3 text-sm text-slate-300 capitalize">' + a.tipe + '</td>' +
+          '<td class="px-4 py-3 text-sm text-slate-400">' + berlaku + '</td>' +
+          '<td class="px-4 py-3">' + statusBadge + '</td>' +
+          '<td class="px-4 py-3"><div class="flex gap-1.5">' +
+          '<button onclick="openExtendModal(' + a.id + ')" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg transition whitespace-nowrap">Perpanjang</button>' +
+          '<button onclick="revokeAccess(' + a.id + ')" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg transition whitespace-nowrap">Cabut</button>' +
+          '</div></td>' +
+          '</tr>';
+      }).join('');
+    }
+
+    async function revokeAccess(accessId) {
+      if (!confirm('Yakin ingin mencabut akses ini?')) return;
+      const { error } = await _sb.from('user_access').delete().eq('id', accessId);
+      if (error) { showToast('Gagal mencabut akses: ' + error.message, 'error'); return; }
+      showToast('Akses dicabut', 'success');
+      await loadUsersAndAccess();
+    }
+
+    // ===================== MODAL: PERPANJANG AKSES ====================
+    function openExtendModal(accessId) {
+      const row = allUserAccess.find(function (a) { return a.id === accessId; });
+      if (!row) return;
+      pendingExtendAccess = row;
+      const u = usersMap.get(row.user_id) || {};
+      const paket = (allPaketsById[row.paket_id] && allPaketsById[row.paket_id].nama) || row.paket_id;
+      document.getElementById('extendUserInfo').textContent = (u.email || u.name || row.user_id) + ' — ' + paket;
+      document.getElementById('extendExpiry').value = row.expires_at ? row.expires_at.slice(0, 10) : '2026-12-31';
+      const modal = document.getElementById('extendAccessModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeExtendModal() {
+      pendingExtendAccess = null;
+      const modal = document.getElementById('extendAccessModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    async function submitExtend() {
+      if (!pendingExtendAccess) return;
+      const newExpiry = document.getElementById('extendExpiry').value;
+      const expiresAt = newExpiry ? new Date(newExpiry + 'T23:59:59').toISOString() : null;
+      const { error } = await _sb.from('user_access').update({ expires_at: expiresAt }).eq('id', pendingExtendAccess.id);
+      if (error) { showToast('Gagal memperpanjang akses: ' + error.message, 'error'); return; }
+      showToast('Akses diperpanjang', 'success');
+      closeExtendModal();
+      await loadUsersAndAccess();
+    }
+
+    // ===================== MODAL: BERI AKSES ====================
+    function openGrantModal(userId) {
+      const u = usersMap.get(userId) || {};
+      pendingGrantUser = userId;
+      document.getElementById('grantUserInfo').textContent = (u.name || '-') + ' — ' + (u.email || userId);
+      const select = document.getElementById('grantPaketSelect');
+      select.innerHTML = '<option value="membership">⭐ Membership (Semua Paket Premium)</option>' +
+        premiumPakets.map(function (p) { return '<option value="' + p.id + '">' + p.nama + '</option>'; }).join('');
+      document.getElementById('grantExpiry').value = '2026-12-31';
+      const modal = document.getElementById('grantAccessModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeGrantModal() {
+      pendingGrantUser = null;
+      const modal = document.getElementById('grantAccessModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    async function submitGrant() {
+      if (!pendingGrantUser) return;
+      const val = document.getElementById('grantPaketSelect').value;
+      const expiry = document.getElementById('grantExpiry').value;
+      const expiresAt = expiry ? new Date(expiry + 'T23:59:59').toISOString() : null;
+      let rows;
+      if (val === 'membership') {
+        rows = premiumPakets.map(function (p) {
+          return { user_id: pendingGrantUser, paket_id: String(p.id), tipe: 'membership', expires_at: expiresAt };
+        });
+      } else {
+        rows = [{ user_id: pendingGrantUser, paket_id: val, tipe: 'satuan', expires_at: expiresAt }];
+      }
+      const { error } = await _sb.from('user_access').upsert(rows, { onConflict: 'user_id,paket_id' });
+      if (error) { showToast('Gagal memberi akses: ' + error.message, 'error'); return; }
+
+      const judul = val === 'membership' ? 'Membership Diaktifkan' : 'Akses Paket Dibuka';
+      const pesan = val === 'membership'
+        ? 'Admin telah mengaktifkan membership untukmu. Semua paket premium kini terbuka!'
+        : 'Admin telah membuka akses paket "' + ((allPaketsById[val] && allPaketsById[val].nama) || val) + '" untukmu.';
+      await _sb.from('notifications').insert({ user_id: pendingGrantUser, judul: judul, pesan: pesan, tipe: 'success' });
+
+      showToast('Akses berhasil diberikan', 'success');
+      closeGrantModal();
+      await loadUsersAndAccess();
+    }
+
+    // ===================== PENGATURAN: UBAH PIN ====================
+    async function changePin() {
+      const oldPin = document.getElementById('oldPinInput').value;
+      const newPin = document.getElementById('newPinInput').value;
+      const confirmPin = document.getElementById('confirmPinInput').value;
+      if (!/^\d{6}$/.test(newPin)) { showToast('PIN baru harus 6 digit angka', 'error'); return; }
+      if (newPin !== confirmPin) { showToast('Konfirmasi PIN baru tidak cocok', 'error'); return; }
+      const { data, error } = await _sb.from('admin_config').select('value').eq('key', 'admin_pin').single();
+      if (error) { showToast('Gagal memuat PIN saat ini: ' + error.message, 'error'); return; }
+      if (data.value !== oldPin) { showToast('PIN lama salah', 'error'); return; }
+      const { error: updErr } = await _sb.from('admin_config').update({ value: newPin, updated_at: new Date().toISOString() }).eq('key', 'admin_pin');
+      if (updErr) { showToast('Gagal mengubah PIN: ' + updErr.message, 'error'); return; }
+      showToast('PIN berhasil diubah', 'success');
+      document.getElementById('oldPinInput').value = '';
+      document.getElementById('newPinInput').value = '';
+      document.getElementById('confirmPinInput').value = '';
+    }
+  </script>
+</body>
+</html>
