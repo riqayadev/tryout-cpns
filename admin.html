@@ -330,8 +330,8 @@
     const { createClient } = supabase;
     const _sb = createClient('https://ykvwwfsoqqhtijtnivmj.supabase.co', 'sb_publishable_p_RYUHTiKlARg_rDTe3Gaw_N3G8XPwl');
 
-    const ADMIN_EMAIL = 'riqayadev0921@gmail.com';
     const LOCKOUT_MS = 15 * 60 * 1000;
+    const ROLE_CHECK_INTERVAL_MS = 5 * 60 * 1000;
 
     let currentSession = null;
     let allTransactions = [];
@@ -361,22 +361,35 @@
       }, 3500);
     }
 
-    // ===================== LAYER 1: AUTH ====================
+    // ===================== LAYER 1: AUTH (role-based) ====================
+    async function isAdminRole(userId) {
+      const { data, error } = await _sb.from('user_roles').select('role').eq('user_id', userId).maybeSingle();
+      if (error || !data) return false;
+      return data.role === 'admin';
+    }
+
     (async function () {
       const { data: { session } } = await _sb.auth.getSession();
       if (!session) { window.location.replace('login.html'); return; }
-      if (session.user.email !== ADMIN_EMAIL) {
-        document.getElementById('authCheck').innerHTML =
-          '<div class="text-center px-4"><div class="text-5xl mb-3">🚫</div>' +
-          '<p class="text-white font-bold text-lg mb-1">Akses Ditolak</p>' +
-          '<p class="text-slate-400 text-sm">Halaman ini khusus untuk admin.</p></div>';
-        setTimeout(function () { window.location.replace('dashboard.html'); }, 2000);
+      const admin = await isAdminRole(session.user.id);
+      if (!admin) {
+        alert('Akses ditolak');
+        window.location.replace('dashboard.html');
         return;
       }
       currentSession = session;
       document.getElementById('adminEmailDisplay').textContent = session.user.email;
       document.getElementById('authCheck').classList.add('hidden');
       initPinScreen();
+
+      // Cek ulang role tiap 5 menit untuk keamanan
+      setInterval(async function () {
+        const stillAdmin = await isAdminRole(currentSession.user.id);
+        if (!stillAdmin) {
+          alert('Akses ditolak');
+          window.location.replace('dashboard.html');
+        }
+      }, ROLE_CHECK_INTERVAL_MS);
     })();
 
     // ===================== LAYER 2: PIN ====================
