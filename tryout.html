@@ -18,7 +18,7 @@
     .option-btn{border:2px solid #e5e7eb;transition:border-color .15s ease,background-color .15s ease;}
     .option-btn:hover{border-color:#2563eb;background:#eff6ff;}
     .option-btn.selected{border-color:#2563eb;background:#dbeafe;}
-    body{-webkit-user-select:none;user-select:none;}
+    body{-webkit-user-select:none;user-select:none;overscroll-behavior-x:none;touch-action:pan-y;}
     @keyframes qFadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
     .q-enter{animation:qFadeIn .2s ease;}
     @keyframes flagPop{0%,100%{transform:scale(1)}50%{transform:scale(1.3) rotate(-8deg)}}
@@ -329,6 +329,35 @@
   function goPrev() { if (currentQ > 0) { currentQ--; renderQ(currentQ); } }
   function goNext() { if (currentQ < soalDB.length - 1) { currentQ++; renderQ(currentQ); } else konfirmasiSubmit(); }
   function jumpTo(idx) { currentQ = idx; renderQ(currentQ); }
+
+  // Navigasi via swipe / keyboard arrow — wrap around di soal pertama & terakhir
+  function navigateSoal(direction) {
+    if (soalDB.length === 0) return;
+    currentQ = direction === 'next'
+      ? (currentQ + 1) % soalDB.length
+      : (currentQ - 1 + soalDB.length) % soalDB.length;
+    renderQ(currentQ);
+  }
+
+  // Swipe kiri/kanan = ganti soal (bukan back/forward browser)
+  let touchStartX = 0, touchStartY = 0;
+  document.addEventListener('touchstart', e => {
+    touchStartX = e.changedTouches[0].screenX;
+    touchStartY = e.changedTouches[0].screenY;
+  }, { passive: true });
+  document.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].screenX - touchStartX;
+    const dy = e.changedTouches[0].screenY - touchStartY;
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
+      navigateSoal(dx < 0 ? 'next' : 'prev');
+    }
+  }, { passive: true });
+
+  // Keyboard arrow = ganti soal
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowLeft') navigateSoal('prev');
+    else if (e.key === 'ArrowRight') navigateSoal('next');
+  });
 
   function updateNavGrid() {
     // Soal sudah diurutkan TWK→TIU→TKP, map indeks per tipe
