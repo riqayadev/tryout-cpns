@@ -523,16 +523,42 @@
 
 <!-- Upgrade Premium Modal -->
 <div id="upgradeModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4" style="background:rgba(0,0,0,.6)" onclick="if(event.target===this)closeUpgradeModal()">
-  <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-sm p-6 text-center">
-    <div class="text-5xl mb-3">⭐</div>
-    <h3 class="font-black text-gray-900 dark:text-white text-lg mb-2">Upgrade ke Premium</h3>
-    <p class="text-gray-500 dark:text-gray-400 text-sm mb-4 leading-relaxed">Buka akses ke semua paket tryout premium dan pantau statistik performamu secara lengkap untuk persiapan SKD yang lebih maksimal.</p>
-    <div class="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-3 mb-4">
-      <p class="text-xs text-gray-500 dark:text-gray-400">Harga</p>
-      <p class="font-black text-amber-600 text-lg">Hubungi Kami</p>
+  <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-2xl p-6 sm:p-8 text-center max-h-[90vh] overflow-y-auto">
+    <div class="text-4xl mb-2">⭐</div>
+    <h3 class="font-black text-gray-900 dark:text-white text-xl mb-1">Upgrade Akses Premium</h3>
+    <p class="text-gray-500 dark:text-gray-400 text-sm mb-6">Pilih opsi yang paling sesuai untukmu</p>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 mb-5 text-left">
+      <!-- PILIHAN 1: Beli Satuan -->
+      <div class="border-2 border-gray-200 dark:border-slate-600 rounded-2xl p-5 flex flex-col">
+        <h4 class="font-bold text-gray-900 dark:text-white text-base mb-1">Beli Paket Ini</h4>
+        <div class="text-2xl font-black text-gray-900 dark:text-white mb-1">Rp 15.000</div>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">Akses 1 paket ini selamanya</p>
+        <ul class="space-y-2 text-sm flex-1">
+          <li class="flex gap-2 items-start"><span class="text-green-500 font-bold">✓</span><span class="text-gray-600 dark:text-gray-300">1 paket tryout premium</span></li>
+          <li class="flex gap-2 items-start"><span class="text-green-500 font-bold">✓</span><span class="text-gray-600 dark:text-gray-300">Pembahasan lengkap</span></li>
+          <li class="flex gap-2 items-start"><span class="text-green-500 font-bold">✓</span><span class="text-gray-600 dark:text-gray-300">Akses permanen</span></li>
+        </ul>
+      </div>
+
+      <!-- PILIHAN 2: Membership (highlight) -->
+      <div class="relative border-2 border-amber-400 bg-amber-50 dark:bg-amber-950/20 rounded-2xl p-5 pt-6 flex flex-col">
+        <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-500 text-white text-[10px] font-black px-3 py-1 rounded-full shadow whitespace-nowrap">⭐ TERBAIK</span>
+        <h4 class="font-bold text-gray-900 dark:text-white text-base mb-1">Membership</h4>
+        <div class="text-2xl font-black text-gray-900 dark:text-white mb-1">Rp 77.000</div>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">Akses semua paket selama 1 periode CPNS</p>
+        <ul class="space-y-2 text-sm flex-1">
+          <li class="flex gap-2 items-start"><span class="text-amber-500 font-bold">✓</span><span class="text-gray-600 dark:text-gray-300">Semua 5 paket premium unlock</span></li>
+          <li class="flex gap-2 items-start"><span class="text-amber-500 font-bold">✓</span><span class="text-gray-600 dark:text-gray-300">Statistik lengkap</span></li>
+          <li class="flex gap-2 items-start"><span class="text-amber-500 font-bold">✓</span><span class="text-gray-600 dark:text-gray-300">Update soal periode berikutnya</span></li>
+          <li class="flex gap-2 items-start"><span class="text-amber-500 font-bold">✓</span><span class="text-gray-600 dark:text-gray-300">Paket yang sudah dibeli tetap ada setelah periode berakhir</span></li>
+        </ul>
+      </div>
     </div>
-    <a href="https://wa.me/628xxxxxxxxxx?text=Halo%2C%20saya%20ingin%20upgrade%20ke%20Premium%20SkorinCPNS" target="_blank" rel="noopener" class="block w-full bg-green-500 hover:bg-green-600 text-white text-sm font-bold py-3 rounded-xl transition mb-2">💬 Hubungi via WhatsApp (08xxxxxxxxxx)</a>
-    <button onclick="closeUpgradeModal()" class="w-full text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 py-2 transition">Batal</button>
+
+    <a href="https://wa.me/6285159773052?text=Halo%2C+saya+ingin+upgrade+SkorinCPNS" target="_blank" rel="noopener" class="block w-full bg-green-500 hover:bg-green-600 text-white text-sm font-bold py-3 rounded-xl transition">💬 Hubungi via WhatsApp</a>
+    <p class="text-xs text-gray-400 mt-2">Beritahu kami pilihan Anda saat menghubungi</p>
+    <button onclick="closeUpgradeModal()" class="w-full text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 py-2 mt-1 transition">Batal</button>
   </div>
 </div>
 
