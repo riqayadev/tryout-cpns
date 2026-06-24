@@ -22,21 +22,5 @@
       "purpose": "any maskable"
     }
   ],
-  "categories": ["education", "productivity"],
-  "shortcuts": [
-    {
-      "name": "Dashboard",
-      "short_name": "Dashboard",
-      "description": "Buka dashboard tryout CPNS",
-      "url": "/dashboard.html",
-      "icons": [{"src": "data:image/png;base64,", "sizes": "96x96"}]
-    },
-    {
-      "name": "Mulai Tryout",
-      "short_name": "Tryout",
-      "description": "Pilih paket tryout",
-      "url": "/tryout-list.html",
-      "icons": [{"src": "data:image/png;base64,", "sizes": "96x96"}]
-    }
-  ]
+  "categories": ["education", "productivity"]
 }
